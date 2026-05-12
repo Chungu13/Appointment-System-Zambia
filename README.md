@@ -97,21 +97,26 @@ Copy `.env.example` to `.env` and fill in:
 
 ```
 beautybook-zm/
-├── beautybook/          # Django project — settings, URLs, Celery, JWT auth
-├── agents/              # AI agents (booking, scheduling, payment, insights) + Celery tasks
-├── bookings/            # Appointment, Customer, Waitlist models + GraphQL mutations
-├── services/            # Service and StaffService models
-├── staff/               # Custom User model, WorkingHours, auth mutations
-├── payments/            # Payment model, provider abstraction, webhook
-├── tenants/             # Tenant + Domain models (django-tenants)
-├── frontend/            # React PWA (Vite, Apollo, Tailwind v4)
+├── backend/                  # Django + GraphQL + Celery
+│   ├── agents/               # AI agents (booking, scheduling, payment, insights) + Celery tasks
+│   ├── bookings/             # Appointment, Customer, Waitlist models + GraphQL mutations
+│   ├── payments/             # Payment model, provider abstraction, webhook
+│   ├── services/             # Service and StaffService models
+│   ├── staff/                # Custom User model, WorkingHours, auth mutations
+│   ├── tenants/              # Tenant + Domain models (django-tenants)
+│   ├── beautybook/           # Django project — settings, URLs, Celery, JWT auth
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── Dockerfile            # Python/Django image
+│   ├── entrypoint.sh
+│   └── .env.example
+├── frontend/                 # React PWA (Vite, Apollo, Tailwind v4)
 │   └── src/
-│       ├── pages/       # Booking, Owner, Staff page components
-│       ├── App.jsx      # Router + ApolloProvider
-│       └── apollo.js    # GraphQL client config
+│       ├── pages/            # Booking, Owner, Staff page components
+│       ├── App.jsx           # Router + ApolloProvider
+│       └── apollo.js         # GraphQL client config
 ├── docker-compose.yml
-├── Dockerfile           # Python/Django image
-└── .env.example
+└── README.md
 ```
 
 ---

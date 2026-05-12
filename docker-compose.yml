@@ -5,11 +5,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       ${DB_NAME:-beautybook_db}
+      POSTGRES_USER:     ${DB_USER:-beautybook_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-beautybook_pass}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-beautybook_user} -d ${DB_NAME:-beautybook_db}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,13 +26,13 @@ services:
       retries: 5
 
   web:
-    build: .
+    build: ./backend
     restart: unless-stopped
-    env_file: .env
+    env_file: ./backend/.env
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./backend:/app
       - static_files:/app/staticfiles
       - media_files:/app/media
     depends_on:
@@ -42,12 +42,12 @@ services:
         condition: service_healthy
 
   celery:
-    build: .
+    build: ./backend
     restart: unless-stopped
-    env_file: .env
+    env_file: ./backend/.env
     command: celery -A beautybook worker --loglevel=info --concurrency=2
     volumes:
-      - .:/app
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
@@ -55,12 +55,12 @@ services:
         condition: service_healthy
 
   celery-beat:
-    build: .
+    build: ./backend
     restart: unless-stopped
-    env_file: .env
+    env_file: ./backend/.env
     command: celery -A beautybook beat --loglevel=info --schedule=/tmp/celerybeat-schedule
     volumes:
-      - .:/app
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
