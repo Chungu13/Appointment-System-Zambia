@@ -1,0 +1,54 @@
+# ── Secrets — never commit ──────────────────────────────────────────────────
+.env
+*.env
+.env.*
+!.env.example
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+dist/
+build/
+*.egg
+MANIFEST
+
+# ── Django ───────────────────────────────────────────────────────────────────
+*.sqlite3
+staticfiles/
+media/
+celerybeat-schedule
+celerybeat.pid
+
+# ── Docker volumes (if ever mounted locally) ────────────────────────────────
+postgres_data/
+redis_data/
+
+# ── Node / frontend ──────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# ── Editor & OS ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
