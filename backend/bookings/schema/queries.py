@@ -10,6 +10,7 @@ from bookings.models import Appointment, Customer
 from staff.schema.types import user_to_type
 
 from .types import (
+    AppointmentHistoryType,
     AppointmentType,
     AvailabilitySlotType,
     DashboardStatsType,
@@ -187,6 +188,32 @@ class BookingsQuery:
             slots_recovered=slots_recovered,
             pending_payments=pending_payments,
         )
+
+    @strawberry.field
+    def appointment_history(
+        self,
+        info: Info,
+        appointment_id: int,
+    ) -> List[AppointmentHistoryType]:
+        from bookings.models import AppointmentHistory
+
+        require_auth(info)
+        qs = AppointmentHistory.objects.filter(
+            appointment_id=appointment_id
+        ).select_related("changed_by").order_by("created_at")
+
+        return [
+            AppointmentHistoryType(
+                id=h.pk,
+                old_status=h.old_status,
+                new_status=h.new_status,
+                changed_by_name=h.changed_by.full_name if h.changed_by_id else None,
+                changed_by_agent=h.changed_by_agent,
+                note=h.note,
+                created_at=h.created_at,
+            )
+            for h in qs
+        ]
 
     @strawberry.field
     def agent_activity(

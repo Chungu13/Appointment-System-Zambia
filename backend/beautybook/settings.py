@@ -15,6 +15,7 @@ DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 SHARED_APPS = [
     "django_tenants",
     "tenants",
+    "corsheaders",
 
     # Django built-ins that live in the public schema
     "django.contrib.contenttypes",
@@ -53,6 +54,7 @@ PUBLIC_SCHEMA_NAME = "public"
 MIDDLEWARE = [
     "django_tenants.middleware.main.TenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -125,6 +127,15 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---------------------------------------------------------------------------
+# CORS
+# ---------------------------------------------------------------------------
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://.*\.localhost:\d+$",
+    r"^http://localhost:\d+$",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",

@@ -1,50 +1,116 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
-import { ApolloProvider } from '@apollo/client'
-import { Scissors, LayoutDashboard, Users } from 'lucide-react'
-import client from './apollo'
-import Booking from './pages/Booking'
-import Owner from './pages/Owner'
-import Staff from './pages/Staff'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ApolloProvider } from '@apollo/client/react'
+import { AuthProvider } from './context/AuthContext'
+import { tenantClient } from './lib/apollo'
 
-function Nav() {
-  const base = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors'
-  const active = 'bg-white/20 text-white'
-  const inactive = 'text-violet-200 hover:text-white hover:bg-white/10'
+// Router helpers
+import ProtectedRoute from './router/ProtectedRoute'
+import TenantRoute, { getSubdomain } from './router/TenantRoute'
 
+// Layout
+import Navbar from './components/layout/Navbar'
+import BottomNav from './components/layout/BottomNav'
+
+// Public pages
+import SalonDirectory from './pages/public/SalonDirectory'
+import SalonLanding from './pages/public/SalonLanding'
+import SalonBooking from './pages/public/SalonBooking'
+
+// Auth
+import Login from './pages/auth/Login'
+
+// Owner pages
+import OwnerDashboard from './pages/owner/OwnerDashboard'
+import Calendar from './pages/owner/Calendar'
+import Services from './pages/owner/Services'
+import Staff from './pages/owner/Staff'
+import Customers from './pages/owner/Customers'
+import Analytics from './pages/owner/Analytics'
+
+// Staff pages
+import StaffHome from './pages/staff/StaffHome'
+import WalkIn from './pages/staff/WalkIn'
+import AppointmentDetail from './pages/staff/AppointmentDetail'
+
+function AppShell({ children }) {
   return (
-    <nav className="bg-violet-700 text-white px-6 py-3 flex items-center justify-between shadow-md">
-      <span className="text-lg font-bold tracking-tight flex items-center gap-2">
-        <Scissors size={20} />
-        BeautyBook ZM
-      </span>
-      <div className="flex gap-1">
-        <NavLink to="/" end className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
-          <Scissors size={15} /> Book
-        </NavLink>
-        <NavLink to="/staff" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
-          <Users size={15} /> Staff
-        </NavLink>
-        <NavLink to="/owner" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
-          <LayoutDashboard size={15} /> Owner
-        </NavLink>
-      </div>
-    </nav>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      {children}
+      <BottomNav />
+    </div>
   )
 }
 
 export default function App() {
   return (
-    <ApolloProvider client={client}>
-      <BrowserRouter>
-        <div className="min-h-screen bg-gray-50">
-          <Nav />
+    <ApolloProvider client={tenantClient}>
+      <AuthProvider>
+        <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Booking />} />
-            <Route path="/staff" element={<Staff />} />
-            <Route path="/owner" element={<Owner />} />
+            {/* Root — landing on subdomain, directory on plain localhost */}
+            <Route
+              path="/"
+              element={
+                getSubdomain()
+                  ? <TenantRoute><SalonLanding /></TenantRoute>
+                  : <SalonDirectory />
+              }
+            />
+
+            {/* Booking flow — subdomain: /book, localhost fallback: /:salonSlug/book */}
+            <Route path="/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
+            <Route path="/:salonSlug/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
+
+            <Route path="/login" element={<Login />} />
+
+            {/* Path-based fallback: localhost:3000/glow-salon → landing */}
+            <Route
+              path="/:salonSlug"
+              element={
+                <TenantRoute>
+                  <SalonLanding />
+                </TenantRoute>
+              }
+            />
+
+            {/* Owner — protected, full shell */}
+            <Route
+              path="/owner/*"
+              element={
+                <ProtectedRoute requireOwner>
+                  <AppShell>
+                    <Routes>
+                      <Route index element={<OwnerDashboard />} />
+                      <Route path="calendar" element={<Calendar />} />
+                      <Route path="services" element={<Services />} />
+                      <Route path="staff" element={<Staff />} />
+                      <Route path="customers" element={<Customers />} />
+                      <Route path="analytics" element={<Analytics />} />
+                    </Routes>
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Staff — protected, full shell */}
+            <Route
+              path="/staff/*"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Routes>
+                      <Route index element={<StaffHome />} />
+                      <Route path="walk-in" element={<WalkIn />} />
+                      <Route path="appointments/:id" element={<AppointmentDetail />} />
+                    </Routes>
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
           </Routes>
-        </div>
-      </BrowserRouter>
+        </BrowserRouter>
+      </AuthProvider>
     </ApolloProvider>
   )
 }

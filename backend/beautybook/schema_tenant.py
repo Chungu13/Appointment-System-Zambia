@@ -1,7 +1,7 @@
 import strawberry
 from strawberry.tools import merge_types
 
-from agents.schema import AgentsMutation, AgentsQuery
+from agents.schema import AgentsMutation
 from bookings.schema import BookingsMutation, BookingsQuery
 from payments.schema import PaymentsMutation, PaymentsQuery
 from services.schema import ServicesMutation, ServicesQuery
@@ -9,7 +9,7 @@ from staff.schema import StaffMutation, StaffQuery
 
 Query = merge_types(
     "Query",
-    (BookingsQuery, ServicesQuery, StaffQuery, PaymentsQuery, AgentsQuery),
+    (BookingsQuery, ServicesQuery, StaffQuery, PaymentsQuery),
 )
 
 Mutation = merge_types(

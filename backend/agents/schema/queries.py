@@ -1,8 +1,3 @@
-import strawberry
+from .types import AgentLogType, agent_log_to_type
 
-
-@strawberry.type
-class AgentsQuery:
-    @strawberry.field
-    def agents_ping(self) -> str:
-        return "ok"
+__all__ = ["AgentLogType", "agent_log_to_type"]

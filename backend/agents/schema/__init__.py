@@ -1,4 +1,4 @@
 from .mutations import AgentsMutation
-from .queries import AgentsQuery
+from .types import AgentLogType, agent_log_to_type
 
-__all__ = ["AgentsQuery", "AgentsMutation"]
+__all__ = ["AgentsMutation", "AgentLogType", "agent_log_to_type"]
