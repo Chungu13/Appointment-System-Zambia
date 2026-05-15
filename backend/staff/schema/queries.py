@@ -6,7 +6,14 @@ from strawberry.types import Info
 from beautybook.permissions import require_auth, require_owner
 from staff.models import User
 
-from .types import UserType, WorkingHoursType, user_to_type, working_hours_to_type
+from .types import (
+    StaffDetailType,
+    UserType,
+    WorkingHoursType,
+    staff_detail_to_type,
+    user_to_type,
+    working_hours_to_type,
+)
 
 
 @strawberry.type
@@ -17,9 +24,12 @@ class StaffQuery:
         return user_to_type(user)
 
     @strawberry.field
-    def staff_list(self, info: Info) -> List[UserType]:
+    def staff_list(self, info: Info) -> List[StaffDetailType]:
         require_owner(info)
-        return [user_to_type(u) for u in User.objects.filter(is_active=True)]
+        users = User.objects.filter(is_active=True).prefetch_related(
+            "working_hours", "staff_services"
+        )
+        return [staff_detail_to_type(u) for u in users]
 
     @strawberry.field
     def working_hours(self, info: Info, staff_id: Optional[int] = None) -> List[WorkingHoursType]:

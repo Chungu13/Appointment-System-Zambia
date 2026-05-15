@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@apollo/client/react'
 import { MessageCircle, X } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
 import { CUSTOMER_APPOINTMENTS } from '../../graphql/queries/bookings'
+import { SALON_PROFILE } from '../../graphql/queries/salons'
 import { ADD_TO_WAITLIST } from '../../graphql/mutations/bookings'
 import { BookingProvider, useBooking } from '../../context/BookingContext'
 import ServiceCard from '../../components/booking/ServiceCard'
@@ -143,14 +144,52 @@ function WaitlistForm({ service, date, onClose }) {
 function Step2DateTime() {
   const { state, dispatch } = useBooking()
   const [date, setDate] = useState(toDateInputValue())
-  const { slots, loading, error } = useAvailability(state.service?.id, date)
+  const [selectedStaffId, setSelectedStaffId] = useState(null)
+  const { slots, loading, error } = useAvailability(state.service?.id, date, selectedStaffId)
   const [showWaitlist, setShowWaitlist] = useState(false)
+
+  const { data: profileData } = useQuery(SALON_PROFILE)
+  const staffList = profileData?.salonProfile?.staff ?? []
+  const staffCount = profileData?.salonProfile?.staffCount ?? 0
 
   const noSlots = !loading && !error && slots.length === 0
 
   return (
     <div>
       <h2 className="font-display text-xl font-semibold text-on-surface mb-4">Pick a date & time</h2>
+
+      {/* Stylist selector — only shown when there are multiple bookable staff */}
+      {staffCount > 1 && (
+        <div className="mb-5">
+          <p className="text-sm font-medium text-on-surface mb-2">Choose your stylist (optional)</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedStaffId(null)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                selectedStaffId === null
+                  ? 'bg-primary text-on-primary border-primary'
+                  : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+              }`}
+            >
+              Any stylist
+            </button>
+            {staffList.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedStaffId(selectedStaffId === s.id ? null : s.id)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  selectedStaffId === s.id
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                }`}
+              >
+                {s.fullName}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-5">
         <DatePicker selected={date} onChange={setDate} minDate={toDateInputValue()} />
         <div>
@@ -162,6 +201,7 @@ function Step2DateTime() {
               slots={slots}
               selected={state.slot}
               onSelect={(slot) => dispatch({ type: 'SELECT_SLOT', payload: slot })}
+              showStaffName={staffCount > 1 && !selectedStaffId}
             />
           )}
           {noSlots && !showWaitlist && (

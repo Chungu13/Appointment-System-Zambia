@@ -1,24 +1,18 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Calendar, Wrench, Users, Clock } from 'lucide-react'
+import { LayoutDashboard, Calendar, Wrench, Users, Settings } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 export default function BottomNav() {
   const { isAuthenticated, isOwner } = useAuth()
-  if (!isAuthenticated) return null
+  if (!isAuthenticated || !isOwner) return null
 
-  const ownerLinks = [
+  const links = [
     { to: '/owner', icon: LayoutDashboard, label: 'Home', end: true },
     { to: '/owner/calendar', icon: Calendar, label: 'Calendar' },
     { to: '/owner/services', icon: Wrench, label: 'Services' },
     { to: '/owner/staff', icon: Users, label: 'Staff' },
+    { to: '/owner/settings', icon: Settings, label: 'Settings' },
   ]
-
-  const staffLinks = [
-    { to: '/staff', icon: Clock, label: 'Schedule', end: true },
-    { to: '/staff/walk-in', icon: Users, label: 'Walk-in' },
-  ]
-
-  const links = isOwner ? ownerLinks : staffLinks
 
   return (
     <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant safe-bottom">

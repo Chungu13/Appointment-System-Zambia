@@ -1,7 +1,7 @@
 import datetime
 import strawberry
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 
 @strawberry.enum
@@ -20,6 +20,7 @@ class UserType:
     role: RoleEnum
     avatar_url: str
     is_active: bool
+    is_also_staff: bool
     date_joined: datetime.datetime
 
 
@@ -33,6 +34,22 @@ class WorkingHoursType:
     is_day_off: bool
 
 
+@strawberry.type
+class StaffDetailType:
+    id: int
+    username: str
+    full_name: str
+    email: str
+    phone: str
+    role: RoleEnum
+    avatar_url: str
+    is_active: bool
+    is_also_staff: bool
+    date_joined: datetime.datetime
+    working_hours: List[WorkingHoursType]
+    assigned_service_ids: List[int]
+
+
 def user_to_type(u) -> UserType:
     return UserType(
         id=u.pk,
@@ -43,6 +60,7 @@ def user_to_type(u) -> UserType:
         role=RoleEnum(u.role),
         avatar_url=u.avatar_url,
         is_active=u.is_active,
+        is_also_staff=getattr(u, "is_also_staff", False),
         date_joined=u.date_joined,
     )
 
@@ -55,4 +73,27 @@ def working_hours_to_type(wh) -> WorkingHoursType:
         start_time=wh.start_time,
         end_time=wh.end_time,
         is_day_off=wh.is_day_off,
+    )
+
+
+def staff_detail_to_type(u) -> StaffDetailType:
+    from services.models import StaffService
+
+    wh_qs = u.working_hours.order_by("day_of_week")
+    service_ids = list(
+        StaffService.objects.filter(staff=u).values_list("service_id", flat=True)
+    )
+    return StaffDetailType(
+        id=u.pk,
+        username=u.username,
+        full_name=u.full_name,
+        email=u.email,
+        phone=u.phone,
+        role=RoleEnum(u.role),
+        avatar_url=u.avatar_url,
+        is_active=u.is_active,
+        is_also_staff=getattr(u, "is_also_staff", False),
+        date_joined=u.date_joined,
+        working_hours=[working_hours_to_type(wh) for wh in wh_qs],
+        assigned_service_ids=service_ids,
     )

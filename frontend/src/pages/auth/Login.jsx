@@ -9,8 +9,8 @@ import { ErrorMessage } from '../../components/ui/Spinner'
 
 export default function Login() {
   const { isAuthenticated, isOwner } = useAuth()
-  const { doLogin, loading, error } = useLogin()
   const location = useLocation()
+  const { doLogin, loading, error } = useLogin()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -21,11 +21,7 @@ export default function Login() {
 
   async function submit(e) {
     e.preventDefault()
-    try {
-      await doLogin(username, password)
-    } catch {
-      // error surfaced via hook
-    }
+    try { await doLogin(username, password) } catch {}
   }
 
   return (
@@ -36,33 +32,19 @@ export default function Login() {
             <Scissors size={24} />
             <span className="font-display text-2xl font-bold">BeautyBook ZM</span>
           </div>
-          <h1 className="font-display text-2xl font-bold text-on-surface">Welcome back</h1>
-          <p className="text-on-surface-variant text-sm mt-1">Sign in to your account</p>
+          <h1 className="font-display text-2xl font-bold text-on-surface">Owner sign in</h1>
+          <p className="text-sm text-on-surface-variant mt-1">
+            Staff?{' '}
+            <Link to="/staff" className="text-primary hover:underline font-medium">Use the staff portal</Link>
+            {' '}— no account needed.
+          </p>
         </div>
 
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-6">
-          {error && (
-            <ErrorMessage
-              message={error.graphQLErrors?.[0]?.message ?? 'Invalid username or password.'}
-              className="mb-4"
-            />
-          )}
           <form onSubmit={submit} className="space-y-4">
-            <Input
-              label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              required
-            />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
+            {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Invalid credentials.'} />}
+            <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
+            <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
             <Button type="submit" fullWidth loading={loading}>Sign in</Button>
           </form>
         </div>

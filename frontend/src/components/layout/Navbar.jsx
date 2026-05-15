@@ -5,8 +5,16 @@ import { useAuth } from '../../context/AuthContext'
 import { useLogout } from '../../hooks/useAuth'
 import Avatar from '../ui/Avatar'
 
+const ownerLinks = [
+  { to: '/owner', label: 'Dashboard', end: true },
+  { to: '/owner/calendar', label: 'Calendar' },
+  { to: '/owner/services', label: 'Services' },
+  { to: '/owner/staff', label: 'Staff' },
+  { to: '/owner/settings', label: 'Settings' },
+]
+
 export default function Navbar() {
-  const { isAuthenticated, profile } = useAuth()
+  const { isAuthenticated, isOwner, profile } = useAuth()
   const logout = useLogout()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -25,21 +33,11 @@ export default function Navbar() {
           <span className="font-display text-lg">BeautyBook ZM</span>
         </Link>
 
-        {isAuthenticated && (
+        {isAuthenticated && isOwner && (
           <div className="hidden sm:flex items-center gap-1">
-            {profile?.role === 'OWNER' || profile?.role === 'owner' ? (
-              <>
-                <NavLink to="/owner" end className={linkClass}>Dashboard</NavLink>
-                <NavLink to="/owner/calendar" className={linkClass}>Calendar</NavLink>
-                <NavLink to="/owner/services" className={linkClass}>Services</NavLink>
-                <NavLink to="/owner/staff" className={linkClass}>Staff</NavLink>
-              </>
-            ) : (
-              <>
-                <NavLink to="/staff" end className={linkClass}>Schedule</NavLink>
-                <NavLink to="/staff/walk-in" className={linkClass}>Walk-in</NavLink>
-              </>
-            )}
+            {ownerLinks.map(({ to, label, end }) => (
+              <NavLink key={to} to={to} end={end} className={linkClass}>{label}</NavLink>
+            ))}
           </div>
         )}
 
@@ -63,31 +61,25 @@ export default function Navbar() {
               Sign in
             </Link>
           )}
-          <button
-            className="sm:hidden p-2 rounded-lg text-on-surface-variant hover:bg-surface-container"
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            {menuOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          {isAuthenticated && isOwner && (
+            <button
+              className="sm:hidden p-2 rounded-lg text-on-surface-variant hover:bg-surface-container"
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile menu */}
-      {menuOpen && isAuthenticated && (
+      {menuOpen && isAuthenticated && isOwner && (
         <div className="sm:hidden border-t border-outline-variant bg-surface-container-low px-4 py-3 flex flex-col gap-1">
-          {profile?.role === 'OWNER' || profile?.role === 'owner' ? (
-            <>
-              <NavLink to="/owner" end className={linkClass} onClick={() => setMenuOpen(false)}>Dashboard</NavLink>
-              <NavLink to="/owner/calendar" className={linkClass} onClick={() => setMenuOpen(false)}>Calendar</NavLink>
-              <NavLink to="/owner/services" className={linkClass} onClick={() => setMenuOpen(false)}>Services</NavLink>
-              <NavLink to="/owner/staff" className={linkClass} onClick={() => setMenuOpen(false)}>Staff</NavLink>
-            </>
-          ) : (
-            <>
-              <NavLink to="/staff" end className={linkClass} onClick={() => setMenuOpen(false)}>Schedule</NavLink>
-              <NavLink to="/staff/walk-in" className={linkClass} onClick={() => setMenuOpen(false)}>Walk-in</NavLink>
-            </>
-          )}
+          {ownerLinks.map(({ to, label, end }) => (
+            <NavLink key={to} to={to} end={end} className={linkClass} onClick={() => setMenuOpen(false)}>
+              {label}
+            </NavLink>
+          ))}
         </div>
       )}
     </nav>

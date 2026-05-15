@@ -8,6 +8,12 @@ export const SALON_PROFILE = gql`
       phone
       city
       address
+      staffCount
+      staff {
+        id
+        fullName
+        avatarUrl
+      }
       services {
         id
         name

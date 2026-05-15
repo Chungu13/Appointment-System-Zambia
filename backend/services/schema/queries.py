@@ -21,6 +21,13 @@ class OpeningHoursType:
 
 
 @strawberry.type
+class BookableStaffType:
+    id: int
+    full_name: str
+    avatar_url: str
+
+
+@strawberry.type
 class SalonProfileType:
     business_name: str
     business_type: str
@@ -29,6 +36,8 @@ class SalonProfileType:
     address: str
     services: List[ServiceType]
     opening_hours: List[OpeningHoursType]
+    staff: List[BookableStaffType]
+    staff_count: int
 
 
 @strawberry.type
@@ -49,6 +58,7 @@ class ServicesQuery:
 
     @strawberry.field
     def salon_profile(self, info: Info) -> SalonProfileType:
+        from services.models import StaffService
         from staff.models import WorkingHours
 
         tenant = info.context.request.tenant
@@ -82,6 +92,23 @@ class ServicesQuery:
                     is_closed=True,
                 ))
 
+        # Bookable staff = users who have at least one service assigned
+        bookable = (
+            StaffService.objects
+            .select_related("staff")
+            .values("staff_id", "staff__full_name", "staff__avatar_url")
+            .distinct()
+        )
+        unique_staff = {row["staff_id"]: row for row in bookable}
+        staff_list = [
+            BookableStaffType(
+                id=row["staff_id"],
+                full_name=row["staff__full_name"],
+                avatar_url=row["staff__avatar_url"] or "",
+            )
+            for row in unique_staff.values()
+        ]
+
         return SalonProfileType(
             business_name=tenant.business_name,
             business_type=tenant.business_type,
@@ -90,4 +117,6 @@ class ServicesQuery:
             address=tenant.address,
             services=services,
             opening_hours=opening_hours,
+            staff=staff_list,
+            staff_count=len(staff_list),
         )

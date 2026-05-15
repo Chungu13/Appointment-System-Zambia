@@ -190,6 +190,28 @@ class BookingsQuery:
         )
 
     @strawberry.field
+    def my_staff_appointments(
+        self,
+        info: Info,
+        date_from: Optional[datetime.date] = None,
+        date_to: Optional[datetime.date] = None,
+    ) -> List[AppointmentType]:
+        """Owner's own appointments as a practitioner (always filters by staff=user)."""
+        user = require_auth(info)
+        qs = (
+            Appointment.objects
+            .filter(staff=user)
+            .select_related("customer", "staff", "service")
+            .prefetch_related("payments")
+            .order_by("starts_at")
+        )
+        if date_from:
+            qs = qs.filter(starts_at__date__gte=date_from)
+        if date_to:
+            qs = qs.filter(starts_at__date__lte=date_to)
+        return [appointment_to_type(a) for a in qs]
+
+    @strawberry.field
     def appointment_history(
         self,
         info: Info,

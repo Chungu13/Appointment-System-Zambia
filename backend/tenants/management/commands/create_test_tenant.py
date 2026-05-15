@@ -21,8 +21,12 @@ class Command(BaseCommand):
                 "city": "Lusaka",
                 "on_trial": True,
                 "is_active": True,
+                "staff_access_key": "GLOW2024",
             },
         )
+        if not created and not tenant.staff_access_key:
+            tenant.staff_access_key = "GLOW2024"
+            tenant.save(update_fields=["staff_access_key"])
         self._ok(created, "Tenant 'Glow Salon'")
 
         domain, created = Domain.objects.get_or_create(
@@ -37,17 +41,19 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("\n✓ Test tenant ready.\n"))
         self.stdout.write(
-            "  GraphQL : http://glow.localhost:8000/graphql\n"
-            "  Admin   : http://glow.localhost:8000/admin/\n"
-            "  Owner   : glowowner / glow1234\n"
-            "  Staff   : alice / staff1234   |   bob / staff1234\n"
+            "  GraphQL    : http://glow.localhost:8000/graphql\n"
+            "  Admin      : http://glow.localhost:8000/admin/\n"
+            "  Owner      : glowowner / glow1234\n"
+            "  Staff key  : GLOW2024  → glow.localhost:3000/staff\n"
+            "  PIN login  : +260971000000 / 1234  (owner as solo staff)\n"
         )
 
     # ------------------------------------------------------------------
 
     def _seed(self):
-        owner = self._create_owner()  # noqa: F841
+        owner = self._create_owner()
         services = self._create_services()
+        self._seed_owner_as_staff(owner, services)
         self._create_staff(services)
 
     def _create_owner(self):
@@ -67,6 +73,46 @@ class Command(BaseCommand):
             user.save(update_fields=["password"])
         self._ok(created, "Owner 'glowowner'")
         return user
+
+    def _seed_owner_as_staff(self, owner, services):
+        from django.contrib.auth.hashers import make_password
+        from services.models import StaffService
+        from staff.models import WorkingHours
+
+        fields = []
+        if not owner.is_also_staff:
+            owner.is_also_staff = True
+            fields.append("is_also_staff")
+        if not owner.pin_hash:
+            owner.pin_hash = make_password("1234")
+            fields.append("pin_hash")
+        if not owner.phone:
+            owner.phone = "+260971000000"
+            fields.append("phone")
+        if fields:
+            owner.save(update_fields=fields)
+            self.stdout.write(self.style.SUCCESS("  ✓ Owner linked as staff (phone: +260971000000 / PIN: 1234)."))
+        else:
+            self.stdout.write("  – Owner already linked as staff, skipping.")
+
+        # Working hours: Mon–Fri 09:00–17:00, Sat 09:00–14:00, Sun off
+        for day in range(7):
+            is_off = day == 6
+            WorkingHours.objects.get_or_create(
+                staff=owner,
+                day_of_week=day,
+                defaults={
+                    "is_day_off": is_off,
+                    "start_time": None if is_off else datetime.time(9, 0),
+                    "end_time": None if is_off else (datetime.time(14, 0) if day == 5 else datetime.time(17, 0)),
+                },
+            )
+
+        # Assign all services to owner
+        for svc in services.values():
+            _, created = StaffService.objects.get_or_create(staff=owner, service=svc)
+            if created:
+                self.stdout.write(f"    ✓ glowowner → {svc.name}")
 
     def _create_services(self):
         from services.models import Service

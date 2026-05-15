@@ -65,6 +65,19 @@ export const AGENT_ACTIVITY = gql`
   }
 `
 
+export const MY_STAFF_APPOINTMENTS = gql`
+  query MyStaffAppointments($dateFrom: Date, $dateTo: Date) {
+    myStaffAppointments(dateFrom: $dateFrom, dateTo: $dateTo) {
+      id
+      status
+      startsAt
+      endsAt
+      customer { id fullName phone }
+      service { id name durationMinutes priceZmw }
+    }
+  }
+`
+
 export const CUSTOMER_APPOINTMENTS = gql`
   query CustomerAppointments($phone: String!) {
     customerAppointments(phone: $phone) {

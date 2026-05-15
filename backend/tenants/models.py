@@ -16,6 +16,7 @@ class Tenant(TenantMixin):
     phone = models.CharField(max_length=20, blank=True)
     city = models.CharField(max_length=100, default="Lusaka")
     address = models.TextField(blank=True)
+    staff_access_key = models.CharField(max_length=50, blank=True)
     is_active = models.BooleanField(default=True)
     on_trial = models.BooleanField(default=True)
     trial_ends_at = models.DateTimeField(null=True, blank=True)

@@ -11,6 +11,7 @@ export const MY_PROFILE = gql`
       role
       avatarUrl
       isActive
+      isAlsoStaff
       dateJoined
     }
   }
@@ -27,6 +28,16 @@ export const STAFF_LIST = gql`
       role
       avatarUrl
       isActive
+      isAlsoStaff
+      assignedServiceIds
+      workingHours {
+        id
+        dayOfWeek
+        dayName
+        startTime
+        endTime
+        isDayOff
+      }
     }
   }
 `

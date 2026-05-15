@@ -26,11 +26,10 @@ import Services from './pages/owner/Services'
 import Staff from './pages/owner/Staff'
 import Customers from './pages/owner/Customers'
 import Analytics from './pages/owner/Analytics'
+import Settings from './pages/owner/Settings'
 
-// Staff pages
-import StaffHome from './pages/staff/StaffHome'
-import WalkIn from './pages/staff/WalkIn'
-import AppointmentDetail from './pages/staff/AppointmentDetail'
+// Staff portal — no auth, shared key
+import StaffPortal from './pages/staff/StaffPortal'
 
 function AppShell({ children }) {
   return (
@@ -64,6 +63,9 @@ export default function App() {
 
             <Route path="/login" element={<Login />} />
 
+            {/* Staff portal — shared key, no individual auth */}
+            <Route path="/staff" element={<TenantRoute><StaffPortal /></TenantRoute>} />
+
             {/* Path-based fallback: localhost:3000/glow-salon → landing */}
             <Route
               path="/:salonSlug"
@@ -87,22 +89,7 @@ export default function App() {
                       <Route path="staff" element={<Staff />} />
                       <Route path="customers" element={<Customers />} />
                       <Route path="analytics" element={<Analytics />} />
-                    </Routes>
-                  </AppShell>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Staff — protected, full shell */}
-            <Route
-              path="/staff/*"
-              element={
-                <ProtectedRoute>
-                  <AppShell>
-                    <Routes>
-                      <Route index element={<StaffHome />} />
-                      <Route path="walk-in" element={<WalkIn />} />
-                      <Route path="appointments/:id" element={<AppointmentDetail />} />
+                      <Route path="settings" element={<Settings />} />
                     </Routes>
                   </AppShell>
                 </ProtectedRoute>

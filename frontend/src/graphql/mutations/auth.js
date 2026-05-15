@@ -1,5 +1,21 @@
 import { gql } from '@apollo/client'
 
+export const LOGIN_WITH_PIN = gql`
+  mutation LoginWithPin($phone: String!, $pin: String!) {
+    loginWithPin(phone: $phone, pin: $pin) {
+      accessToken
+      refreshToken
+      user {
+        id
+        username
+        fullName
+        role
+        avatarUrl
+      }
+    }
+  }
+`
+
 export const LOGIN = gql`
   mutation Login($username: String!, $password: String!) {
     login(username: $username, password: $password) {

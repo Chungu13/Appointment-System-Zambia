@@ -13,6 +13,8 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="staff")
     avatar_url = models.URLField(blank=True)
+    pin_hash = models.CharField(max_length=128, blank=True, default='')
+    is_also_staff = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     # is_active is inherited from AbstractUser
