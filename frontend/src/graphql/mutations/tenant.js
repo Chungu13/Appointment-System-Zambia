@@ -17,3 +17,9 @@ export const STAFF_UPDATE_APPOINTMENT = gql`
     staffUpdateAppointment(key: $key, appointmentId: $appointmentId, status: $status)
   }
 `
+
+export const UPDATE_TENANT_PROFILE = gql`
+  mutation UpdateTenantProfile($coverImageUrl: String, $address: String, $phone: String) {
+    updateTenantProfile(coverImageUrl: $coverImageUrl, address: $address, phone: $phone)
+  }
+`

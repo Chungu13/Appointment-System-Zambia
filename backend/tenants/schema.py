@@ -8,6 +8,7 @@ from strawberry.types import Info
 @strawberry.type
 class SalonSettingsType:
     staff_access_key: str
+    cover_image_url: str
 
 
 @strawberry.type
@@ -36,7 +37,10 @@ class TenantQuery:
         from beautybook.permissions import require_owner
         require_owner(info)
         tenant = info.context.request.tenant
-        return SalonSettingsType(staff_access_key=tenant.staff_access_key or "")
+        return SalonSettingsType(
+            staff_access_key=tenant.staff_access_key or "",
+            cover_image_url=tenant.cover_image_url or "",
+        )
 
     @strawberry.field
     def all_appointments_today(
@@ -93,6 +97,26 @@ class TenantMutation:
         tenant = info.context.request.tenant
         tenant.staff_access_key = key
         tenant.save(update_fields=["staff_access_key", "updated_at"])
+        return True
+
+    @strawberry.mutation
+    def update_tenant_profile(
+        self,
+        info: Info,
+        cover_image_url: Optional[str] = None,
+        address: Optional[str] = None,
+        phone: Optional[str] = None,
+    ) -> bool:
+        from beautybook.permissions import require_owner
+        require_owner(info)
+        tenant = info.context.request.tenant
+        if cover_image_url is not None:
+            tenant.cover_image_url = cover_image_url.strip()
+        if address is not None:
+            tenant.address = address.strip()
+        if phone is not None:
+            tenant.phone = phone.strip()
+        tenant.save(update_fields=["cover_image_url", "address", "phone", "updated_at"])
         return True
 
     @strawberry.mutation

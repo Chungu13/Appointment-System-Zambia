@@ -1,12 +1,128 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw } from 'lucide-react'
+import { KeyRound, Copy, Check, RefreshCw, Camera, X } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
-import { SET_STAFF_ACCESS_KEY } from '../../graphql/mutations/tenant'
+import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE } from '../../graphql/mutations/tenant'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
+
+function BusinessProfileCard({ currentImageUrl }) {
+  const [preview, setPreview] = useState(currentImageUrl || null)
+  const [saved, setSaved] = useState(false)
+  const [validationError, setValidationError] = useState(null)
+  const [dragging, setDragging] = useState(false)
+  const inputRef = useRef()
+
+  const [updateProfile, { loading }] = useMutation(UPDATE_TENANT_PROFILE, {
+    refetchQueries: [SALON_SETTINGS],
+    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
+  })
+
+  function processFile(file) {
+    setValidationError(null)
+    if (!file) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      setValidationError('Only JPG and PNG files are accepted.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setValidationError('File must be under 5 MB.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const dataUrl = e.target.result
+      setPreview(dataUrl)
+      updateProfile({ variables: { coverImageUrl: dataUrl } })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function handleFileChange(e) {
+    processFile(e.target.files?.[0])
+  }
+
+  function handleDrop(e) {
+    e.preventDefault()
+    setDragging(false)
+    processFile(e.dataTransfer.files?.[0])
+  }
+
+  function removePhoto() {
+    setPreview(null)
+    if (inputRef.current) inputRef.current.value = ''
+    updateProfile({ variables: { coverImageUrl: '' } })
+  }
+
+  return (
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-5">
+      <div>
+        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+          <Camera size={18} className="text-primary" />
+          Business profile photo
+        </h2>
+        <p className="text-sm text-on-surface-variant mt-1">
+          This photo appears on your public salon listing in the directory.
+        </p>
+      </div>
+
+      {validationError && (
+        <p className="text-sm text-error font-medium">{validationError}</p>
+      )}
+
+      {preview ? (
+        <div className="relative w-full max-w-sm">
+          <img
+            src={preview}
+            alt="Business cover"
+            className="w-full h-48 object-cover rounded-xl border border-outline-variant"
+          />
+          <button
+            onClick={removePhoto}
+            className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
+          >
+            <X size={16} />
+          </button>
+          {loading && (
+            <div className="absolute inset-0 bg-black/30 rounded-xl flex items-center justify-center">
+              <span className="text-white text-sm font-medium">Saving…</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          className={`w-full max-w-sm h-40 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
+            dragging
+              ? 'border-primary bg-primary/5'
+              : 'border-outline-variant hover:border-primary/50 hover:bg-surface-container'
+          }`}
+        >
+          <Camera size={28} className="text-on-surface-variant" />
+          <span className="text-sm text-on-surface-variant">
+            Click or drag a photo here
+          </span>
+          <span className="text-xs text-on-surface-variant/70">JPG or PNG, max 5 MB</span>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+    </div>
+  )
+}
 
 function generateKey() {
   const words = ['GLOW', 'SALON', 'BEAUTY', 'SHINE', 'STYLE', 'GRACE']
@@ -110,6 +226,7 @@ export default function Settings() {
 
       {data && (
         <div className="max-w-lg space-y-6">
+          <BusinessProfileCard currentImageUrl={data.salonSettings.coverImageUrl} />
           <StaffKeyCard currentKey={data.salonSettings.staffAccessKey} />
         </div>
       )}

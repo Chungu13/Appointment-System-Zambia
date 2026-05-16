@@ -14,6 +14,22 @@ const TYPE_LABELS = {
   barbershop: 'Barbershop',
   nail_tech: 'Nail Tech',
   spa: 'Spa',
+  lash_studio: 'Lash Studio',
+  makeup_artist: 'Makeup Artist',
+}
+
+const DEFAULT_BANNERS = {
+  salon:        'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&q=80',
+  nail_tech:    'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&q=80',
+  barbershop:   'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80',
+  spa:          'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&q=80',
+  lash_studio:  'https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=1200&q=80',
+  _fallback:    'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&q=80',
+}
+
+function bannerFor(profile) {
+  if (profile.coverImageUrl) return profile.coverImageUrl
+  return DEFAULT_BANNERS[profile.businessType] ?? DEFAULT_BANNERS._fallback
 }
 
 const CATEGORY_COLORS = {
@@ -128,42 +144,60 @@ export default function SalonLanding() {
     return h.dayOfWeek === todayIdx && !h.isClosed
   })
 
+  const bannerUrl = bannerFor(profile)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <header className="bg-primary text-on-primary">
-        <div className="max-w-4xl mx-auto px-4 py-14">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <Badge color="primary" className="bg-on-primary/20 text-on-primary border-0 mb-3">
-                {TYPE_LABELS[profile.businessType] ?? profile.businessType}
-              </Badge>
-              <h1 className="font-display text-4xl font-bold mb-2">{profile.businessName}</h1>
-              <div className="flex flex-wrap gap-4 text-on-primary/80 text-sm">
-                {profile.city && (
-                  <span className="flex items-center gap-1.5">
-                    <MapPin size={14} /> {profile.city}
-                    {profile.address && ` · ${profile.address}`}
-                  </span>
-                )}
-                {profile.phone && (
-                  <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 hover:text-on-primary">
-                    <Phone size={14} /> {profile.phone}
-                  </a>
-                )}
-                {openToday && (
-                  <span className="flex items-center gap-1.5">
-                    <Clock size={14} />
-                    Open today {formatTime(openToday.opensAt)} – {formatTime(openToday.closesAt)}
-                  </span>
-                )}
-              </div>
-            </div>
+      <header className="relative w-full h-60 sm:h-80 overflow-hidden">
+        {/* Background image */}
+        <img
+          src={bannerUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark green overlay */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'rgba(26, 58, 42, 0.65)' }}
+        />
+        {/* Bottom fade into page background */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, transparent, var(--color-background, #fafaf8))' }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 h-full max-w-4xl mx-auto px-4 flex flex-col justify-end pb-8">
+          <span className="inline-flex items-center self-start bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
+            {TYPE_LABELS[profile.businessType] ?? profile.businessType}
+          </span>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow">
+            {profile.businessName}
+          </h1>
+          <div className="flex flex-wrap gap-4 text-white/85 text-sm">
+            {profile.city && (
+              <span className="flex items-center gap-1.5">
+                <MapPin size={14} /> {profile.city}
+                {profile.address && ` · ${profile.address}`}
+              </span>
+            )}
+            {profile.phone && (
+              <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 hover:text-white">
+                <Phone size={14} /> {profile.phone}
+              </a>
+            )}
+            {openToday && (
+              <span className="flex items-center gap-1.5">
+                <Clock size={14} />
+                Open today {formatTime(openToday.opensAt)} – {formatTime(openToday.closesAt)}
+              </span>
+            )}
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6">
             <Link to="/book">
-              <Button size="lg" className="bg-on-primary text-primary hover:bg-on-primary/90">
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
                 <Calendar size={18} />
                 Book an Appointment
               </Button>

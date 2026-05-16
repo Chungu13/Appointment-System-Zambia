@@ -15,6 +15,12 @@ import BottomNav from './components/layout/BottomNav'
 import SalonDirectory from './pages/public/SalonDirectory'
 import SalonLanding from './pages/public/SalonLanding'
 import SalonBooking from './pages/public/SalonBooking'
+import HowItWorks from './pages/public/HowItWorks'
+import Pricing from './pages/public/Pricing'
+import ForBusinesses from './pages/public/ForBusinesses'
+import Signup from './pages/public/Signup'
+import Onboarding from './pages/public/Onboarding'
+import Directory from './pages/public/Directory'
 
 // Auth
 import Login from './pages/auth/Login'
@@ -60,6 +66,14 @@ export default function App() {
             {/* Booking flow — subdomain: /book, localhost fallback: /:salonSlug/book */}
             <Route path="/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
             <Route path="/:salonSlug/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
+
+            {/* Marketing + public pages */}
+            <Route path="/directory" element={<Directory />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/for-businesses" element={<ForBusinesses />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
             <Route path="/login" element={<Login />} />
 

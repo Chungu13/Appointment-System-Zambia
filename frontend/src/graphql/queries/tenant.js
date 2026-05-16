@@ -4,6 +4,7 @@ export const SALON_SETTINGS = gql`
   query SalonSettings {
     salonSettings {
       staffAccessKey
+      coverImageUrl
     }
   }
 `

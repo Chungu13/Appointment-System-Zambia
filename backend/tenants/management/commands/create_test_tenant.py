@@ -17,13 +17,17 @@ class Command(BaseCommand):
             defaults={
                 "business_name": "Glow Salon",
                 "business_type": "salon",
-                "subdomain": "glow-salon",
+                "subdomain": "glow",
                 "city": "Lusaka",
                 "on_trial": True,
                 "is_active": True,
                 "staff_access_key": "GLOW2024",
             },
         )
+        # Ensure subdomain is correct for existing tenants created with the old value
+        if not created and tenant.subdomain != "glow":
+            tenant.subdomain = "glow"
+            tenant.save(update_fields=["subdomain"])
         if not created and not tenant.staff_access_key:
             tenant.staff_access_key = "GLOW2024"
             tenant.save(update_fields=["staff_access_key"])

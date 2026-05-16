@@ -6,8 +6,15 @@ import { getToken, getRefreshToken, setTokens, clearToken } from './auth'
 const PUBLIC_API_URL =
   import.meta.env.VITE_PUBLIC_API_URL || 'http://localhost:8000/graphql/'
 
-const TENANT_API_URL =
-  import.meta.env.VITE_API_URL || 'http://glow.localhost:8000/graphql/'
+// Derive tenant API URL from the current hostname so any new tenant's
+// subdomain (e.g. mynails.localhost:3000) hits the right backend schema.
+const TENANT_API_URL = (() => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+  const { hostname } = window.location
+  if (hostname === 'localhost') return 'http://localhost:8000/graphql/'
+  if (import.meta.env.DEV) return `http://${hostname}:8000/graphql/`
+  return `https://${hostname}/graphql/`
+})()
 
 // ── Silent refresh — raw fetch to avoid circular Apollo dependency ────────────
 async function doRefresh() {

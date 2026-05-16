@@ -34,6 +34,7 @@ class SalonProfileType:
     phone: str
     city: str
     address: str
+    cover_image_url: str
     services: List[ServiceType]
     opening_hours: List[OpeningHoursType]
     staff: List[BookableStaffType]
@@ -115,6 +116,7 @@ class ServicesQuery:
             phone=tenant.phone,
             city=tenant.city,
             address=tenant.address,
+            cover_image_url=tenant.cover_image_url or "",
             services=services,
             opening_hours=opening_hours,
             staff=staff_list,

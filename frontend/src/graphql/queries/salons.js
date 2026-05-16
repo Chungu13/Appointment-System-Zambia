@@ -8,6 +8,7 @@ export const SALON_PROFILE = gql`
       phone
       city
       address
+      coverImageUrl
       staffCount
       staff {
         id
@@ -46,6 +47,7 @@ export const ALL_SALONS = gql`
       city
       address
       isActive
+      coverImageUrl
     }
   }
 `

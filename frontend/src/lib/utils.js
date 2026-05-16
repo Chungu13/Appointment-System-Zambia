@@ -63,3 +63,11 @@ export function getInitials(name = '') {
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('')
 }
+
+export function getSalonUrl(subdomain) {
+  if (import.meta.env.DEV) {
+    const port = window.location.port || '3000'
+    return `http://${subdomain}.localhost:${port}`
+  }
+  return `https://${subdomain}.beautybook.zm`
+}
