@@ -7,6 +7,7 @@ const initialState = {
   salonSlug: null,
   service: null,    // { id, name, durationMinutes, priceZmw, depositZmw }
   slot: null,       // { startsAt, endsAt, staff: { id, fullName } }
+  preferredStaffId: null,  // pre-selected from "Book with Alice" CTA
   customer: {
     name: '',
     phone: '',
@@ -21,6 +22,8 @@ function reducer(state, action) {
   switch (action.type) {
     case 'SET_SALON':
       return { ...initialState, salonSlug: action.payload }
+    case 'SET_PREFERRED_STAFF':
+      return { ...state, preferredStaffId: action.payload }
     case 'SELECT_SERVICE':
       return { ...state, step: 2, service: action.payload }
     case 'SELECT_SLOT':

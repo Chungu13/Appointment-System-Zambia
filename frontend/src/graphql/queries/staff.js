@@ -27,6 +27,8 @@ export const STAFF_LIST = gql`
       phone
       role
       avatarUrl
+      bio
+      displayOnPublicPage
       isActive
       isAlsoStaff
       assignedServiceIds

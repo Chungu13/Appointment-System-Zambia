@@ -14,6 +14,9 @@ export const SALON_PROFILE = gql`
         id
         fullName
         avatarUrl
+        bio
+        displayOnPublicPage
+        serviceNames
       }
       services {
         id
@@ -32,6 +35,13 @@ export const SALON_PROFILE = gql`
         closesAt
         isClosed
       }
+      portfolioImages {
+        id
+        imageUrl
+        caption
+        serviceName
+        displayOrder
+      }
     }
   }
 `
@@ -48,6 +58,7 @@ export const ALL_SALONS = gql`
       address
       isActive
       coverImageUrl
+      portfolioPreviewUrl
     }
   }
 `

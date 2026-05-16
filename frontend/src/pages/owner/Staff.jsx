@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { ChevronDown, ChevronUp, Plus, KeyRound, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus, KeyRound, X, Camera, Eye, EyeOff } from 'lucide-react'
 import { STAFF_LIST, MY_PROFILE } from '../../graphql/queries/staff'
 import { SERVICES } from '../../graphql/queries/services'
 import {
@@ -9,6 +9,7 @@ import {
   SET_WORKING_HOURS,
   ASSIGN_SERVICE,
   REMOVE_SERVICE,
+  UPDATE_STAFF_PROFILE,
 } from '../../graphql/mutations/staff'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
@@ -270,6 +271,112 @@ function PinSetter({ staffId }) {
   )
 }
 
+// ── Public profile editor (photo + bio + visibility) ─────────────────────────
+function StaffProfileEditor({ member }) {
+  const [avatarPreview, setAvatarPreview] = useState(member.avatarUrl || null)
+  const [bio, setBio] = useState(member.bio || '')
+  const [isPublic, setIsPublic] = useState(member.displayOnPublicPage ?? false)
+  const [saved, setSaved] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const fileRef = useRef()
+
+  const [updateProfile, { loading }] = useMutation(UPDATE_STAFF_PROFILE, {
+    refetchQueries: [STAFF_LIST],
+    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 2500) },
+  })
+
+  function processFile(file) {
+    if (!file) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) return
+    if (file.size > 5 * 1024 * 1024) return
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setAvatarPreview(e.target.result)
+      updateProfile({ variables: { staffId: member.id, avatarUrl: e.target.result } })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function save() {
+    updateProfile({ variables: { staffId: member.id, bio, displayOnPublicPage: isPublic } })
+  }
+
+  function togglePublic() {
+    const next = !isPublic
+    setIsPublic(next)
+    updateProfile({ variables: { staffId: member.id, displayOnPublicPage: next } })
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-on-surface mb-3">Public profile</h3>
+      <div className="flex gap-4 items-start">
+        {/* Avatar upload */}
+        <div className="shrink-0">
+          {avatarPreview ? (
+            <div className="relative w-20 h-20">
+              <img src={avatarPreview} alt="Avatar" className="w-20 h-20 rounded-full object-cover border-2 border-outline-variant" />
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-on-primary rounded-full flex items-center justify-center border-2 border-surface-container-lowest hover:bg-primary/90 transition-colors"
+              >
+                <Camera size={13} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); processFile(e.dataTransfer.files?.[0]) }}
+              className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${dragOver ? 'border-primary bg-primary/5' : 'border-outline-variant hover:border-primary/50 hover:bg-surface-container'}`}
+            >
+              <Camera size={18} className="text-on-surface-variant" />
+              <span className="text-xs text-on-surface-variant">Photo</span>
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => processFile(e.target.files?.[0])} />
+        </div>
+
+        {/* Bio + visibility */}
+        <div className="flex-1 space-y-3">
+          <div>
+            <label className="text-xs font-medium text-on-surface-variant block mb-1">Short bio</label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={2}
+              placeholder="e.g. 5 years experience in braiding and natural hair"
+              className="w-full px-3 py-2 rounded-xl border border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <button
+              onClick={togglePublic}
+              className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${isPublic ? 'border-primary/40 bg-primary-container/40 text-primary' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'}`}
+            >
+              {isPublic ? <Eye size={15} /> : <EyeOff size={15} />}
+              {isPublic ? 'Shown on public page' : 'Hidden from public page'}
+            </button>
+
+            <div className="flex items-center gap-2">
+              {saved && <span className="text-xs text-green-700 font-medium">Saved ✓</span>}
+              <button
+                onClick={save}
+                disabled={loading}
+                className="text-sm px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium"
+              >
+                {loading ? 'Saving…' : 'Save bio'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Staff member panel ────────────────────────────────────────────────────────
 function StaffPanel({ member, allServices }) {
   const [open, setOpen] = useState(false)
@@ -298,6 +405,9 @@ function StaffPanel({ member, allServices }) {
       {/* Expanded panel */}
       {open && (
         <div className="border-t border-outline-variant p-4 bg-surface-container/30 space-y-6">
+          {/* Public profile */}
+          <StaffProfileEditor member={member} />
+
           {/* Working hours */}
           <div>
             <h3 className="text-sm font-semibold text-on-surface mb-3">Working hours</h3>

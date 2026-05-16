@@ -6,7 +6,7 @@ from strawberry.types import Info
 
 from services.models import Service
 
-from .types import CategoryEnum, ServiceType, service_to_type
+from .types import CategoryEnum, ServiceType, service_to_type, PortfolioImageType, portfolio_image_to_type
 
 _DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -25,6 +25,9 @@ class BookableStaffType:
     id: int
     full_name: str
     avatar_url: str
+    bio: str
+    display_on_public_page: bool
+    service_names: List[str]
 
 
 @strawberry.type
@@ -39,6 +42,7 @@ class SalonProfileType:
     opening_hours: List[OpeningHoursType]
     staff: List[BookableStaffType]
     staff_count: int
+    portfolio_images: List[PortfolioImageType]
 
 
 @strawberry.type
@@ -56,6 +60,14 @@ class ServicesQuery:
         if category is not None:
             qs = qs.filter(category=category.value)
         return [service_to_type(s) for s in qs]
+
+    @strawberry.field
+    def portfolio_images(self, info: Info) -> List[PortfolioImageType]:
+        from services.models import PortfolioImage
+        return [
+            portfolio_image_to_type(img)
+            for img in PortfolioImage.objects.filter(is_active=True).select_related("service")
+        ]
 
     @strawberry.field
     def salon_profile(self, info: Info) -> SalonProfileType:
@@ -94,20 +106,34 @@ class ServicesQuery:
                 ))
 
         # Bookable staff = users who have at least one service assigned
-        bookable = (
+        bookable_qs = (
             StaffService.objects
-            .select_related("staff")
-            .values("staff_id", "staff__full_name", "staff__avatar_url")
-            .distinct()
+            .select_related("staff", "service")
+            .order_by("staff_id", "service__name")
         )
-        unique_staff = {row["staff_id"]: row for row in bookable}
+        staff_services_map: dict = {}
+        for ss in bookable_qs:
+            sid = ss.staff_id
+            if sid not in staff_services_map:
+                staff_services_map[sid] = {"user": ss.staff, "service_names": []}
+            staff_services_map[sid]["service_names"].append(ss.service.name)
+
         staff_list = [
             BookableStaffType(
-                id=row["staff_id"],
-                full_name=row["staff__full_name"],
-                avatar_url=row["staff__avatar_url"] or "",
+                id=sid,
+                full_name=entry["user"].full_name,
+                avatar_url=entry["user"].avatar_url or "",
+                bio=getattr(entry["user"], "bio", "") or "",
+                display_on_public_page=getattr(entry["user"], "display_on_public_page", False),
+                service_names=entry["service_names"],
             )
-            for row in unique_staff.values()
+            for sid, entry in staff_services_map.items()
+        ]
+
+        from services.models import PortfolioImage
+        portfolio = [
+            portfolio_image_to_type(img)
+            for img in PortfolioImage.objects.filter(is_active=True).select_related("service")
         ]
 
         return SalonProfileType(
@@ -121,4 +147,5 @@ class ServicesQuery:
             opening_hours=opening_hours,
             staff=staff_list,
             staff_count=len(staff_list),
+            portfolio_images=portfolio,
         )

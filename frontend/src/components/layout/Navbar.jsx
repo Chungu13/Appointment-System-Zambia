@@ -1,29 +1,12 @@
-import { Link, NavLink } from 'react-router-dom'
-import { Scissors, LogOut, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Scissors, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useLogout } from '../../hooks/useAuth'
 import Avatar from '../ui/Avatar'
 
-const ownerLinks = [
-  { to: '/owner', label: 'Dashboard', end: true },
-  { to: '/owner/calendar', label: 'Calendar' },
-  { to: '/owner/services', label: 'Services' },
-  { to: '/owner/staff', label: 'Staff' },
-  { to: '/owner/settings', label: 'Settings' },
-]
-
 export default function Navbar() {
-  const { isAuthenticated, isOwner, profile } = useAuth()
+  const { isAuthenticated, profile } = useAuth()
   const logout = useLogout()
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  const linkClass = ({ isActive }) =>
-    `text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
-      isActive
-        ? 'bg-primary-container text-on-primary-container'
-        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-    }`
 
   return (
     <nav className="sticky top-0 z-40 bg-surface-container-lowest border-b border-outline-variant shadow-sm">
@@ -32,14 +15,6 @@ export default function Navbar() {
           <Scissors size={20} />
           <span className="font-display text-lg">BeautyBook ZM</span>
         </Link>
-
-        {isAuthenticated && isOwner && (
-          <div className="hidden sm:flex items-center gap-1">
-            {ownerLinks.map(({ to, label, end }) => (
-              <NavLink key={to} to={to} end={end} className={linkClass}>{label}</NavLink>
-            ))}
-          </div>
-        )}
 
         <div className="flex items-center gap-2 ml-auto">
           {isAuthenticated ? (
@@ -61,27 +36,8 @@ export default function Navbar() {
               Sign in
             </Link>
           )}
-          {isAuthenticated && isOwner && (
-            <button
-              className="sm:hidden p-2 rounded-lg text-on-surface-variant hover:bg-surface-container"
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              {menuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          )}
         </div>
       </div>
-
-      {/* Mobile menu */}
-      {menuOpen && isAuthenticated && isOwner && (
-        <div className="sm:hidden border-t border-outline-variant bg-surface-container-low px-4 py-3 flex flex-col gap-1">
-          {ownerLinks.map(({ to, label, end }) => (
-            <NavLink key={to} to={to} end={end} className={linkClass} onClick={() => setMenuOpen(false)}>
-              {label}
-            </NavLink>
-          ))}
-        </div>
-      )}
     </nav>
   )
 }

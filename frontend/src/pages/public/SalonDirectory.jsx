@@ -169,7 +169,7 @@ function Features() {
 
 // ── Salon card (preview) ──────────────────────────────────────────────────────
 function SalonCard({ salon, index }) {
-  const img       = salon.coverImageUrl || SALON_IMAGES[index % SALON_IMAGES.length]
+  const img       = salon.coverImageUrl || salon.portfolioPreviewUrl || SALON_IMAGES[index % SALON_IMAGES.length]
   const typeLabel = TYPE_LABELS[salon.businessType] ?? salon.businessType
   const services  = TYPE_SERVICES[salon.businessType] ?? ['Booking', 'Services', 'Packages']
 

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { MessageCircle, X } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
@@ -144,7 +144,7 @@ function WaitlistForm({ service, date, onClose }) {
 function Step2DateTime() {
   const { state, dispatch } = useBooking()
   const [date, setDate] = useState(toDateInputValue())
-  const [selectedStaffId, setSelectedStaffId] = useState(null)
+  const [selectedStaffId, setSelectedStaffId] = useState(state.preferredStaffId ?? null)
   const { slots, loading, error } = useAvailability(state.service?.id, date, selectedStaffId)
   const [showWaitlist, setShowWaitlist] = useState(false)
 
@@ -384,9 +384,15 @@ function Step4Payment() {
 
 // ── Main booking page ────────────────────────────────────────────────────────
 function BookingFlow() {
-  const { state } = useBooking()
+  const { state, dispatch } = useBooking()
   const { salonSlug } = useParams()
+  const [searchParams] = useSearchParams()
   const [chatOpen, setChatOpen] = useState(false)
+
+  useEffect(() => {
+    const staffId = searchParams.get('staffId')
+    if (staffId) dispatch({ type: 'SET_PREFERRED_STAFF', payload: parseInt(staffId) })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-background">

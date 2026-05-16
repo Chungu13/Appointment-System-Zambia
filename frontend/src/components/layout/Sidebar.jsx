@@ -1,39 +1,120 @@
-import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Calendar, Wrench, Users, BarChart2, UserCircle } from 'lucide-react'
-import { classNames } from '../../lib/utils'
+import { useState } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import {
+  LayoutDashboard, Calendar, Activity, Scissors,
+  Users, UserCircle, Settings, HelpCircle, Images,
+} from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useLogout } from '../../hooks/useAuth'
 
-const ownerLinks = [
-  { to: '/owner', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/owner/calendar', icon: Calendar, label: 'Calendar' },
-  { to: '/owner/services', icon: Wrench, label: 'Services' },
-  { to: '/owner/staff', icon: Users, label: 'Staff' },
-  { to: '/owner/customers', icon: UserCircle, label: 'Customers' },
-  { to: '/owner/analytics', icon: BarChart2, label: 'Analytics' },
+// ── Palette ───────────────────────────────────────────────────────────────────
+const BG          = '#2d4a30'
+const TEXT        = '#ffffff'
+const ACTIVE_BG   = '#3d6b42'
+const HOVER_BG    = 'rgba(255,255,255,0.08)'
+const MUTED       = 'rgba(255,255,255,0.6)'
+const DIVIDER     = 'rgba(255,255,255,0.12)'
+
+const mainLinks = [
+  { to: '/owner',           icon: LayoutDashboard, label: 'Dashboard',  end: true },
+  { to: '/owner/calendar',  icon: Calendar,        label: 'Calendar' },
+  { to: '/owner/analytics', icon: Activity,        label: 'Activity' },
+  { to: '/owner/services',  icon: Scissors,        label: 'Services' },
+  { to: '/owner/portfolio', icon: Images,          label: 'Portfolio' },
+  { to: '/owner/staff',     icon: Users,           label: 'Staff' },
+  { to: '/owner/customers', icon: UserCircle,      label: 'Customers' },
 ]
 
-export default function Sidebar() {
+const bottomLinks = [
+  { to: '/owner/settings', icon: Settings,    label: 'Settings' },
+  { to: '/how-it-works',   icon: HelpCircle,  label: 'Support' },
+]
+
+function NavItem({ to, end, icon: Icon, label }) {
+  const [hovered, setHovered] = useState(false)
+  const location = useLocation()
+  const isActive = end
+    ? location.pathname === to
+    : location.pathname === to || location.pathname.startsWith(to + '/')
+
   return (
-    <aside className="hidden sm:flex flex-col w-56 shrink-0">
-      <nav className="flex flex-col gap-1">
-        {ownerLinks.map(({ to, icon: Icon, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              classNames(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary-container text-on-primary-container'
-                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-              )
-            }
+    <NavLink
+      to={to}
+      end={end}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '8px 12px',
+        borderRadius: '10px',
+        fontSize: '0.875rem',
+        fontWeight: isActive ? 600 : 400,
+        textDecoration: 'none',
+        transition: 'background-color 0.12s',
+        color: isActive ? TEXT : MUTED,
+        backgroundColor: isActive ? ACTIVE_BG : hovered ? HOVER_BG : 'transparent',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
+      {label}
+    </NavLink>
+  )
+}
+
+export default function Sidebar() {
+  const { profile } = useAuth()
+  const logout = useLogout()
+  const navigate = useNavigate()
+
+  return (
+    <aside
+      className="hidden sm:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col z-40 border-r"
+      style={{ backgroundColor: BG, borderColor: DIVIDER }}
+    >
+      {/* Logo */}
+      <div className="px-5 pt-7 pb-5 shrink-0">
+        <Link to="/owner" style={{ textDecoration: 'none' }}>
+          <p
+            className="font-display text-xl font-bold leading-tight"
+            style={{ color: TEXT }}
           >
-            <Icon size={17} />
-            {label}
-          </NavLink>
+            Salon Manager
+          </p>
+        </Link>
+        <p className="text-xs mt-1 truncate" style={{ color: MUTED }}>
+          {profile?.fullName ?? 'Loading…'}
+        </p>
+      </div>
+
+      {/* Book Appointment CTA */}
+      <div className="px-4 pb-5 shrink-0">
+        <button
+          onClick={() => navigate('/book')}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+          style={{ backgroundColor: TEXT, color: BG }}
+        >
+          + Book Appointment
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="mx-4 mb-3 shrink-0" style={{ height: 1, backgroundColor: DIVIDER }} />
+
+      {/* Main nav */}
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+        {mainLinks.map(({ to, end, icon, label }) => (
+          <NavItem key={to} to={to} end={end} icon={icon} label={label} />
         ))}
       </nav>
+
+      {/* Bottom nav */}
+      <div className="px-3 pb-6 pt-3 space-y-0.5 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
+        {bottomLinks.map(({ to, icon, label }) => (
+          <NavItem key={to} to={to} icon={icon} label={label} />
+        ))}
+      </div>
     </aside>
   )
 }

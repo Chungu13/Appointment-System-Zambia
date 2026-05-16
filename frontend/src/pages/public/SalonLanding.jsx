@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
-import { MapPin, Phone, Clock, MessageCircle, X, Calendar } from 'lucide-react'
+import { MapPin, Phone, Clock, MessageCircle, X, Calendar, ChevronRight, ChevronLeft } from 'lucide-react'
 import { SALON_PROFILE } from '../../graphql/queries/salons'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
@@ -39,6 +39,228 @@ const CATEGORY_COLORS = {
   colour: 'red',
   lashes: 'green',
   other: 'gray',
+}
+
+const PREVIEW_USER = 'I want gel nails this Friday afternoon'
+const PREVIEW_AGENT = 'I found 3 slots with Natasha on Friday! 2pm, 3:30pm or 5pm — which works?'
+
+function ChatPreview() {
+  const [phase, setPhase] = useState(0)
+
+  useEffect(() => {
+    const ids = []
+    function cycle() {
+      setPhase(0)
+      ids.push(setTimeout(() => setPhase(1), 600))
+      ids.push(setTimeout(() => setPhase(2), 1900))
+      ids.push(setTimeout(() => setPhase(3), 3400))
+      ids.push(setTimeout(cycle, 6500))
+    }
+    cycle()
+    return () => ids.forEach(clearTimeout)
+  }, [])
+
+  return (
+    <div className="hidden sm:block mt-7">
+      <p className="text-xs text-white/70 mb-2.5 font-medium tracking-wide">✦ See how easy it is</p>
+      <div className="bg-black/25 backdrop-blur-sm rounded-2xl p-4 space-y-2 max-w-xs" style={{ minHeight: 96 }}>
+        {phase >= 1 && (
+          <div className="flex justify-end">
+            <div className="bg-white/90 text-primary rounded-2xl rounded-br-sm px-3 py-2 text-xs font-medium max-w-[85%]">
+              {PREVIEW_USER}
+            </div>
+          </div>
+        )}
+        {phase === 2 && (
+          <div className="flex justify-start">
+            <div className="bg-white/20 rounded-2xl rounded-bl-sm px-4 py-2.5 flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {phase >= 3 && (
+          <div className="flex justify-start">
+            <div className="bg-white/20 text-white rounded-2xl rounded-bl-sm px-3 py-2 text-xs max-w-[85%] leading-relaxed">
+              {PREVIEW_AGENT}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function StaffInitials({ name, size = 'md' }) {
+  const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+  const sizeClass = size === 'lg' ? 'w-20 h-20 text-xl' : 'w-14 h-14 text-base'
+  return (
+    <div className={`${sizeClass} rounded-full bg-primary flex items-center justify-center text-on-primary font-bold shrink-0`}>
+      {initials}
+    </div>
+  )
+}
+
+function TeamSection({ staff }) {
+  const publicStaff = staff.filter((s) => s.displayOnPublicPage)
+  if (publicStaff.length === 0) return null
+
+  return (
+    <section>
+      <div className="mb-8">
+        <h2 className="font-display text-2xl font-semibold text-on-surface">Meet Our Team</h2>
+        <p className="text-on-surface-variant text-sm mt-1">Book with a specific stylist you trust</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {publicStaff.map((member) => (
+          <div
+            key={member.id}
+            className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4"
+          >
+            {/* Avatar + name */}
+            <div className="flex items-center gap-3">
+              {member.avatarUrl ? (
+                <img
+                  src={member.avatarUrl}
+                  alt={member.fullName}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-outline-variant shrink-0"
+                />
+              ) : (
+                <StaffInitials name={member.fullName} />
+              )}
+              <div className="min-w-0">
+                <p className="font-semibold text-on-surface">{member.fullName}</p>
+                {member.serviceNames?.length > 0 && (
+                  <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-1">
+                    {member.serviceNames.join(' · ')}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Bio */}
+            {member.bio && (
+              <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3">
+                {member.bio}
+              </p>
+            )}
+
+            {/* Book CTA */}
+            <Link
+              to={`/book?staffId=${member.id}`}
+              className="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-xl border-2 border-primary text-primary text-sm font-semibold py-2.5 hover:bg-primary hover:text-on-primary transition-colors"
+            >
+              Book with {member.fullName.split(' ')[0]}
+            </Link>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Lightbox({ images, startIndex, onClose }) {
+  const [idx, setIdx] = useState(startIndex)
+  const img = images[idx]
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'ArrowLeft') setIdx((i) => Math.max(0, i - 1))
+      if (e.key === 'ArrowRight') setIdx((i) => Math.min(images.length - 1, i + 1))
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [images.length, onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+      >
+        <X size={24} />
+      </button>
+
+      {idx > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setIdx((i) => i - 1) }}
+          className="absolute left-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ChevronLeft size={28} />
+        </button>
+      )}
+      {idx < images.length - 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setIdx((i) => i + 1) }}
+          className="absolute right-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ChevronRight size={28} />
+        </button>
+      )}
+
+      <div className="max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+        <img src={img.imageUrl} alt={img.caption || ''} className="w-full max-h-[80vh] object-contain rounded-xl" />
+        {(img.caption || img.serviceName) && (
+          <div className="mt-3 text-center">
+            {img.caption && <p className="text-white font-medium">{img.caption}</p>}
+            {img.serviceName && <p className="text-white/60 text-sm mt-0.5">{img.serviceName}</p>}
+          </div>
+        )}
+        <p className="text-white/40 text-xs text-center mt-2">{idx + 1} / {images.length}</p>
+      </div>
+    </div>
+  )
+}
+
+function PortfolioGallery({ images }) {
+  const [lightboxIdx, setLightboxIdx] = useState(null)
+  if (!images || images.length === 0) return null
+
+  return (
+    <section>
+      <div className="mb-8">
+        <h2 className="font-display text-2xl font-semibold text-on-surface">Our Work</h2>
+        <p className="text-on-surface-variant text-sm mt-1">See what we can do for you</p>
+      </div>
+
+      {/* Masonry-style columns */}
+      <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+        {images.map((img, i) => (
+          <div
+            key={img.id}
+            className="break-inside-avoid cursor-pointer group relative rounded-2xl overflow-hidden border border-outline-variant"
+            onClick={() => setLightboxIdx(i)}
+          >
+            <img
+              src={img.imageUrl}
+              alt={img.caption || 'Portfolio'}
+              className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            {(img.caption || img.serviceName) && (
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                {img.caption && <p className="text-white text-sm font-medium">{img.caption}</p>}
+                {img.serviceName && <p className="text-white/75 text-xs">{img.serviceName}</p>}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {lightboxIdx !== null && (
+        <Lightbox images={images} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
+    </section>
+  )
 }
 
 function ServiceGrid({ services }) {
@@ -149,7 +371,7 @@ export default function SalonLanding() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <header className="relative w-full h-60 sm:h-80 overflow-hidden">
+      <header className="relative overflow-hidden">
         {/* Background image */}
         <img
           src={bannerUrl}
@@ -168,7 +390,8 @@ export default function SalonLanding() {
         />
 
         {/* Content */}
-        <div className="relative z-10 h-full max-w-4xl mx-auto px-4 flex flex-col justify-end pb-8">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-14">
+          {/* Badge + name + meta */}
           <span className="inline-flex items-center self-start bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
             {TYPE_LABELS[profile.businessType] ?? profile.businessType}
           </span>
@@ -195,14 +418,39 @@ export default function SalonLanding() {
             )}
           </div>
 
-          <div className="mt-6">
-            <Link to="/book">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
-                <Calendar size={18} />
-                Book an Appointment
-              </Button>
-            </Link>
+          {/* Dual CTAs */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            {/* Chat to Book */}
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => setChatOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-base px-6 py-3 bg-white text-primary hover:bg-white/90 shadow-lg transition-colors"
+              >
+                <MessageCircle size={18} />
+                Chat to Book
+                <ChevronRight size={16} />
+              </button>
+              <span className="text-xs text-white/70 text-center sm:text-left pl-1">
+                Just type what you want
+              </span>
+            </div>
+
+            {/* Browse & Book */}
+            <div className="flex flex-col gap-1">
+              <Link to="/book">
+                <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-base px-6 py-3 bg-transparent text-white border-2 border-white/70 hover:bg-white/10 shadow transition-colors">
+                  <Calendar size={18} />
+                  Browse &amp; Book
+                </button>
+              </Link>
+              <span className="text-xs text-white/70 text-center sm:text-left pl-1">
+                Pick a service and time
+              </span>
+            </div>
           </div>
+
+          {/* Animated chat preview */}
+          <ChatPreview />
         </div>
       </header>
 
@@ -216,6 +464,12 @@ export default function SalonLanding() {
             <ServiceGrid services={profile.services} />
           </section>
         )}
+
+        {/* Team */}
+        <TeamSection staff={profile.staff} />
+
+        {/* Portfolio */}
+        <PortfolioGallery images={profile.portfolioImages} />
 
         {/* Hours + CTA */}
         <div className="grid sm:grid-cols-2 gap-10">
@@ -262,6 +516,7 @@ export default function SalonLanding() {
       {chatOpen && (
         <ChatWindow
           customerPhone="+260000000000"
+          salonName={profile.businessName}
           onClose={() => setChatOpen(false)}
         />
       )}

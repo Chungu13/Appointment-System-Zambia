@@ -1,3 +1,5 @@
+from typing import Optional
+
 import strawberry
 from enum import Enum
 
@@ -44,6 +46,29 @@ def service_to_type(s) -> ServiceType:
         deposit_zmw=float(s.deposit_zmw),
         buffer_minutes=s.buffer_minutes,
         is_active=s.is_active,
+    )
+
+
+@strawberry.type
+class PortfolioImageType:
+    id: strawberry.ID
+    image_url: str
+    caption: str
+    service_id: Optional[int]
+    service_name: str
+    display_order: int
+    is_active: bool
+
+
+def portfolio_image_to_type(img) -> PortfolioImageType:
+    return PortfolioImageType(
+        id=str(img.pk),
+        image_url=img.image_url,
+        caption=img.caption,
+        service_id=img.service_id,
+        service_name=img.service.name if img.service_id else "",
+        display_order=img.display_order,
+        is_active=img.is_active,
     )
 
 

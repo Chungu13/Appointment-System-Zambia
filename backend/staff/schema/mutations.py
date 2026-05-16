@@ -192,6 +192,38 @@ class StaffMutation:
         StaffService.objects.get_or_create(staff=user, service=service)
         return True
 
+    # ── Owner: update staff profile (avatar, bio, public visibility) ─────────
+    @strawberry.mutation
+    def update_staff_profile(
+        self,
+        info: strawberry.types.Info,
+        staff_id: int,
+        avatar_url: Optional[str] = None,
+        bio: Optional[str] = None,
+        display_on_public_page: Optional[bool] = None,
+    ) -> UserType:
+        from beautybook.permissions import require_owner
+        from staff.models import User
+
+        require_owner(info)
+        user = User.objects.filter(pk=staff_id, is_active=True).first()
+        if not user:
+            raise ValueError("Staff member not found.")
+
+        fields = ["updated_at"]
+        if avatar_url is not None:
+            user.avatar_url = avatar_url.strip()
+            fields.append("avatar_url")
+        if bio is not None:
+            user.bio = bio.strip()
+            fields.append("bio")
+        if display_on_public_page is not None:
+            user.display_on_public_page = display_on_public_page
+            fields.append("display_on_public_page")
+
+        user.save(update_fields=fields)
+        return user_to_type(user)
+
     # ── Owner: remove service from staff member ───────────────────────────────
     @strawberry.mutation
     def remove_service(

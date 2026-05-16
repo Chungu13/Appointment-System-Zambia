@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
@@ -68,3 +70,25 @@ class StaffService(models.Model):
 
     def __str__(self):
         return f"{self.staff} — {self.service}"
+
+
+class PortfolioImage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    image_url = models.TextField()
+    caption = models.TextField(blank=True)
+    service = models.ForeignKey(
+        Service,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="portfolio_images",
+    )
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["display_order", "created_at"]
+
+    def __str__(self):
+        return f"Portfolio image {self.pk}"

@@ -19,6 +19,7 @@ class SalonType:
     address: str
     is_active: bool
     cover_image_url: str
+    portfolio_preview_url: str
 
 
 @strawberry.type
@@ -73,6 +74,7 @@ class Query:
                 address=t.address,
                 is_active=t.is_active,
                 cover_image_url=t.cover_image_url or "",
+                portfolio_preview_url=t.portfolio_preview_url or "",
             )
             for t in qs
         ]

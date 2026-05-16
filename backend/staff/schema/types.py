@@ -19,6 +19,8 @@ class UserType:
     phone: str
     role: RoleEnum
     avatar_url: str
+    bio: str
+    display_on_public_page: bool
     is_active: bool
     is_also_staff: bool
     date_joined: datetime.datetime
@@ -43,6 +45,8 @@ class StaffDetailType:
     phone: str
     role: RoleEnum
     avatar_url: str
+    bio: str
+    display_on_public_page: bool
     is_active: bool
     is_also_staff: bool
     date_joined: datetime.datetime
@@ -58,7 +62,9 @@ def user_to_type(u) -> UserType:
         email=u.email,
         phone=u.phone,
         role=RoleEnum(u.role),
-        avatar_url=u.avatar_url,
+        avatar_url=u.avatar_url or "",
+        bio=getattr(u, "bio", "") or "",
+        display_on_public_page=getattr(u, "display_on_public_page", False),
         is_active=u.is_active,
         is_also_staff=getattr(u, "is_also_staff", False),
         date_joined=u.date_joined,
@@ -90,7 +96,9 @@ def staff_detail_to_type(u) -> StaffDetailType:
         email=u.email,
         phone=u.phone,
         role=RoleEnum(u.role),
-        avatar_url=u.avatar_url,
+        avatar_url=u.avatar_url or "",
+        bio=getattr(u, "bio", "") or "",
+        display_on_public_page=getattr(u, "display_on_public_page", False),
         is_active=u.is_active,
         is_also_staff=getattr(u, "is_also_staff", False),
         date_joined=u.date_joined,

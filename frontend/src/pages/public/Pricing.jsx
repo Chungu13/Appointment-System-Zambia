@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
@@ -11,134 +11,31 @@ const MINT      = '#f4faf4'
 const MINT_ALT  = '#edf6ed'
 const MINT_CHIP = '#d4ecd4'
 
-const PLANS = [
-  {
-    name: 'Starter',
-    price: '250',
-    description: 'Perfect for solo practitioners just getting started.',
-    features: [
-      'Up to 2 staff members',
-      'Up to 100 bookings / month',
-      'Basic AI booking agent',
-      'Customer booking page',
-      'Email notifications',
-    ],
-  },
-  {
-    name: 'Growth',
-    price: '450',
-    description: 'The most popular choice for growing businesses.',
-    featured: true,
-    features: [
-      'Up to 5 staff members',
-      'Unlimited bookings',
-      'Full AI agent suite',
-      'Analytics dashboard',
-      'Priority support',
-    ],
-  },
-  {
-    name: 'Pro',
-    price: '750',
-    description: 'Everything you need to run a large salon empire.',
-    features: [
-      'Unlimited staff',
-      'Unlimited bookings',
-      'All AI agents',
-      'Custom branding',
-      'Dedicated support',
-      'WhatsApp notifications',
-    ],
-  },
+const INCLUDED = [
+  'Your own booking page',
+  'AI booking agent',
+  'Unlimited bookings',
+  'Customer reminders',
+  'Staff portal',
+  'Business analytics',
+  'Payment collection',
+  'Portfolio gallery',
 ]
 
 const FAQS = [
   {
-    q: 'Is there a free trial?',
-    a: 'Yes — 14 days completely free, no credit card required. You get full access to every feature during your trial.',
+    q: 'When will paid plans launch?',
+    a: "We'll give all founding businesses at least 30 days notice before any charges begin. You'll never wake up to a surprise bill.",
   },
   {
-    q: 'Can I cancel anytime?',
-    a: 'Absolutely. No contracts, no lock-in. Cancel from your dashboard with one click and you won\'t be charged again.',
+    q: "Will I lose my data if I don't upgrade?",
+    a: 'Never. Your bookings, customers, and history are always yours — regardless of what plan you are on.',
   },
   {
-    q: 'What payment methods do customers use?',
-    a: 'Customers can pay deposits and balances via Airtel Money, MTN MoMo, Visa, and Mastercard — all integrated directly.',
-  },
-  {
-    q: 'Do I need technical skills?',
-    a: 'None at all. Setup takes under 10 minutes. Add your services, set your hours, and share your booking link — that\'s it.',
+    q: 'What payment methods will you accept?',
+    a: 'Airtel Money, MTN MoMo, and card payments. We are building for Zambia — local payments are a priority.',
   },
 ]
-
-function PricingCard({ plan }) {
-  const { featured } = plan
-  return (
-    <div
-      className="rounded-2xl p-8 flex flex-col relative"
-      style={{
-        backgroundColor: featured ? DARK_CARD : '#ffffff',
-        border: featured ? 'none' : '1px solid #e8f0e8',
-        boxShadow: featured ? '0 8px 40px rgba(61,92,64,0.25)' : '0 2px 12px rgba(0,0,0,0.05)',
-      }}
-    >
-      {featured && (
-        <div
-          className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
-          style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-        >
-          Most Popular
-        </div>
-      )}
-
-      <p
-        className="text-xs font-bold uppercase tracking-widest mb-2"
-        style={{ color: featured ? 'rgba(255,255,255,0.6)' : PRIMARY }}
-      >
-        {plan.name}
-      </p>
-      <div className="flex items-baseline gap-1 mb-2">
-        <span
-          className="font-display text-4xl font-bold"
-          style={{ color: featured ? '#ffffff' : TEXT }}
-        >
-          ZMW {plan.price}
-        </span>
-        <span className="text-sm" style={{ color: featured ? 'rgba(255,255,255,0.6)' : MUTED }}>
-          /month
-        </span>
-      </div>
-      <p className="text-sm mb-6" style={{ color: featured ? 'rgba(255,255,255,0.7)' : MUTED }}>
-        {plan.description}
-      </p>
-
-      <ul className="space-y-3 mb-8 flex-1">
-        {plan.features.map((f) => (
-          <li key={f} className="flex items-start gap-2.5 text-sm">
-            <Check
-              size={15}
-              className="shrink-0 mt-0.5"
-              style={{ color: featured ? MINT_CHIP : PRIMARY }}
-            />
-            <span style={{ color: featured ? 'rgba(255,255,255,0.85)' : TEXT }}>{f}</span>
-          </li>
-        ))}
-      </ul>
-
-      <a
-        href="/signup"
-        className="block w-full text-center py-3.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
-        style={
-          featured
-            ? { backgroundColor: '#ffffff', color: DARK_CARD }
-            : { backgroundColor: PRIMARY, color: '#ffffff' }
-        }
-      >
-        Start free trial
-      </a>
-    </div>
-  )
-}
 
 function FAQItem({ q, a }) {
   const [open, setOpen] = useState(false)
@@ -154,17 +51,14 @@ function FAQItem({ q, a }) {
         <span className="font-semibold text-sm pr-4" style={{ color: TEXT }}>
           {q}
         </span>
-        {open ? (
-          <ChevronUp size={16} style={{ color: MUTED, flexShrink: 0 }} />
-        ) : (
-          <ChevronDown size={16} style={{ color: MUTED, flexShrink: 0 }} />
-        )}
+        {open
+          ? <ChevronUp size={16} style={{ color: MUTED, flexShrink: 0 }} />
+          : <ChevronDown size={16} style={{ color: MUTED, flexShrink: 0 }} />
+        }
       </button>
       {open && (
         <div className="px-5 pb-4">
-          <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-            {a}
-          </p>
+          <p className="text-sm leading-relaxed" style={{ color: MUTED }}>{a}</p>
         </div>
       )}
     </div>
@@ -184,42 +78,131 @@ export default function Pricing() {
             style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
           >
             <span>✦</span>
-            <span>Simple, transparent pricing</span>
+            <span>Simple, fair pricing</span>
           </div>
           <h1
             className="font-display text-4xl md:text-5xl font-bold leading-tight mb-5"
             style={{ color: TEXT }}
           >
-            Plans for every stage of growth
+            Simple, Fair Pricing
           </h1>
           <p className="text-lg leading-relaxed" style={{ color: MUTED }}>
-            Start free for 14 days. No credit card needed. Upgrade when you're ready.
+            We're launching in Zambia and want to get it right.
           </p>
         </div>
       </section>
 
-      {/* Pricing cards */}
+      {/* Main early access card */}
       <section className="bg-white py-16 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6 items-start pt-4">
-            {PLANS.map((plan) => (
-              <PricingCard key={plan.name} plan={plan} />
-            ))}
+        <div className="max-w-2xl mx-auto">
+          <div
+            className="rounded-3xl p-10 text-center relative"
+            style={{
+              backgroundColor: DARK_CARD,
+              boxShadow: '0 16px 60px rgba(61,92,64,0.3)',
+            }}
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-bold"
+              style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
+            >
+              <Sparkles size={14} />
+              Early Access
+            </div>
+
+            <h2
+              className="font-display text-3xl md:text-4xl font-bold text-white mb-5 leading-tight"
+            >
+              Free for Founding Businesses
+            </h2>
+
+            <p
+              className="text-base leading-relaxed mb-10 max-w-lg mx-auto"
+              style={{ color: 'rgba(255,255,255,0.8)' }}
+            >
+              Be one of the first beauty professionals on BeautyBook ZM. Early access is completely
+              free — no credit card, no hidden fees. When paid plans launch, founding businesses lock
+              in a special discounted rate forever.
+            </p>
+
+            <a
+              href="/signup"
+              className="inline-block px-10 py-4 rounded-full font-bold text-base transition-opacity hover:opacity-90 mb-5"
+              style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
+            >
+              Join Free as a Founding Business
+            </a>
+
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              Already 2 businesses on the platform
+            </p>
           </div>
-          <p className="text-center text-xs mt-8" style={{ color: MUTED }}>
-            All prices in Zambian Kwacha (ZMW). Billed monthly. Switch plans or cancel anytime.
+
+          {/* What's included */}
+          <div className="mt-14">
+            <h3
+              className="font-display text-xl font-bold text-center mb-8"
+              style={{ color: TEXT }}
+            >
+              Everything included during early access
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {INCLUDED.map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                  style={{ backgroundColor: MINT, border: '1px solid #e8f0e8' }}
+                >
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: MINT_CHIP }}
+                  >
+                    <Check size={12} style={{ color: PRIMARY }} strokeWidth={3} />
+                  </div>
+                  <span className="text-sm font-medium" style={{ color: TEXT }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Coming soon plans */}
+      <section style={{ backgroundColor: MINT_ALT }} className="py-16 px-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: PRIMARY }}>
+            Coming soon
           </p>
+          <h2
+            className="font-display text-2xl md:text-3xl font-bold mb-3"
+            style={{ color: TEXT }}
+          >
+            Paid plans launching soon
+          </h2>
+          <p className="text-base mb-8" style={{ color: MUTED }}>
+            Starter · Growth · Pro
+          </p>
+
+          <div
+            className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl"
+            style={{ backgroundColor: MINT_CHIP }}
+          >
+            <Sparkles size={18} style={{ color: PRIMARY }} />
+            <p className="text-sm font-semibold" style={{ color: PRIMARY }}>
+              Founding businesses get <span className="text-base font-bold">40% off</span> forever
+            </p>
+          </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section style={{ backgroundColor: MINT_ALT }} className="py-20 px-6">
-        <div className="max-w-3xl mx-auto">
+      <section className="bg-white py-20 px-6">
+        <div className="max-w-2xl mx-auto">
           <h2
-            className="font-display text-3xl font-bold text-center mb-10"
+            className="font-display text-2xl md:text-3xl font-bold text-center mb-10"
             style={{ color: TEXT }}
           >
-            Frequently asked questions
+            Questions &amp; answers
           </h2>
           <div className="space-y-3">
             {FAQS.map((faq) => (
@@ -230,30 +213,21 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <section className="bg-white py-20 px-6 text-center">
+      <section style={{ backgroundColor: MINT }} className="py-20 px-6 text-center">
         <div className="max-w-xl mx-auto">
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-3" style={{ color: TEXT }}>
-            Still have questions?
+            Ready to join?
           </h2>
           <p className="text-base mb-8" style={{ color: MUTED }}>
-            Chat with our team or start your free trial and see for yourself.
+            Get your salon online in under 10 minutes — completely free.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="/signup"
-              className="px-8 py-4 rounded-full text-white font-semibold text-base shadow-lg transition-opacity hover:opacity-90 w-full sm:w-auto text-center"
-              style={{ backgroundColor: PRIMARY }}
-            >
-              Start free trial
-            </a>
-            <a
-              href="mailto:hello@beautybook.zm"
-              className="px-8 py-4 rounded-full font-semibold text-base border-2 w-full sm:w-auto text-center transition-colors hover:bg-white"
-              style={{ borderColor: PRIMARY, color: PRIMARY }}
-            >
-              Contact us
-            </a>
-          </div>
+          <a
+            href="/signup"
+            className="inline-block px-10 py-4 rounded-full text-white font-semibold text-base shadow-lg transition-opacity hover:opacity-90"
+            style={{ backgroundColor: PRIMARY }}
+          >
+            Join as a Founding Business →
+          </a>
         </div>
       </section>
 

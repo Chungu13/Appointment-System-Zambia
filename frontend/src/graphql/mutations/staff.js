@@ -73,3 +73,25 @@ export const REMOVE_SERVICE = gql`
     removeService(staffId: $staffId, serviceId: $serviceId)
   }
 `
+
+export const UPDATE_STAFF_PROFILE = gql`
+  mutation UpdateStaffProfile(
+    $staffId: Int!
+    $avatarUrl: String
+    $bio: String
+    $displayOnPublicPage: Boolean
+  ) {
+    updateStaffProfile(
+      staffId: $staffId
+      avatarUrl: $avatarUrl
+      bio: $bio
+      displayOnPublicPage: $displayOnPublicPage
+    ) {
+      id
+      fullName
+      avatarUrl
+      bio
+      displayOnPublicPage
+    }
+  }
+`

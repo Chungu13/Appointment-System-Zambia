@@ -8,7 +8,7 @@ import ProtectedRoute from './router/ProtectedRoute'
 import TenantRoute, { getSubdomain } from './router/TenantRoute'
 
 // Layout
-import Navbar from './components/layout/Navbar'
+import Sidebar from './components/layout/Sidebar'
 import BottomNav from './components/layout/BottomNav'
 
 // Public pages
@@ -33,6 +33,7 @@ import Staff from './pages/owner/Staff'
 import Customers from './pages/owner/Customers'
 import Analytics from './pages/owner/Analytics'
 import Settings from './pages/owner/Settings'
+import Portfolio from './pages/owner/Portfolio'
 
 // Staff portal — no auth, shared key
 import StaffPortal from './pages/staff/StaffPortal'
@@ -40,8 +41,10 @@ import StaffPortal from './pages/staff/StaffPortal'
 function AppShell({ children }) {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      {children}
+      <Sidebar />
+      <div className="sm:pl-[220px]">
+        {children}
+      </div>
       <BottomNav />
     </div>
   )
@@ -103,6 +106,7 @@ export default function App() {
                       <Route path="staff" element={<Staff />} />
                       <Route path="customers" element={<Customers />} />
                       <Route path="analytics" element={<Analytics />} />
+                      <Route path="portfolio" element={<Portfolio />} />
                       <Route path="settings" element={<Settings />} />
                     </Routes>
                   </AppShell>

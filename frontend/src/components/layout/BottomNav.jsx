@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Calendar, Wrench, Users, Settings } from 'lucide-react'
+import { LayoutDashboard, Calendar, Images, Users, Settings } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 export default function BottomNav() {
@@ -9,7 +9,7 @@ export default function BottomNav() {
   const links = [
     { to: '/owner', icon: LayoutDashboard, label: 'Home', end: true },
     { to: '/owner/calendar', icon: Calendar, label: 'Calendar' },
-    { to: '/owner/services', icon: Wrench, label: 'Services' },
+    { to: '/owner/portfolio', icon: Images, label: 'Portfolio' },
     { to: '/owner/staff', icon: Users, label: 'Staff' },
     { to: '/owner/settings', icon: Settings, label: 'Settings' },
   ]
