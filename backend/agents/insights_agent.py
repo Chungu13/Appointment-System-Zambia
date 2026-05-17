@@ -6,6 +6,7 @@ from django.utils import timezone
 from openai import OpenAI
 
 from agents.models import AgentLog
+from agents.log_labels import friendly_tool_label
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +252,7 @@ class InsightsAgent:
 
                     AgentLog.objects.create(
                         agent_type="insights",
-                        action=f"Tool call: {tc.function.name}",
+                        action=friendly_tool_label(tc.function.name),
                         outcome="success" if "error" not in result else "failed",
                         metadata={
                             "tool": tc.function.name,

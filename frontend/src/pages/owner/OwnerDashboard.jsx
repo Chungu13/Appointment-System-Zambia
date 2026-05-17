@@ -1,10 +1,11 @@
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Lightbulb, Sparkles, CheckCircle, XCircle, Clock } from 'lucide-react'
-import { DASHBOARD_STATS, MY_STAFF_APPOINTMENTS, AGENT_ACTIVITY } from '../../graphql/queries/bookings'
+import { Lightbulb } from 'lucide-react'
+import { DASHBOARD_STATS, MY_STAFF_APPOINTMENTS } from '../../graphql/queries/bookings'
+import AgentFeed from '../../components/dashboard/AgentFeed'
 import { UPDATE_APPOINTMENT_STATUS } from '../../graphql/mutations/bookings'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { useAuth } from '../../context/AuthContext'
-import { formatZMW, toDateInputValue, formatTime, formatDateTime } from '../../lib/utils'
+import { formatZMW, toDateInputValue, formatTime } from '../../lib/utils'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
 
 const PAGE_BG  = '#f5fbf5'
@@ -147,53 +148,20 @@ function AIInsightCard({ bookedByAgent, slotsRecovered }) {
         cancelled slots this week.
       </p>
       <button
-        className="w-full py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ backgroundColor: PRIMARY }}
+        disabled
+        className="w-full py-2 rounded-xl text-sm font-semibold cursor-not-allowed"
+        style={{ backgroundColor: '#e0e0e0', color: '#9e9e9e' }}
       >
-        Generate Campaign
+        Generate Campaign — Coming Soon
       </button>
+      <p className="text-xs text-center mt-2" style={{ color: MUTED }}>
+        AI-powered promotions coming soon
+      </p>
     </div>
   )
 }
 
 // ── AI Activity Feed ──────────────────────────────────────────────────────────
-const OUTCOME_ICON = {
-  success:       <CheckCircle size={13} className="text-green-600 shrink-0 mt-0.5" />,
-  failed:        <XCircle size={13} className="text-red-500 shrink-0 mt-0.5" />,
-  pending_human: <Clock size={13} className="text-yellow-600 shrink-0 mt-0.5" />,
-}
-
-function AIActivityFeed() {
-  const { data, loading, error } = useQuery(AGENT_ACTIVITY, { variables: { limit: 8 } })
-
-  return (
-    <div
-      className="rounded-2xl p-5"
-      style={{ backgroundColor: CARD_BG, border: `1px solid ${BORDER}` }}
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles size={15} style={{ color: PRIMARY }} />
-        <h3 className="text-sm font-semibold" style={{ color: PRIMARY }}>Glow AI Activity Feed</h3>
-      </div>
-      {loading && <PageSpinner />}
-      {error && <ErrorMessage message={error.message} />}
-      {!loading && !error && (data?.agentActivity?.length ?? 0) === 0 && (
-        <p className="text-sm text-center py-4" style={{ color: MUTED }}>No activity yet.</p>
-      )}
-      <div className="space-y-3">
-        {data?.agentActivity?.map((log) => (
-          <div key={log.id} className="flex items-start gap-2.5">
-            {OUTCOME_ICON[log.outcome] ?? <span className="w-[13px] shrink-0" />}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm line-clamp-2" style={{ color: '#333' }}>{log.action}</p>
-              <p className="text-xs mt-0.5" style={{ color: MUTED }}>{formatDateTime(log.createdAt)}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 export default function OwnerDashboard() {
@@ -265,7 +233,7 @@ export default function OwnerDashboard() {
 
         <div className="space-y-4">
           <AIInsightCard bookedByAgent={stats?.bookedByAgent} slotsRecovered={stats?.slotsRecovered} />
-          <AIActivityFeed />
+          <AgentFeed limit={8} />
         </div>
       </div>
 

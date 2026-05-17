@@ -222,9 +222,16 @@ function Lightbox({ images, startIndex, onClose }) {
   )
 }
 
+const GALLERY_LIMIT = 6
+
 function PortfolioGallery({ images }) {
   const [lightboxIdx, setLightboxIdx] = useState(null)
+  const [showAll, setShowAll] = useState(false)
+
   if (!images || images.length === 0) return null
+
+  const visible = showAll ? images : images.slice(0, GALLERY_LIMIT)
+  const hasMore = images.length > GALLERY_LIMIT
 
   return (
     <section>
@@ -233,18 +240,17 @@ function PortfolioGallery({ images }) {
         <p className="text-on-surface-variant text-sm mt-1">See what we can do for you</p>
       </div>
 
-      {/* Masonry-style columns */}
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-        {images.map((img, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {visible.map((img, i) => (
           <div
             key={img.id}
-            className="break-inside-avoid cursor-pointer group relative rounded-2xl overflow-hidden border border-outline-variant"
+            className="aspect-square cursor-pointer group relative rounded-2xl overflow-hidden border border-outline-variant"
             onClick={() => setLightboxIdx(i)}
           >
             <img
               src={img.imageUrl}
               alt={img.caption || 'Portfolio'}
-              className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             {(img.caption || img.serviceName) && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -256,8 +262,23 @@ function PortfolioGallery({ images }) {
         ))}
       </div>
 
+      {hasMore && !showAll && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setShowAll(true)}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface-container transition-colors"
+          >
+            See More Work →
+          </button>
+        </div>
+      )}
+
       {lightboxIdx !== null && (
-        <Lightbox images={images} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+        <Lightbox
+          images={showAll ? images : visible}
+          startIndex={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+        />
       )}
     </section>
   )

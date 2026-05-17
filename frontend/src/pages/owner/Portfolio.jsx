@@ -67,7 +67,7 @@ function UploadModal({ services, onClose, onSave }) {
 
           {preview ? (
             <div className="relative">
-              <img src={preview} alt="Preview" className="w-full h-52 object-cover rounded-xl border border-outline-variant" />
+              <img src={preview} alt="Preview" className="w-full aspect-square object-cover rounded-xl border border-outline-variant" />
               <button
                 onClick={() => { setPreview(null); setDataUrl(null) }}
                 className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
@@ -137,7 +137,7 @@ function PhotoCard({ image, isFirst, isLast, onDelete, onMoveUp, onMoveDown }) {
 
   return (
     <div className="relative group rounded-2xl overflow-hidden border border-outline-variant bg-surface-container-lowest">
-      <img src={image.imageUrl} alt={image.caption || 'Portfolio'} className="w-full h-48 object-cover" />
+      <img src={image.imageUrl} alt={image.caption || 'Portfolio'} className="w-full aspect-square object-cover" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
@@ -236,7 +236,7 @@ export default function Portfolio() {
     <PageWrapper>
       <PageHeader
         title="Portfolio"
-        subtitle="Showcase your work to attract more customers"
+        subtitle={images.length > 0 ? `${images.length} photo${images.length === 1 ? '' : 's'}` : 'Showcase your work to attract more customers'}
         action={
           <Button onClick={() => setShowModal(true)} loading={adding}>
             <Plus size={16} />
@@ -280,7 +280,7 @@ export default function Portfolio() {
 
           <button
             onClick={() => setShowModal(true)}
-            className="h-48 rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-2 text-on-surface-variant hover:border-primary/50 hover:bg-surface-container hover:text-primary transition-colors"
+            className="aspect-square rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-2 text-on-surface-variant hover:border-primary/50 hover:bg-surface-container hover:text-primary transition-colors"
           >
             <Plus size={24} />
             <span className="text-sm font-medium">Add photo</span>
