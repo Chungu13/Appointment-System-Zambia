@@ -456,7 +456,7 @@ function DirectoryPreview() {
             </p>
           </div>
           <a
-            href="/directory"
+            href="/discover"
             className="text-sm font-semibold hidden sm:block transition-opacity hover:opacity-70"
             style={{ color: PRIMARY }}
           >
@@ -484,7 +484,7 @@ function DirectoryPreview() {
 
         <div className="text-center mt-10">
           <a
-            href="/directory"
+            href="/discover"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm border-2 transition-colors hover:bg-white"
             style={{ borderColor: PRIMARY, color: PRIMARY }}
           >

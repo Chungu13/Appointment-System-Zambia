@@ -71,7 +71,7 @@ export default function App() {
             <Route path="/:salonSlug/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
 
             {/* Marketing + public pages */}
-            <Route path="/directory" element={<Directory />} />
+            <Route path="/discover" element={<Directory />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/for-businesses" element={<ForBusinesses />} />

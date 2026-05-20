@@ -9,10 +9,11 @@ import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
 const PRIMARY   = '#6B2737'
-const TEXT      = '#1a2e1c'
-const MUTED     = '#6b7c6d'
-const MINT      = '#f4faf4'
-const MINT_CHIP = '#d4ecd4'
+const TEXT      = '#1A0A0D'
+const MUTED     = '#6B4A50'
+const CREAM     = '#FDF5F6'
+const CHIP      = '#E8C4CC'
+const BORDER    = '#D4B0B8'
 
 const BUSINESS_TYPES = [
   { value: 'salon',          label: 'Salon' },
@@ -48,7 +49,7 @@ function Input({ className = '', ...props }) {
         color: TEXT,
         backgroundColor: '#ffffff',
       }}
-      onFocus={(e) => { e.target.style.borderColor = PRIMARY; e.target.style.boxShadow = `0 0 0 3px ${MINT_CHIP}` }}
+      onFocus={(e) => { e.target.style.borderColor = PRIMARY; e.target.style.boxShadow = `0 0 0 3px ${CHIP}` }}
       onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
       {...props}
     />
@@ -149,29 +150,22 @@ export default function Signup() {
   }
 
   return (
-    <div style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif', backgroundColor: MINT, minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif', backgroundColor: CREAM, minHeight: '100vh' }}>
       <LandingNav />
 
       <div className="max-w-xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5 text-sm font-medium"
-            style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-          >
-            <span>✦</span>
-            <span>14-day free trial — no card needed</span>
-          </div>
           <h1 className="font-display text-3xl font-bold mb-2" style={{ color: TEXT }}>
             List your business
           </h1>
           <p className="text-sm" style={{ color: MUTED }}>
-            Setup takes under 10 minutes.
+            Get your business online in minutes. Free to get started.
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: '1px solid #e8f0e8' }}>
+        <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: `1px solid ${BORDER}` }}>
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Business info */}
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PRIMARY }}>

@@ -47,12 +47,12 @@ export default function LandingFooter() {
             </p>
             <ul className="space-y-2">
               <li>
-                <a href="/directory" className="text-sm hover:underline" style={{ color: MUTED }}>
-                  Find a Beauty Pro
+                <a href="/discover" className="text-sm hover:underline" style={{ color: MUTED }}>
+                  Find Beauty Services
                 </a>
               </li>
               <li>
-                <a href="/directory" className="text-sm hover:underline" style={{ color: MUTED }}>
+                <a href="/discover" className="text-sm hover:underline" style={{ color: MUTED }}>
                   Book an Appointment
                 </a>
               </li>
