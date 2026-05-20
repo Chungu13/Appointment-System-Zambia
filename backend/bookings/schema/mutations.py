@@ -42,6 +42,7 @@ class BookingsMutation:
         customer_phone: str,
         booked_by: BookedByEnum = BookedByEnum.CUSTOMER,
         customer_notes: str = "",
+        payment_method: str = "AIRTEL_MONEY",
     ) -> CreateBookingResult:
         from django.db import transaction
         from agents.models import AgentLog
@@ -63,72 +64,145 @@ class BookingsMutation:
             minutes=service.duration_minutes + service.buffer_minutes
         )
 
-        deposit_required = 0.0
-        appt_pk: int
-
-        with transaction.atomic():
-            conflict = (
-                Appointment.objects.select_for_update()
-                .filter(
-                    staff=staff,
-                    status__in=("pending", "confirmed", "in_progress"),
-                    starts_at__lt=ends_at,
-                    ends_at__gt=starts_at,
-                )
-                .exists()
-            )
-            if conflict:
-                raise ValueError("This time slot is no longer available.")
-
-            customer, _ = Customer.objects.get_or_create(
-                phone=customer_phone,
-                defaults={"full_name": customer_name},
-            )
-
-            deposit_required = (
-                float(service.price_zmw)
-                if customer.no_show_count >= 2
-                else float(service.deposit_zmw)
-            )
-
-            appt = Appointment.objects.create(
-                customer=customer,
-                staff=staff,
-                service=service,
-                starts_at=starts_at,
-                ends_at=ends_at,
-                status="pending",
-                booked_by=booked_by.value,
-                customer_notes=customer_notes,
-            )
-            appt_pk = appt.pk
-
-            AgentLog.objects.create(
-                agent_type="booking",
-                action=(
-                    f"Booking created: {service.name} with {staff.full_name} "
-                    f"at {starts_at:%Y-%m-%d %H:%M}"
-                ),
-                related_appointment=appt,
-                outcome="success",
-                metadata={
-                    "service_id": service_id,
-                    "staff_id": staff_id,
-                    "booked_by": booked_by.value,
-                    "deposit_required": deposit_required,
-                    "no_show_flag": customer.no_show_count >= 2,
-                },
-            )
-
-        appt = (
-            Appointment.objects
-            .select_related("customer", "staff", "service")
-            .prefetch_related("payments")
-            .get(pk=appt_pk)
+        customer, _ = Customer.objects.get_or_create(
+            phone=customer_phone,
+            defaults={"full_name": customer_name},
         )
+
+        deposit_required = (
+            float(service.price_zmw)
+            if customer.no_show_count >= 2
+            else float(service.deposit_zmw)
+        )
+
+        # ── Path A: zero deposit → CONFIRMED immediately ─────────────────────
+        if deposit_required <= 0:
+            with transaction.atomic():
+                conflict = (
+                    Appointment.objects.select_for_update()
+                    .filter(
+                        staff=staff,
+                        status__in=("confirmed", "in_progress"),
+                        starts_at__lt=ends_at,
+                        ends_at__gt=starts_at,
+                    )
+                    .exists()
+                )
+                if conflict:
+                    raise ValueError("This time slot is no longer available.")
+
+                appt = Appointment.objects.create(
+                    customer=customer,
+                    staff=staff,
+                    service=service,
+                    starts_at=starts_at,
+                    ends_at=ends_at,
+                    status="confirmed",
+                    booked_by=booked_by.value,
+                    customer_notes=customer_notes,
+                )
+
+                AgentLog.objects.create(
+                    agent_type="booking",
+                    action=(
+                        f"Booking created: {service.name} with {staff.full_name} "
+                        f"at {starts_at:%Y-%m-%d %H:%M}"
+                    ),
+                    related_appointment=appt,
+                    outcome="success",
+                    metadata={
+                        "service_id": service_id,
+                        "staff_id": staff_id,
+                        "booked_by": booked_by.value,
+                        "deposit_required": 0,
+                    },
+                )
+
+            appt = (
+                Appointment.objects
+                .select_related("customer", "staff", "service")
+                .prefetch_related("payments")
+                .get(pk=appt.pk)
+            )
+            return CreateBookingResult(
+                appointment=appointment_to_type(appt),
+                deposit_required=0.0,
+                requires_payment=False,
+                payment_url=None,
+            )
+
+        # ── Path B: deposit required → Redis hold + payment redirect ──────────
+        conflict = (
+            Appointment.objects
+            .filter(
+                staff=staff,
+                status__in=("confirmed", "in_progress"),
+                starts_at__lt=ends_at,
+                ends_at__gt=starts_at,
+            )
+            .exists()
+        )
+        if conflict:
+            raise ValueError("This time slot is no longer available.")
+
+        from bookings.holds import save_hold
+        from payments.provider_factory import get_provider
+
+        request = info.context.request
+        scheme = "https" if request.is_secure() else "http"
+        site_url = f"{scheme}://{request.get_host()}"
+
+        description = (
+            f"{service.name} with {staff.full_name} "
+            f"on {starts_at:%Y-%m-%d %H:%M}"
+        )
+
+        provider = get_provider()
+        result = provider.create_transaction(
+            appointment_id=0,
+            amount_zmw=deposit_required,
+            customer_name=customer_name,
+            customer_phone=customer_phone,
+            description=description,
+            site_url=site_url,
+        )
+
+        if not result.success:
+            raise ValueError(f"Payment provider error: {result.error}")
+
+        save_hold(result.transaction_ref, {
+            "service_id": service_id,
+            "staff_id": staff_id,
+            "starts_at": starts_at.isoformat(),
+            "ends_at": ends_at.isoformat(),
+            "customer_phone": customer_phone,
+            "customer_name": customer_name,
+            "customer_notes": customer_notes,
+            "booked_by": booked_by.value,
+            "deposit_required": deposit_required,
+            "payment_method": payment_method.lower(),
+        })
+
+        AgentLog.objects.create(
+            agent_type="payment",
+            action=(
+                f"Payment initiated: {deposit_required} ZMW for "
+                f"{service.name} with {staff.full_name} "
+                f"at {starts_at:%Y-%m-%d %H:%M}"
+            ),
+            outcome="success",
+            metadata={
+                "transaction_ref": result.transaction_ref,
+                "deposit_required": deposit_required,
+                "customer_phone": customer_phone,
+            },
+        )
+
         return CreateBookingResult(
-            appointment=appointment_to_type(appt),
+            appointment=None,
             deposit_required=deposit_required,
+            requires_payment=True,
+            payment_url=result.payment_url,
         )
 
     @strawberry.mutation

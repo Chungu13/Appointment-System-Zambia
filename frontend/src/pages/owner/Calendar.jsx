@@ -321,6 +321,16 @@ function ApptModal({ appt, onClose, onAction, loading }) {
               </Button>
             )}
           </div>
+
+          {appt.status === 'confirmed' && (
+            <Button
+              loading={loading}
+              className="w-full"
+              onClick={() => onAction(appt.id, 'COMPLETED')}
+            >
+              Mark as Completed ✓
+            </Button>
+          )}
         </div>
       </div>
     </div>

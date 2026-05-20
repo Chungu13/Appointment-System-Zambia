@@ -23,3 +23,9 @@ export const UPDATE_TENANT_PROFILE = gql`
     updateTenantProfile(coverImageUrl: $coverImageUrl, address: $address, phone: $phone)
   }
 `
+
+export const UPDATE_BUSINESS_POLICIES = gql`
+  mutation UpdateBusinessPolicies($policies: BusinessPoliciesInput!) {
+    updateBusinessPolicies(policies: $policies)
+  }
+`

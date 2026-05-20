@@ -8,12 +8,12 @@ import { useAuth } from '../../context/AuthContext'
 import { formatZMW, toDateInputValue, formatTime } from '../../lib/utils'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
 
-const PAGE_BG  = '#f5fbf5'
-const SAGE_CARD = '#c8ddc8'
-const PRIMARY  = '#2d4a30'
-const MUTED    = '#6b8c6b'
+const PAGE_BG  = '#FDF5F6'
+const SAGE_CARD = '#E8C4CC'
+const PRIMARY  = '#6B2737'
+const MUTED    = '#8B4A5A'
 const CARD_BG  = '#ffffff'
-const BORDER   = '#dce8dc'
+const BORDER   = '#D4B0B8'
 
 function greeting() {
   const h = new Date().getHours()

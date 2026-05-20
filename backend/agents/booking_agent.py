@@ -128,6 +128,34 @@ class BookingAgent:
 
     def _system_prompt(self, customer_phone: str) -> str:
         today = timezone.localdate()
+        policies = self.tenant.business_policies or {}
+        policies_lines = []
+        if policies.get("cancellationPolicy"):
+            policies_lines.append(f"- Cancellation policy: {policies['cancellationPolicy']}")
+        if policies.get("lateArrivalPolicy"):
+            policies_lines.append(f"- Late arrivals: {policies['lateArrivalPolicy']}")
+        if policies.get("lateFee"):
+            policies_lines.append(f"- Late fee: {policies['lateFee']}")
+        if policies.get("waitingTime"):
+            policies_lines.append(f"- Waiting time: {policies['waitingTime']}")
+        if policies.get("whatToBring"):
+            bring = policies["whatToBring"]
+            if isinstance(bring, list):
+                bring = ", ".join(bring)
+            policies_lines.append(f"- Customers should bring: {bring}")
+        if policies.get("parking"):
+            policies_lines.append(f"- Parking: {policies['parking']}")
+        if policies.get("contactPreference"):
+            policies_lines.append(f"- Preferred contact: {policies['contactPreference']}")
+        if policies.get("additionalInfo"):
+            policies_lines.append(f"- Additional info: {policies['additionalInfo']}")
+
+        policies_section = ""
+        if policies_lines:
+            policies_section = (
+                "\n\nBUSINESS POLICIES:\n" + "\n".join(policies_lines)
+            )
+
         return (
             f"You are a warm, professional booking assistant for {self.tenant.business_name}, "
             "a beauty salon in Zambia.\n\n"
@@ -137,6 +165,16 @@ class BookingAgent:
             "3. Confirm service, stylist, date, and time before calling create_booking.\n"
             "4. After booking, offer to initiate payment and ask which method they prefer "
             "(Airtel Money, MTN MoMo, card, or cash).\n\n"
+            "Formatting rules — VERY IMPORTANT:\n"
+            "- Never use markdown. No **bold**, no *italic*, no asterisks of any kind.\n"
+            "- List services as numbered lines: 1. Box Braids — ZMW 280 (3 hrs)\n"
+            "- List time slots simply: 9:00am, 9:30am, 10:00am\n"
+            "- When multiple stylists have slots, group by name on separate lines:\n"
+            "  Alice: 9am, 10am, 11am\n"
+            "  Bob: 9am, 10:30am\n"
+            "- Put a blank line between sections so the message is easy to read on a phone.\n"
+            "- Never write one long paragraph — use short lines with line breaks.\n"
+            "- End each message with a short question to keep the conversation moving.\n\n"
             "Guidelines:\n"
             "- Be concise and friendly.\n"
             "- Prices are in Zambian Kwacha (ZMW). Mention the deposit when relevant.\n"
@@ -144,6 +182,7 @@ class BookingAgent:
             f"- Today's date is {today}.\n"
             f"- The customer's phone number is {customer_phone}. "
             "You already have this information — never ask the customer for their phone number.\n"
+            + policies_section
         )
 
     # ------------------------------------------------------------------
@@ -189,20 +228,41 @@ class BookingAgent:
             staff_ids = list(StaffService.objects.filter(service=service).values_list("staff_id", flat=True))
             tz = timezone.get_current_timezone()
             slot_duration = _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
-            day_start = _dt.datetime(date.year, date.month, date.day, 9, 0, tzinfo=tz)
-            day_end = _dt.datetime(date.year, date.month, date.day, 17, 0, tzinfo=tz)
+            now = _dt.datetime.now(tz=tz)
+            today = now.date()
+            # 30-minute booking buffer — only applied when checking today's slots
+            earliest = (now + _dt.timedelta(minutes=30)) if date == today else None
 
+            from staff.models import WorkingHours
             slots = []
             for staff_id in staff_ids:
                 staff_name = (
                     User.objects.filter(pk=staff_id).values_list("full_name", flat=True).first() or "Unknown"
                 )
+                wh = WorkingHours.objects.filter(
+                    staff_id=staff_id, day_of_week=date.weekday()
+                ).first()
+                if wh and not wh.is_day_off and wh.start_time and wh.end_time:
+                    day_start = _dt.datetime.combine(date, wh.start_time).replace(tzinfo=tz)
+                    day_end = _dt.datetime.combine(date, wh.end_time).replace(tzinfo=tz)
+                else:
+                    day_start = _dt.datetime(date.year, date.month, date.day, 9, 0, tzinfo=tz)
+                    day_end = _dt.datetime(date.year, date.month, date.day, 17, 0, tzinfo=tz)
+
+                # All slots have passed for today
+                if earliest is not None and earliest >= day_end:
+                    continue
+
                 cursor = day_start
                 while cursor + slot_duration <= day_end:
                     slot_end = cursor + slot_duration
+                    # Skip past slots (with 30-min buffer)
+                    if earliest is not None and cursor < earliest:
+                        cursor += _dt.timedelta(minutes=30)
+                        continue
                     conflict = Appointment.objects.filter(
                         staff_id=staff_id,
-                        status__in=["pending", "confirmed", "in_progress"],
+                        status__in=["confirmed", "in_progress"],
                         starts_at__lt=slot_end,
                         ends_at__gt=cursor,
                     ).exists()
@@ -252,7 +312,7 @@ class BookingAgent:
                     .select_for_update()
                     .filter(
                         staff=staff,
-                        status__in=["pending", "confirmed", "in_progress"],
+                        status__in=["confirmed", "in_progress"],
                         starts_at__lt=ends_at,
                         ends_at__gt=starts_at,
                     )
@@ -267,7 +327,7 @@ class BookingAgent:
                     service=service,
                     starts_at=starts_at,
                     ends_at=ends_at,
-                    status="pending",
+                    status="confirmed",
                     booked_by="agent",
                     customer_notes=inputs.get("notes", ""),
                 )

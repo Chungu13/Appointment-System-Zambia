@@ -90,13 +90,14 @@ class DashboardStatsType:
     today_bookings: int
     booked_by_agent: int
     slots_recovered: int
-    pending_payments: int
 
 
 @strawberry.type
 class CreateBookingResult:
-    appointment: AppointmentType
+    appointment: Optional[AppointmentType]
     deposit_required: float
+    requires_payment: bool
+    payment_url: Optional[str]
 
 
 @strawberry.type

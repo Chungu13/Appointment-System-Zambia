@@ -144,6 +144,16 @@ CSRF_TRUSTED_ORIGINS = config(
 )
 
 # ---------------------------------------------------------------------------
+# Cache (Redis db 2 — booking holds)
+# ---------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": config("CACHE_REDIS_URL", default="redis://localhost:6379/2"),
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Celery (Redis broker)
 # ---------------------------------------------------------------------------
 PAYMENT_PROVIDER = config("PAYMENT_PROVIDER", default="mock")

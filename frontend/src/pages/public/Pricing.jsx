@@ -1,25 +1,23 @@
 import { useState } from 'react'
-import { Check, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
-const PRIMARY   = '#3d5c40'
-const DARK_CARD = '#4b6b4e'
-const TEXT      = '#1a2e1c'
-const MUTED     = '#6b7c6d'
-const MINT      = '#f4faf4'
-const MINT_ALT  = '#edf6ed'
-const MINT_CHIP = '#d4ecd4'
+const PRIMARY   = '#6B2737'
+const DARK_CARD = '#4A1A25'
+const TEXT      = '#1A0A0D'
+const MUTED     = '#6B4A50'
+const CREAM     = '#FDF5F6'
+const CHIP      = '#E8C4CC'
+const BORDER    = '#D4B0B8'
 
 const INCLUDED = [
   'Your own booking page',
-  'AI booking agent',
+  'AI booking assistant',
   'Unlimited bookings',
-  'Customer reminders',
+  'Business dashboard',
   'Staff portal',
-  'Business analytics',
-  'Payment collection',
-  'Portfolio gallery',
+  'Customer management',
 ]
 
 const FAQS = [
@@ -42,15 +40,13 @@ function FAQItem({ q, a }) {
   return (
     <div
       className="rounded-xl overflow-hidden"
-      style={{ border: '1px solid #e8f0e8', backgroundColor: '#ffffff' }}
+      style={{ border: `1px solid ${BORDER}`, backgroundColor: '#ffffff' }}
     >
       <button
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between px-5 py-4 text-left"
       >
-        <span className="font-semibold text-sm pr-4" style={{ color: TEXT }}>
-          {q}
-        </span>
+        <span className="font-semibold text-sm pr-4" style={{ color: TEXT }}>{q}</span>
         {open
           ? <ChevronUp size={16} style={{ color: MUTED, flexShrink: 0 }} />
           : <ChevronDown size={16} style={{ color: MUTED, flexShrink: 0 }} />
@@ -71,17 +67,10 @@ export default function Pricing() {
       <LandingNav />
 
       {/* Hero */}
-      <section style={{ backgroundColor: MINT }} className="py-20 px-6 text-center">
+      <section style={{ backgroundColor: CREAM }} className="py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium"
-            style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-          >
-            <span>✦</span>
-            <span>Simple, fair pricing</span>
-          </div>
           <h1
-            className="font-display text-4xl md:text-5xl font-bold leading-tight mb-5"
+            className="font-display text-4xl md:text-5xl font-bold leading-tight mb-4"
             style={{ color: TEXT }}
           >
             Simple, Fair Pricing
@@ -92,111 +81,52 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Main early access card */}
+      {/* Main card */}
       <section className="bg-white py-16 px-6">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-md mx-auto">
           <div
-            className="rounded-3xl p-10 text-center relative"
+            className="rounded-3xl p-10 text-center"
             style={{
               backgroundColor: DARK_CARD,
-              boxShadow: '0 16px 60px rgba(61,92,64,0.3)',
+              boxShadow: '0 16px 60px rgba(74,26,37,0.28)',
             }}
           >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-bold"
-              style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-            >
-              <Sparkles size={14} />
-              Early Access
-            </div>
-
-            <h2
-              className="font-display text-3xl md:text-4xl font-bold text-white mb-5 leading-tight"
-            >
-              Free for Founding Businesses
-            </h2>
-
-            <p
-              className="text-base leading-relaxed mb-10 max-w-lg mx-auto"
-              style={{ color: 'rgba(255,255,255,0.8)' }}
-            >
-              Be one of the first beauty professionals on BeautyBook ZM. Early access is completely
-              free — no credit card, no hidden fees. When paid plans launch, founding businesses lock
-              in a special discounted rate forever.
+            <p className="font-display text-7xl font-bold text-white mb-3">Free</p>
+            <p className="text-sm leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.75)' }}>
+              Free to list your business while we launch.<br />No credit card. No hidden fees.
             </p>
 
-            <a
-              href="/signup"
-              className="inline-block px-10 py-4 rounded-full font-bold text-base transition-opacity hover:opacity-90 mb-5"
-              style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-            >
-              Join Free as a Founding Business
-            </a>
-
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              Already 2 businesses on the platform
-            </p>
-          </div>
-
-          {/* What's included */}
-          <div className="mt-14">
-            <h3
-              className="font-display text-xl font-bold text-center mb-8"
-              style={{ color: TEXT }}
-            >
-              Everything included during early access
-            </h3>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="text-left mb-8 space-y-3">
               {INCLUDED.map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                  style={{ backgroundColor: MINT, border: '1px solid #e8f0e8' }}
-                >
+                <div key={item} className="flex items-center gap-3">
                   <div
                     className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: MINT_CHIP }}
+                    style={{ backgroundColor: CHIP }}
                   >
-                    <Check size={12} style={{ color: PRIMARY }} strokeWidth={3} />
+                    <Check size={11} style={{ color: PRIMARY }} strokeWidth={3} />
                   </div>
-                  <span className="text-sm font-medium" style={{ color: TEXT }}>{item}</span>
+                  <span className="text-sm text-white">{item}</span>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Coming soon plans */}
-      <section style={{ backgroundColor: MINT_ALT }} className="py-16 px-6">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: PRIMARY }}>
-            Coming soon
-          </p>
-          <h2
-            className="font-display text-2xl md:text-3xl font-bold mb-3"
-            style={{ color: TEXT }}
-          >
-            Paid plans launching soon
-          </h2>
-          <p className="text-base mb-8" style={{ color: MUTED }}>
-            Starter · Growth · Pro
-          </p>
-
-          <div
-            className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl"
-            style={{ backgroundColor: MINT_CHIP }}
-          >
-            <Sparkles size={18} style={{ color: PRIMARY }} />
-            <p className="text-sm font-semibold" style={{ color: PRIMARY }}>
-              Founding businesses get <span className="text-base font-bold">40% off</span> forever
-            </p>
+            <a
+              href="/signup"
+              className="block w-full py-4 rounded-full font-bold text-base transition-opacity hover:opacity-90"
+              style={{ backgroundColor: PRIMARY, color: '#ffffff' }}
+            >
+              List Your Business Free
+            </a>
           </div>
+
+          <p className="text-center text-sm mt-6" style={{ color: MUTED }}>
+            Paid plans coming soon. Founding businesses lock in a special rate.
+          </p>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="bg-white py-20 px-6">
+      <section style={{ backgroundColor: CREAM }} className="py-20 px-6">
         <div className="max-w-2xl mx-auto">
           <h2
             className="font-display text-2xl md:text-3xl font-bold text-center mb-10"
@@ -209,25 +139,6 @@ export default function Pricing() {
               <FAQItem key={faq.q} q={faq.q} a={faq.a} />
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ backgroundColor: MINT }} className="py-20 px-6 text-center">
-        <div className="max-w-xl mx-auto">
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3" style={{ color: TEXT }}>
-            Ready to join?
-          </h2>
-          <p className="text-base mb-8" style={{ color: MUTED }}>
-            Get your salon online in under 10 minutes — completely free.
-          </p>
-          <a
-            href="/signup"
-            className="inline-block px-10 py-4 rounded-full text-white font-semibold text-base shadow-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: PRIMARY }}
-          >
-            Join as a Founding Business →
-          </a>
         </div>
       </section>
 

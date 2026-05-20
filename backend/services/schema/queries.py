@@ -5,6 +5,7 @@ import strawberry
 from strawberry.types import Info
 
 from services.models import Service
+from tenants.schema import BusinessPoliciesType, _policies_from_db
 
 from .types import CategoryEnum, ServiceType, service_to_type, PortfolioImageType, portfolio_image_to_type
 
@@ -43,6 +44,7 @@ class SalonProfileType:
     staff: List[BookableStaffType]
     staff_count: int
     portfolio_images: List[PortfolioImageType]
+    business_policies: BusinessPoliciesType
 
 
 @strawberry.type
@@ -148,4 +150,5 @@ class ServicesQuery:
             staff=staff_list,
             staff_count=len(staff_list),
             portfolio_images=portfolio,
+            business_policies=_policies_from_db(tenant.business_policies or {}),
         )

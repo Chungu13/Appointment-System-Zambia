@@ -71,13 +71,13 @@ export default function AgentFeed({ limit = 10 }) {
   return (
     <div
       className="rounded-2xl p-5"
-      style={{ backgroundColor: '#ffffff', border: '1px solid #dce8dc' }}
+      style={{ backgroundColor: '#ffffff', border: '1px solid #D4B0B8' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold" style={{ color: '#2d4a30' }}>AI Activity</h3>
+        <h3 className="text-sm font-semibold" style={{ color: '#4A1A25' }}>AI Activity</h3>
         {logs.length > 0 && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#c8ddc8', color: '#2d4a30' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#E8C4CC', color: '#4A1A25' }}>
             {logs.length} recent
           </span>
         )}
@@ -87,7 +87,7 @@ export default function AgentFeed({ limit = 10 }) {
       {error && <ErrorMessage message={error.message} />}
 
       {!loading && !error && logs.length === 0 && (
-        <p className="text-sm text-center py-6" style={{ color: '#6b8c6b' }}>
+        <p className="text-sm text-center py-6" style={{ color: '#8B4A5A' }}>
           No activity yet — agents are standing by.
         </p>
       )}
@@ -111,7 +111,7 @@ export default function AgentFeed({ limit = 10 }) {
                 <p className="text-sm leading-snug" style={{ color: '#1a1a1a' }}>{humanizeAction(log.action)}</p>
                 <div className="flex items-center gap-1.5 mt-1">
                   {OUTCOME_ICON[log.outcome]}
-                  <span className="text-xs" style={{ color: '#6b8c6b' }}>{timeAgo(log.createdAt)}</span>
+                  <span className="text-xs" style={{ color: '#8B4A5A' }}>{timeAgo(log.createdAt)}</span>
                 </div>
               </div>
             </div>
@@ -120,10 +120,10 @@ export default function AgentFeed({ limit = 10 }) {
       </div>
 
       {logs.length >= limit && (
-        <div className="mt-4 pt-3" style={{ borderTop: '1px solid #dce8dc' }}>
+        <div className="mt-4 pt-3" style={{ borderTop: '1px solid #D4B0B8' }}>
           <button
             className="text-xs font-medium w-full text-center transition-colors hover:opacity-70"
-            style={{ color: '#2d4a30' }}
+            style={{ color: '#6B2737' }}
           >
             View all activity →
           </button>

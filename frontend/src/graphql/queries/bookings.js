@@ -48,7 +48,6 @@ export const DASHBOARD_STATS = gql`
       todayBookings
       bookedByAgent
       slotsRecovered
-      pendingPayments
     }
   }
 `

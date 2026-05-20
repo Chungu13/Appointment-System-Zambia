@@ -141,14 +141,19 @@ function ServiceModal({ service, onClose, onSaved }) {
               onChange={(e) => set('priceZmw', e.target.value)}
               required
             />
-            <Input
-              label="Deposit (ZMW)"
-              type="number"
-              min={0}
-              step={0.01}
-              value={form.depositZmw}
-              onChange={(e) => set('depositZmw', e.target.value)}
-            />
+            <div className="flex flex-col gap-1">
+              <Input
+                label="Deposit (ZMW)"
+                type="number"
+                min={0}
+                step={0.01}
+                value={form.depositZmw}
+                onChange={(e) => set('depositZmw', e.target.value)}
+              />
+              <p className="text-xs text-on-surface-variant">
+                Set to 0 for pay-at-salon — customers book instantly with no upfront payment
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-2">

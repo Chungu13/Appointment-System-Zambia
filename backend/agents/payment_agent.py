@@ -130,14 +130,18 @@ class PaymentAgent:
 
         if name == "get_unpaid_bookings":
             now = timezone.now()
-            cutoff_30 = now - datetime.timedelta(minutes=30)
+            cutoff_10 = now - datetime.timedelta(minutes=10)
 
             has_completed_payment = Payment.objects.filter(
                 appointment=OuterRef("pk"), status="completed"
             )
             pending = (
                 Appointment.objects
-                .filter(status="pending", created_at__lt=cutoff_30)
+                .filter(
+                    status="pending",
+                    service__deposit_zmw__gt=0,
+                    created_at__lt=cutoff_10,
+                )
                 .exclude(Exists(has_completed_payment))
                 .select_related("customer", "service", "staff")
             )
@@ -187,7 +191,7 @@ class PaymentAgent:
         elif name == "cancel_unpaid_booking":
             appointment_id = inputs["appointment_id"]
             now = timezone.now()
-            cutoff_2h = now - datetime.timedelta(hours=2)
+            cutoff_10 = now - datetime.timedelta(minutes=10)
 
             try:
                 appt = Appointment.objects.select_related("customer", "service").get(pk=appointment_id)
@@ -197,9 +201,9 @@ class PaymentAgent:
             if appt.status != "pending":
                 return {"skipped": f"Appointment is already {appt.status}."}
 
-            if appt.created_at >= cutoff_2h:
-                minutes_left = int((cutoff_2h - appt.created_at).total_seconds() / -60)
-                return {"skipped": f"Not yet overdue — {minutes_left} minutes until 2-hour cutoff."}
+            if appt.created_at >= cutoff_10:
+                minutes_left = int((cutoff_10 - appt.created_at).total_seconds() / -60)
+                return {"skipped": f"Not yet overdue — {minutes_left} minutes until 10-minute cutoff."}
 
             has_paid = Payment.objects.filter(appointment=appt, status="completed").exists()
             if has_paid:
@@ -207,7 +211,7 @@ class PaymentAgent:
 
             appt.status = "cancelled"
             appt.cancelled_at = now
-            appt.cancellation_reason = "Auto-cancelled: deposit not received within 2 hours."
+            appt.cancellation_reason = "Auto-cancelled: deposit not received within 10 minutes."
             appt.save(update_fields=["status", "cancelled_at", "cancellation_reason", "updated_at"])
 
             AgentLog.objects.create(
@@ -376,9 +380,9 @@ class PaymentAgent:
     def chase_deposits(self) -> str:
         """Remind and auto-cancel appointments with unpaid deposits."""
         return self._run_loop(
-            "Check for appointments with unpaid deposits. "
-            "Send reminders to those that have been pending for more than 30 minutes. "
-            "Cancel those that have been pending for more than 2 hours with no payment."
+            "Check for appointments with unpaid deposits (services where deposit_zmw > 0). "
+            "Send reminders to those that have been pending for more than 5 minutes. "
+            "Cancel those that have been pending for more than 10 minutes with no payment."
         )
 
     def handle_refund(self, appointment_id: int) -> str:

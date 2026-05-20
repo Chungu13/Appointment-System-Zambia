@@ -4,28 +4,46 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #4b644e;
-  --color-background: #f5fbf5;
-  --color-surface: #f5fbf5;
-  --color-primary-container: #b8d4b8;
-  --color-secondary-container: #c4e8d1;
-  --color-on-surface: #171d1a;
-  --color-on-surface-variant: #434842;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #eff5ef;
-  --color-surface-container: #e9efea;
-  --color-outline-variant: #c3c8c0;
-  --color-tertiary: #496640;
-  --color-tertiary-container: #b5d6a7;
-  --color-secondary: #456553;
-  --color-on-primary: #ffffff;
-  --color-on-primary-container: #445c46;
-  --color-on-secondary-container: #496a57;
-  --color-on-tertiary-container: #415e39;
+  --color-primary: #6B2737;
+  --color-background: #FDF5F6;
+  --color-surface: #FDF5F6;
+  --color-primary-container: #E8C4CC;
+  --color-secondary-container: #F0D4DA;
+  --color-on-surface: #1A0A0D;
+  --color-on-surface-variant: #4A2A30;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #FAF0F2;
+  --color-surface-container: #F5E8EA;
+  --color-outline-variant: #D4B0B8;
+  --color-tertiary: #7A3545;
+  --color-tertiary-container: #F0C8D0;
+  --color-secondary: #8B4A5A;
+  --color-on-primary: #FFFFFF;
+  --color-on-primary-container: #6B2737;
+  --color-on-secondary-container: #6B2737;
+  --color-on-tertiary-container: #4A1A25;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--color-background);
   color: var(--color-on-surface);
+}
+
+@keyframes chat-slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes chat-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-chat-slide-up {
+  animation: chat-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-chat-fade-in {
+  animation: chat-fade-in 0.18s ease-out both;
 }

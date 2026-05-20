@@ -9,6 +9,7 @@ export const CREATE_BOOKING = gql`
     $customerPhone: String!
     $bookedBy: BookedByEnum
     $customerNotes: String
+    $paymentMethod: String
   ) {
     createBooking(
       serviceId: $serviceId
@@ -18,6 +19,7 @@ export const CREATE_BOOKING = gql`
       customerPhone: $customerPhone
       bookedBy: $bookedBy
       customerNotes: $customerNotes
+      paymentMethod: $paymentMethod
     ) {
       appointment {
         id
@@ -29,6 +31,8 @@ export const CREATE_BOOKING = gql`
         customer { id fullName phone }
       }
       depositRequired
+      requiresPayment
+      paymentUrl
     }
   }
 `
@@ -69,26 +73,3 @@ export const UPDATE_APPOINTMENT_STATUS = gql`
   }
 `
 
-export const ADD_TO_WAITLIST = gql`
-  mutation AddToWaitlist(
-    $serviceId: Int!
-    $customerName: String!
-    $customerPhone: String!
-    $preferredDate: Date!
-    $preferredStaffId: Int
-  ) {
-    addToWaitlist(
-      serviceId: $serviceId
-      customerName: $customerName
-      customerPhone: $customerPhone
-      preferredDate: $preferredDate
-      preferredStaffId: $preferredStaffId
-    ) {
-      id
-      preferredDate
-      isActive
-      customer { id fullName phone }
-      service { id name }
-    }
-  }
-`

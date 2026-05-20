@@ -8,6 +8,7 @@ import Badge from '../../components/ui/Badge'
 import ChatWindow from '../../components/chat/ChatWindow'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { formatZMW } from '../../lib/utils'
+import { playPopSound } from '../../lib/sounds'
 
 const TYPE_LABELS = {
   salon: 'Salon',
@@ -402,7 +403,7 @@ export default function SalonLanding() {
         {/* Dark green overlay */}
         <div
           className="absolute inset-0"
-          style={{ background: 'rgba(26, 58, 42, 0.65)' }}
+          style={{ background: 'rgba(74, 26, 37, 0.65)' }}
         />
         {/* Bottom fade into page background */}
         <div
@@ -441,14 +442,14 @@ export default function SalonLanding() {
 
           {/* Dual CTAs */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            {/* Chat to Book */}
+            {/* Ask or Book */}
             <div className="flex flex-col gap-1">
               <button
                 onClick={() => setChatOpen(true)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-base px-6 py-3 bg-white text-primary hover:bg-white/90 shadow-lg transition-colors"
               >
                 <MessageCircle size={18} />
-                Chat to Book
+                Ask or Book
                 <ChevronRight size={16} />
               </button>
               <span className="text-xs text-white/70 text-center sm:text-left pl-1">
@@ -526,13 +527,29 @@ export default function SalonLanding() {
       </footer>
 
       {/* Chat FAB */}
-      <button
-        onClick={() => setChatOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg hover:bg-primary/90 transition-colors flex items-center justify-center"
-        title="Chat with booking assistant"
-      >
-        {chatOpen ? <X size={20} /> : <MessageCircle size={20} />}
-      </button>
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+        {!chatOpen && (
+          <span className="bg-white text-on-surface font-semibold text-sm px-3 py-1.5 rounded-full shadow-md select-none">
+            Ask or Book
+          </span>
+        )}
+        <div className="relative">
+          {!chatOpen && (
+            <span
+              className="absolute inset-0 rounded-full animate-ping opacity-60"
+              style={{ background: '#6B2737' }}
+            />
+          )}
+          <button
+            onClick={() => { playPopSound(); setChatOpen((v) => !v) }}
+            className="relative w-16 h-16 rounded-full text-white shadow-xl flex items-center justify-center transition-transform hover:scale-105"
+            style={{ background: '#4A1A25' }}
+            title="Chat with booking assistant"
+          >
+            {chatOpen ? <X size={22} /> : <MessageCircle size={22} />}
+          </button>
+        </div>
+      </div>
 
       {chatOpen && (
         <ChatWindow

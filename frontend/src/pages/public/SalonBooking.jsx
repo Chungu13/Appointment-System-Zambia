@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { useQuery, useMutation } from '@apollo/client/react'
+import { useQuery } from '@apollo/client/react'
 import { MessageCircle, X } from 'lucide-react'
+import { playPopSound } from '../../lib/sounds'
 import { SERVICES } from '../../graphql/queries/services'
 import { CUSTOMER_APPOINTMENTS } from '../../graphql/queries/bookings'
 import { SALON_PROFILE } from '../../graphql/queries/salons'
-import { ADD_TO_WAITLIST } from '../../graphql/mutations/bookings'
 import { BookingProvider, useBooking } from '../../context/BookingContext'
 import ServiceCard from '../../components/booking/ServiceCard'
 import DatePicker from '../../components/booking/DatePicker'
@@ -21,7 +21,7 @@ import { useAvailability } from '../../hooks/useAvailability'
 import { useBookingFlow } from '../../hooks/useBookingFlow'
 import { toDateInputValue, formatDateTime, formatZMW } from '../../lib/utils'
 
-const STEP_LABELS = ['Service', 'Date & Time', 'Your Details', 'Payment']
+const STEP_LABELS = ['Service', 'Date & Time', 'Your Details', 'Confirmed']
 
 function StepIndicator({ current }) {
   return (
@@ -78,67 +78,6 @@ function Step1Services() {
   )
 }
 
-// ── Waitlist form — shown when no slots available ────────────────────────────
-function WaitlistForm({ service, date, onClose }) {
-  const [form, setForm] = useState({ name: '', phone: '' })
-  const [done, setDone] = useState(false)
-  const [addToWaitlist, { loading, error }] = useMutation(ADD_TO_WAITLIST, {
-    onCompleted: () => setDone(true),
-  })
-
-  if (done) {
-    return (
-      <div className="mt-4 p-4 bg-secondary-container rounded-xl text-center">
-        <p className="font-medium text-on-secondary-container">You're on the waitlist!</p>
-        <p className="text-sm text-on-secondary-container/80 mt-1">
-          We'll notify <strong>{form.phone}</strong> when a slot opens up.
-        </p>
-        <button onClick={onClose} className="mt-3 text-sm text-primary underline">
-          Dismiss
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="mt-4 p-4 border border-outline-variant rounded-xl space-y-3">
-      <p className="text-sm font-medium text-on-surface">Join the waitlist for {date}</p>
-      <Input
-        label="Your name"
-        value={form.name}
-        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-        placeholder="Jane Mwansa"
-      />
-      <Input
-        label="Phone number"
-        value={form.phone}
-        onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-        placeholder="+260 97 123 4567"
-      />
-      {error && <ErrorMessage message={error.message} />}
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-        <Button
-          size="sm"
-          loading={loading}
-          disabled={!form.name || !form.phone}
-          onClick={() =>
-            addToWaitlist({
-              variables: {
-                serviceId: service.id,
-                customerName: form.name,
-                customerPhone: form.phone,
-                preferredDate: date,
-              },
-            })
-          }
-        >
-          Join waitlist
-        </Button>
-      </div>
-    </div>
-  )
-}
 
 // ── Step 2: Date + time ──────────────────────────────────────────────────────
 function Step2DateTime() {
@@ -146,8 +85,6 @@ function Step2DateTime() {
   const [date, setDate] = useState(toDateInputValue())
   const [selectedStaffId, setSelectedStaffId] = useState(state.preferredStaffId ?? null)
   const { slots, loading, error } = useAvailability(state.service?.id, date, selectedStaffId)
-  const [showWaitlist, setShowWaitlist] = useState(false)
-
   const { data: profileData } = useQuery(SALON_PROFILE)
   const staffList = profileData?.salonProfile?.staff ?? []
   const staffCount = profileData?.salonProfile?.staffCount ?? 0
@@ -204,20 +141,10 @@ function Step2DateTime() {
               showStaffName={staffCount > 1 && !selectedStaffId}
             />
           )}
-          {noSlots && !showWaitlist && (
-            <div className="text-center py-6">
-              <p className="text-sm text-on-surface-variant mb-3">No slots available on this date.</p>
-              <Button variant="secondary" size="sm" onClick={() => setShowWaitlist(true)}>
-                Join waitlist
-              </Button>
-            </div>
-          )}
-          {noSlots && showWaitlist && (
-            <WaitlistForm
-              service={state.service}
-              date={date}
-              onClose={() => setShowWaitlist(false)}
-            />
+          {noSlots && (
+            <p className="text-sm text-on-surface-variant text-center py-6">
+              No availability on this date. Please try another date.
+            </p>
           )}
         </div>
       </div>
@@ -228,10 +155,12 @@ function Step2DateTime() {
   )
 }
 
-// ── Step 3: Customer details ─────────────────────────────────────────────────
+// ── Step 3: Customer details + payment method (if deposit required) ──────────
 function Step3Details() {
   const { state, dispatch, submitBooking, loading, error } = useBookingFlow()
   const [form, setForm] = useState(state.customer)
+  const [paymentMethod, setPaymentMethod] = useState('AIRTEL_MONEY')
+  const needsDeposit = (state.service?.depositZmw ?? 0) > 0
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -239,7 +168,7 @@ function Step3Details() {
   }
 
   async function next() {
-    await submitBooking()
+    await submitBooking(needsDeposit ? paymentMethod : 'AIRTEL_MONEY')
   }
 
   return (
@@ -267,19 +196,33 @@ function Step3Details() {
             onChange={(e) => set('notes', e.target.value)}
             placeholder="Any special requests…"
           />
+          {needsDeposit && (
+            <div>
+              <p className="text-sm font-medium text-on-surface mb-3">How will you pay the deposit?</p>
+              <PaymentOptions
+                selected={paymentMethod}
+                onSelect={setPaymentMethod}
+                amount={state.service.depositZmw}
+              />
+            </div>
+          )}
         </div>
         <BookingSummary
           service={state.service}
           slot={state.slot}
           customer={form}
-          depositRequired={state.depositRequired}
+          depositRequired={state.service?.depositZmw ?? 0}
         />
       </div>
       {error && <ErrorMessage message={error.message} className="mb-4" />}
       <div className="flex gap-3">
         <Button variant="outline" onClick={() => dispatch({ type: 'PREV_STEP' })}>Back</Button>
-        <Button loading={loading} disabled={!form.name || !form.phone} onClick={next}>
-          Confirm Booking
+        <Button
+          loading={loading}
+          disabled={!form.name || !form.phone || (needsDeposit && !paymentMethod)}
+          onClick={next}
+        >
+          {needsDeposit ? 'Pay Deposit & Confirm' : 'Confirm Booking'}
         </Button>
       </div>
     </div>
@@ -336,49 +279,14 @@ function BookingConfirmation({ phone, onReset }) {
   )
 }
 
-// ── Step 4: Payment ──────────────────────────────────────────────────────────
-function Step4Payment() {
-  const { state, dispatch, submitPayment, loading, error } = useBookingFlow()
-  const [method, setMethod] = useState(null)
-  const [done, setDone] = useState(false)
-
-  async function pay() {
-    const result = await submitPayment(method)
-    if (result?.paymentUrl && result.paymentUrl !== 'mock://paid') {
-      window.location.href = result.paymentUrl
-    } else {
-      setDone(true)
-    }
-  }
-
-  if (done) {
-    return <BookingConfirmation phone={state.customer.phone} onReset={() => dispatch({ type: 'RESET' })} />
-  }
-
+// ── Step 4: Booking confirmed (zero-deposit path only) ───────────────────────
+function Step4Confirmed() {
+  const { state, dispatch } = useBooking()
   return (
-    <div>
-      <h2 className="font-display text-xl font-semibold text-on-surface mb-4">Payment</h2>
-      <div className="grid sm:grid-cols-2 gap-5 mb-6">
-        <PaymentOptions
-          selected={method}
-          onSelect={setMethod}
-          amount={state.depositRequired}
-        />
-        <BookingSummary
-          service={state.service}
-          slot={state.slot}
-          customer={state.customer}
-          depositRequired={state.depositRequired}
-        />
-      </div>
-      {error && <ErrorMessage message={error.message} className="mb-4" />}
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={() => dispatch({ type: 'PREV_STEP' })}>Back</Button>
-        <Button loading={loading} disabled={!method} onClick={pay}>
-          Pay {method === 'CASH' ? 'at salon' : 'now'}
-        </Button>
-      </div>
-    </div>
+    <BookingConfirmation
+      phone={state.customer.phone}
+      onReset={() => dispatch({ type: 'RESET' })}
+    />
   )
 }
 
@@ -388,6 +296,7 @@ function BookingFlow() {
   const { salonSlug } = useParams()
   const [searchParams] = useSearchParams()
   const [chatOpen, setChatOpen] = useState(false)
+  const { data: profileData } = useQuery(SALON_PROFILE)
 
   useEffect(() => {
     const staffId = searchParams.get('staffId')
@@ -408,21 +317,38 @@ function BookingFlow() {
         {state.step === 1 && <Step1Services />}
         {state.step === 2 && <Step2DateTime />}
         {state.step === 3 && <Step3Details />}
-        {state.step === 4 && <Step4Payment />}
+        {state.step === 4 && <Step4Confirmed />}
       </main>
 
       {/* Chat FAB */}
-      <button
-        onClick={() => setChatOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg hover:bg-primary/90 transition-colors flex items-center justify-center"
-        title="Chat with booking assistant"
-      >
-        {chatOpen ? <X size={20} /> : <MessageCircle size={20} />}
-      </button>
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+        {!chatOpen && (
+          <span className="bg-white text-on-surface font-semibold text-sm px-3 py-1.5 rounded-full shadow-md select-none">
+            Ask or Book
+          </span>
+        )}
+        <div className="relative">
+          {!chatOpen && (
+            <span
+              className="absolute inset-0 rounded-full animate-ping opacity-60"
+              style={{ background: '#6B2737' }}
+            />
+          )}
+          <button
+            onClick={() => { playPopSound(); setChatOpen((v) => !v) }}
+            className="relative w-16 h-16 rounded-full text-white shadow-xl flex items-center justify-center transition-transform hover:scale-105"
+            style={{ background: '#4A1A25' }}
+            title="Chat with booking assistant"
+          >
+            {chatOpen ? <X size={22} /> : <MessageCircle size={22} />}
+          </button>
+        </div>
+      </div>
 
       {chatOpen && (
         <ChatWindow
           customerPhone={state.customer.phone || '+260000000000'}
+          salonName={profileData?.salonProfile?.businessName}
           onClose={() => setChatOpen(false)}
         />
       )}

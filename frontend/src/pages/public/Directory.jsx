@@ -8,7 +8,7 @@ import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
-const PRIMARY   = '#3d5c40'
+const PRIMARY   = '#6B2737'
 const DARK_CARD = '#4b6b4e'
 const TEXT      = '#1a2e1c'
 const MUTED     = '#6b7c6d'

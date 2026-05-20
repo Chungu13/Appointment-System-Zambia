@@ -21,6 +21,7 @@ class Tenant(TenantMixin):
     staff_access_key = models.CharField(max_length=50, blank=True)
     cover_image_url = models.TextField(blank=True)
     portfolio_preview_url = models.TextField(blank=True)
+    business_policies = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
     on_trial = models.BooleanField(default=True)
     trial_ends_at = models.DateTimeField(null=True, blank=True)

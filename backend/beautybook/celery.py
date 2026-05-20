@@ -30,11 +30,6 @@ app.conf.beat_schedule = {
         "task": "agents.tasks.check_trial_expiry",
         "schedule": crontab(hour=0, minute=0),
     },
-    # Every 30 minutes — chase unpaid deposits and auto-cancel overdue bookings
-    "check-unpaid-deposits": {
-        "task": "agents.tasks.check_unpaid_deposits",
-        "schedule": 1800.0,
-    },
     # Every Monday at 7 am CAT — weekly business digest for each tenant
     "send-weekly-digest": {
         "task": "agents.tasks.send_weekly_digest",

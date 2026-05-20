@@ -3,7 +3,7 @@ import { createContext, useContext, useReducer } from 'react'
 const BookingContext = createContext(null)
 
 const initialState = {
-  step: 1,          // 1=service, 2=datetime, 3=details, 4=payment
+  step: 1,          // 1=service, 2=datetime, 3=details, 4=confirmed
   salonSlug: null,
   service: null,    // { id, name, durationMinutes, priceZmw, depositZmw }
   slot: null,       // { startsAt, endsAt, staff: { id, fullName } }
@@ -13,9 +13,8 @@ const initialState = {
     phone: '',
     notes: '',
   },
-  appointment: null, // result from createBooking
+  appointment: null, // set for zero-deposit bookings after confirmation
   depositRequired: 0,
-  payment: null,     // result from initiatePayment
 }
 
 function reducer(state, action) {
@@ -37,8 +36,6 @@ function reducer(state, action) {
         appointment: action.payload.appointment,
         depositRequired: action.payload.depositRequired,
       }
-    case 'SET_PAYMENT':
-      return { ...state, payment: action.payload }
     case 'PREV_STEP':
       return { ...state, step: Math.max(1, state.step - 1) }
     case 'RESET':

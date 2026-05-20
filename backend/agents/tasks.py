@@ -80,36 +80,42 @@ def send_appointment_reminders():
 
 @shared_task(name="agents.tasks.fill_cancelled_slots")
 def fill_cancelled_slots():
-    """Use the SchedulingAgent to fill recently cancelled slots from the waitlist."""
-    import datetime
-    from django_tenants.utils import tenant_context
-    from agents.scheduling_agent import SchedulingAgent
-    from bookings.models import Appointment
+    """Notify waitlist customers when a slot opens up. Disabled until SMS infrastructure is ready."""
+    # TODO: re-enable when WhatsApp/SMS delivery is wired up
+    # Waitlist model and data are preserved — just notifications are paused.
+    logger.info("fill_cancelled_slots: slot available — waitlist notifications coming soon")
+    return 0
 
-    now = timezone.now()
-    since = now - datetime.timedelta(minutes=10)
-    total = 0
-
-    for tenant in _active_tenants():
-        with tenant_context(tenant):
-            recently_cancelled = (
-                Appointment.objects
-                .filter(status="cancelled", cancelled_at__gte=since)
-                .only("id")
-            )
-            agent = SchedulingAgent(tenant)
-            for appt in recently_cancelled:
-                try:
-                    agent.fill_slot(appt.pk)
-                    total += 1
-                except Exception:
-                    logger.exception(
-                        "fill_cancelled_slots: error processing appointment %d for tenant %s",
-                        appt.pk, tenant.schema_name,
-                    )
-
-    logger.info("fill_cancelled_slots: processed %d cancelled slots", total)
-    return total
+    # --- preserved for later ---
+    # import datetime
+    # from django_tenants.utils import tenant_context
+    # from agents.scheduling_agent import SchedulingAgent
+    # from bookings.models import Appointment
+    #
+    # now = timezone.now()
+    # since = now - datetime.timedelta(minutes=10)
+    # total = 0
+    #
+    # for tenant in _active_tenants():
+    #     with tenant_context(tenant):
+    #         recently_cancelled = (
+    #             Appointment.objects
+    #             .filter(status="cancelled", cancelled_at__gte=since)
+    #             .only("id")
+    #         )
+    #         agent = SchedulingAgent(tenant)
+    #         for appt in recently_cancelled:
+    #             try:
+    #                 agent.fill_slot(appt.pk)
+    #                 total += 1
+    #             except Exception:
+    #                 logger.exception(
+    #                     "fill_cancelled_slots: error processing appointment %d for tenant %s",
+    #                     appt.pk, tenant.schema_name,
+    #                 )
+    #
+    # logger.info("fill_cancelled_slots: processed %d cancelled slots", total)
+    # return total
 
 
 # ---------------------------------------------------------------------------
@@ -212,32 +218,7 @@ def check_trial_expiry():
 
 
 # ---------------------------------------------------------------------------
-# Task 5 — every 30 minutes
-# ---------------------------------------------------------------------------
-
-@shared_task(name="agents.tasks.check_unpaid_deposits")
-def check_unpaid_deposits():
-    """Use the PaymentAgent to chase unpaid deposits and auto-cancel overdue bookings."""
-    from django_tenants.utils import tenant_context
-    from agents.payment_agent import PaymentAgent
-
-    total = 0
-    for tenant in _active_tenants():
-        with tenant_context(tenant):
-            try:
-                PaymentAgent(tenant).chase_deposits()
-                total += 1
-            except Exception:
-                logger.exception(
-                    "check_unpaid_deposits: error for tenant %s", tenant.schema_name
-                )
-
-    logger.info("check_unpaid_deposits: ran for %d tenants", total)
-    return total
-
-
-# ---------------------------------------------------------------------------
-# Task 6 — every Monday 7 am CAT
+# Task 5 — every Monday 7 am CAT
 # ---------------------------------------------------------------------------
 
 @shared_task(name="agents.tasks.send_weekly_digest")

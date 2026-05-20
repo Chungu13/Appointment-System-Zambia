@@ -28,6 +28,8 @@ class PaymentsMutation:
             raise ValueError("Appointment not found.")
         if appt.status == "cancelled":
             raise ValueError("Cannot initiate payment for a cancelled appointment.")
+        if appt.customer.no_show_count < 2 and appt.service.deposit_zmw == 0:
+            raise ValueError("This service requires no upfront payment — pay in full at the salon.")
 
         # Deposit amount — full price if customer has 2+ no-shows
         if payment_type == PaymentTypeEnum.DEPOSIT:

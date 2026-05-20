@@ -5,6 +5,16 @@ export const SALON_SETTINGS = gql`
     salonSettings {
       staffAccessKey
       coverImageUrl
+      businessPolicies {
+        cancellationPolicy
+        lateArrivalPolicy
+        lateFee
+        waitingTime
+        whatToBring
+        parking
+        contactPreference
+        additionalInfo
+      }
     }
   }
 `

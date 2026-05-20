@@ -54,12 +54,17 @@ def _build_availability_slots(
     booked_by_staff: dict[int, list] = {}
     for row in Appointment.objects.filter(
         staff_id__in=staff_ids,
-        status__in=("pending", "confirmed", "in_progress"),
+        status__in=("confirmed", "in_progress"),
         starts_at__date=date,
     ).values("staff_id", "starts_at", "ends_at"):
         booked_by_staff.setdefault(row["staff_id"], []).append(
             (row["starts_at"], row["ends_at"])
         )
+
+    today = datetime.date.today()
+    now = datetime.datetime.now(tz=tz)
+    # Earliest bookable start: now + 30-min buffer, only relevant for today
+    earliest = (now + datetime.timedelta(minutes=30)) if date == today else None
 
     slots: List[AvailabilitySlotType] = []
 
@@ -70,11 +75,20 @@ def _build_availability_slots(
 
         day_start = datetime.datetime.combine(date, wh.start_time).replace(tzinfo=tz)
         day_end = datetime.datetime.combine(date, wh.end_time).replace(tzinfo=tz)
+
+        # If today and already past working hours, no slots for this staff member
+        if earliest is not None and earliest >= day_end:
+            continue
+
         booked = booked_by_staff.get(ss.staff_id, [])
 
         cursor = day_start
         while cursor + slot_duration <= day_end:
             slot_end = cursor + slot_duration
+            # Skip slots that have already passed (with 30-min booking buffer)
+            if earliest is not None and cursor < earliest:
+                cursor += step
+                continue
             if not any(not (slot_end <= b_start or cursor >= b_end) for b_start, b_end in booked):
                 slots.append(
                     AvailabilitySlotType(
@@ -176,17 +190,11 @@ class BookingsQuery:
             created_at__date=date,
         ).count()
 
-        pending_payments = Payment.objects.filter(
-            appointment__starts_at__date=date,
-            status="pending",
-        ).count()
-
         return DashboardStatsType(
             today_revenue=float(revenue),
             today_bookings=appts.count(),
             booked_by_agent=appts.filter(booked_by="agent").count(),
             slots_recovered=slots_recovered,
-            pending_payments=pending_payments,
         )
 
     @strawberry.field

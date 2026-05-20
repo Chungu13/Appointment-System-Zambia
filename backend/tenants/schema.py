@@ -5,10 +5,56 @@ import strawberry
 from strawberry.types import Info
 
 
+# ---------------------------------------------------------------------------
+# Business policies
+# ---------------------------------------------------------------------------
+
+@strawberry.type
+class BusinessPoliciesType:
+    cancellation_policy: str
+    late_arrival_policy: str
+    late_fee: str
+    waiting_time: str
+    what_to_bring: List[str]
+    parking: str
+    contact_preference: str
+    additional_info: str
+
+
+@strawberry.input
+class BusinessPoliciesInput:
+    cancellation_policy: str = ""
+    late_arrival_policy: str = ""
+    late_fee: str = ""
+    waiting_time: str = ""
+    what_to_bring: List[str] = strawberry.field(default_factory=list)
+    parking: str = ""
+    contact_preference: str = ""
+    additional_info: str = ""
+
+
+def _policies_from_db(data: dict) -> BusinessPoliciesType:
+    return BusinessPoliciesType(
+        cancellation_policy=data.get("cancellationPolicy", ""),
+        late_arrival_policy=data.get("lateArrivalPolicy", ""),
+        late_fee=data.get("lateFee", ""),
+        waiting_time=data.get("waitingTime", ""),
+        what_to_bring=data.get("whatToBring", []),
+        parking=data.get("parking", ""),
+        contact_preference=data.get("contactPreference", ""),
+        additional_info=data.get("additionalInfo", ""),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Settings types
+# ---------------------------------------------------------------------------
+
 @strawberry.type
 class SalonSettingsType:
     staff_access_key: str
     cover_image_url: str
+    business_policies: BusinessPoliciesType
 
 
 @strawberry.type
@@ -30,6 +76,10 @@ def _check_staff_key(info: Info, key: str):
     return tenant
 
 
+# ---------------------------------------------------------------------------
+# Queries
+# ---------------------------------------------------------------------------
+
 @strawberry.type
 class TenantQuery:
     @strawberry.field
@@ -40,6 +90,7 @@ class TenantQuery:
         return SalonSettingsType(
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
+            business_policies=_policies_from_db(tenant.business_policies or {}),
         )
 
     @strawberry.field
@@ -80,6 +131,10 @@ class TenantQuery:
         ]
 
 
+# ---------------------------------------------------------------------------
+# Mutations
+# ---------------------------------------------------------------------------
+
 @strawberry.type
 class TenantMutation:
     @strawberry.mutation
@@ -117,6 +172,28 @@ class TenantMutation:
         if phone is not None:
             tenant.phone = phone.strip()
         tenant.save(update_fields=["cover_image_url", "address", "phone", "updated_at"])
+        return True
+
+    @strawberry.mutation
+    def update_business_policies(
+        self,
+        info: Info,
+        policies: BusinessPoliciesInput,
+    ) -> bool:
+        from beautybook.permissions import require_owner
+        require_owner(info)
+        tenant = info.context.request.tenant
+        tenant.business_policies = {
+            "cancellationPolicy": policies.cancellation_policy,
+            "lateArrivalPolicy": policies.late_arrival_policy,
+            "lateFee": policies.late_fee,
+            "waitingTime": policies.waiting_time,
+            "whatToBring": policies.what_to_bring,
+            "parking": policies.parking,
+            "contactPreference": policies.contact_preference,
+            "additionalInfo": policies.additional_info,
+        }
+        tenant.save(update_fields=["business_policies", "updated_at"])
         return True
 
     @strawberry.mutation

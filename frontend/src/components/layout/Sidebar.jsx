@@ -8,9 +8,9 @@ import { useAuth } from '../../context/AuthContext'
 import { useLogout } from '../../hooks/useAuth'
 
 // ── Palette ───────────────────────────────────────────────────────────────────
-const BG          = '#2d4a30'
+const BG          = '#4A1A25'
 const TEXT        = '#ffffff'
-const ACTIVE_BG   = '#3d6b42'
+const ACTIVE_BG   = '#6B2737'
 const HOVER_BG    = 'rgba(255,255,255,0.08)'
 const MUTED       = 'rgba(255,255,255,0.6)'
 const DIVIDER     = 'rgba(255,255,255,0.12)'

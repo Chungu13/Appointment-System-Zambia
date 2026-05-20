@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw, Camera, X } from 'lucide-react'
+import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
-import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE } from '../../graphql/mutations/tenant'
+import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -214,6 +214,282 @@ function StaffKeyCard({ currentKey }) {
   )
 }
 
+// ── Radio helper ──────────────────────────────────────────────────────────────
+function PolicyRadio({ label, value, current, onChange, children }) {
+  const selected = current === value
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => onChange(value)}
+        className="flex items-center gap-3 text-left w-full"
+      >
+        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+          selected ? 'border-primary' : 'border-outline-variant'
+        }`}>
+          {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
+        </div>
+        <span className="text-sm text-on-surface">{label}</span>
+      </button>
+      {selected && children}
+    </div>
+  )
+}
+
+function CheckItem({ label, checked, onChange }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className="flex items-center gap-3 text-left w-full"
+    >
+      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+        checked ? 'border-primary bg-primary' : 'border-outline-variant'
+      }`}>
+        {checked && <Check size={10} className="text-white" />}
+      </div>
+      <span className="text-sm text-on-surface">{label}</span>
+    </button>
+  )
+}
+
+function OtherTextInput({ value, onChange }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Describe your policy…"
+      className="mt-2 ml-7 w-full rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-3 py-2 focus:outline-none focus:border-primary transition-colors"
+    />
+  )
+}
+
+function PolicyGroup({ title, children }) {
+  return (
+    <div className="space-y-2.5">
+      <p className="text-sm font-semibold text-on-surface">{title}</p>
+      {children}
+    </div>
+  )
+}
+
+function BusinessPoliciesCard({ current }) {
+  const [saved, setSaved] = useState(false)
+
+  // Flatten DB policies into local state
+  const init = (p) => ({
+    cancellationPolicy: p?.cancellationPolicy || '',
+    cancellationOther: '',
+    lateArrivalPolicy: p?.lateArrivalPolicy || '',
+    lateArrivalOther: '',
+    lateFee: p?.lateFee?.startsWith('Late fee applies') ? 'fee_applies'
+           : p?.lateFee === 'No charge — we accommodate late arrivals' ? 'no_charge'
+           : p?.lateFee === 'Appointment cancelled and deposit forfeited' ? 'deposit_forfeited'
+           : p?.lateFee ? 'other' : '',
+    lateFeeAmount: p?.lateFee?.match(/ZMW (\d+)/)?.[1] || '',
+    lateFeeOther: (!['no_charge','fee_applies','deposit_forfeited',''].includes(
+      p?.lateFee?.startsWith('Late fee applies') ? 'fee_applies'
+      : p?.lateFee === 'No charge — we accommodate late arrivals' ? 'no_charge'
+      : p?.lateFee === 'Appointment cancelled and deposit forfeited' ? 'deposit_forfeited'
+      : p?.lateFee ? 'other' : ''
+    )) ? (p?.lateFee || '') : '',
+    waitingTime: p?.waitingTime || '',
+    waitingOther: '',
+    whatToBring: p?.whatToBring || [],
+    whatToBringOther: '',
+    parking: p?.parking || '',
+    parkingOther: '',
+    contactPreference: p?.contactPreference || '',
+    contactOther: '',
+    additionalInfo: p?.additionalInfo || '',
+  })
+
+  const [form, setForm] = useState(() => init(current))
+  function set(key, val) { setForm((f) => ({ ...f, [key]: val })) }
+  function toggleBring(item) {
+    setForm((f) => ({
+      ...f,
+      whatToBring: f.whatToBring.includes(item)
+        ? f.whatToBring.filter((i) => i !== item)
+        : [...f.whatToBring, item],
+    }))
+  }
+
+  const [updatePolicies, { loading, error }] = useMutation(UPDATE_BUSINESS_POLICIES, {
+    refetchQueries: [SALON_SETTINGS],
+    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
+  })
+
+  function save() {
+    const lateFeeText =
+      form.lateFee === 'fee_applies' && form.lateFeeAmount
+        ? `Late fee applies: ZMW ${form.lateFeeAmount}`
+        : form.lateFee === 'other' ? form.lateFeeOther
+        : form.lateFee === 'no_charge' ? 'No charge — we accommodate late arrivals'
+        : form.lateFee === 'deposit_forfeited' ? 'Appointment cancelled and deposit forfeited'
+        : form.lateFee
+
+    const whatToBring = [
+      ...form.whatToBring.filter((i) => i !== 'other'),
+      ...(form.whatToBring.includes('other') && form.whatToBringOther ? [form.whatToBringOther] : []),
+    ]
+
+    updatePolicies({
+      variables: {
+        policies: {
+          cancellationPolicy: form.cancellationPolicy === 'other' ? form.cancellationOther : form.cancellationPolicy,
+          lateArrivalPolicy: form.lateArrivalPolicy === 'other' ? form.lateArrivalOther : form.lateArrivalPolicy,
+          lateFee: lateFeeText || '',
+          waitingTime: form.waitingTime === 'other' ? form.waitingOther : form.waitingTime,
+          whatToBring,
+          parking: form.parking === 'other' ? form.parkingOther : form.parking,
+          contactPreference: form.contactPreference === 'other' ? form.contactOther : form.contactPreference,
+          additionalInfo: form.additionalInfo,
+        },
+      },
+    })
+  }
+
+  const isCancOther = form.cancellationPolicy === 'other'
+  const isLateOther = form.lateArrivalPolicy === 'other'
+  const isFeeOther  = form.lateFee === 'other'
+  const isWaitOther = form.waitingTime === 'other'
+  const isBringOther = form.whatToBring.includes('other')
+  const isParkOther  = form.parking === 'other'
+  const isContOther  = form.contactPreference === 'other'
+
+  return (
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-6">
+      <div>
+        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+          <Bot size={18} className="text-primary" />
+          AI assistant policies
+        </h2>
+        <p className="text-sm text-on-surface-variant mt-1">
+          These policies help your AI booking assistant answer common customer questions accurately.
+        </p>
+      </div>
+
+      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
+
+      <div className="space-y-6 divide-y divide-outline-variant/40">
+        {/* Cancellation */}
+        <PolicyGroup title="Cancellation policy">
+          {['Free cancellation anytime', 'Free cancellation up to 24hrs before', 'Deposit non-refundable on cancellation'].map((opt) => (
+            <PolicyRadio key={opt} label={opt} value={opt} current={form.cancellationPolicy} onChange={(v) => set('cancellationPolicy', v)} />
+          ))}
+          <PolicyRadio label="Other" value="other" current={form.cancellationPolicy} onChange={(v) => set('cancellationPolicy', v)}>
+            {isCancOther && <OtherTextInput value={form.cancellationOther} onChange={(v) => set('cancellationOther', v)} />}
+          </PolicyRadio>
+        </PolicyGroup>
+
+        {/* Late arrival */}
+        <div className="pt-5">
+          <PolicyGroup title="Late arrival policy">
+            {['We allow up to 15 minutes late', 'We allow up to 30 minutes late', 'No late arrivals — appointment cancelled if late'].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)}>
+              {isLateOther && <OtherTextInput value={form.lateArrivalOther} onChange={(v) => set('lateArrivalOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        {/* Late fee */}
+        <div className="pt-5">
+          <PolicyGroup title="Late fee">
+            <PolicyRadio label="No charge — we accommodate late arrivals" value="no_charge" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
+            <PolicyRadio label="Yes — a late fee applies" value="fee_applies" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
+              <div className="mt-2 ml-7 flex items-center gap-2">
+                <span className="text-sm text-on-surface-variant">ZMW</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.lateFeeAmount}
+                  onChange={(e) => set('lateFeeAmount', e.target.value)}
+                  placeholder="Amount"
+                  className="w-28 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-3 py-2 focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+            </PolicyRadio>
+            <PolicyRadio label="Appointment cancelled and deposit forfeited" value="deposit_forfeited" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
+            <PolicyRadio label="Other" value="other" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
+              {isFeeOther && <OtherTextInput value={form.lateFeeOther} onChange={(v) => set('lateFeeOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        {/* Waiting time */}
+        <div className="pt-5">
+          <PolicyGroup title="How long should customers expect to wait if running behind?">
+            {['We run on time — no waiting', 'Allow up to 15 minutes waiting time', 'Allow up to 30 minutes waiting time'].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.waitingTime} onChange={(v) => set('waitingTime', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.waitingTime} onChange={(v) => set('waitingTime', v)}>
+              {isWaitOther && <OtherTextInput value={form.waitingOther} onChange={(v) => set('waitingOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        {/* What to bring */}
+        <div className="pt-5">
+          <PolicyGroup title="What should customers bring? (select all that apply)">
+            {['Reference photos', 'Their own hair extensions', 'Their own nail polish colour', 'Nothing — we provide everything'].map((opt) => (
+              <CheckItem key={opt} label={opt} checked={form.whatToBring.includes(opt)} onChange={() => toggleBring(opt)} />
+            ))}
+            <div>
+              <CheckItem label="Other" checked={isBringOther} onChange={() => toggleBring('other')} />
+              {isBringOther && <OtherTextInput value={form.whatToBringOther} onChange={(v) => set('whatToBringOther', v)} />}
+            </div>
+          </PolicyGroup>
+        </div>
+
+        {/* Parking */}
+        <div className="pt-5">
+          <PolicyGroup title="Parking">
+            {['Free parking on site', 'Paid parking nearby', 'Street parking available', 'No parking — public transport recommended'].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.parking} onChange={(v) => set('parking', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.parking} onChange={(v) => set('parking', v)}>
+              {isParkOther && <OtherTextInput value={form.parkingOther} onChange={(v) => set('parkingOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        {/* Contact preference */}
+        <div className="pt-5">
+          <PolicyGroup title="Customer contact preference">
+            {['BeautyBook ZM only', 'WhatsApp also welcome', 'Call us anytime'].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.contactPreference} onChange={(v) => set('contactPreference', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.contactPreference} onChange={(v) => set('contactPreference', v)}>
+              {isContOther && <OtherTextInput value={form.contactOther} onChange={(v) => set('contactOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        {/* Additional info */}
+        <div className="pt-5">
+          <p className="text-sm font-semibold text-on-surface mb-2">Additional info (optional)</p>
+          <textarea
+            value={form.additionalInfo}
+            onChange={(e) => set('additionalInfo', e.target.value)}
+            placeholder="e.g. We specialise in natural African hair, by appointment only, etc."
+            rows={3}
+            className="w-full rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-4 py-3 focus:outline-none focus:border-primary transition-colors resize-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 pt-2">
+        <Button onClick={save} loading={loading}>Save policies</Button>
+        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+      </div>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { data, loading, error } = useQuery(SALON_SETTINGS)
 
@@ -228,6 +504,7 @@ export default function Settings() {
         <div className="max-w-lg space-y-6">
           <BusinessProfileCard currentImageUrl={data.salonSettings.coverImageUrl} />
           <StaffKeyCard currentKey={data.salonSettings.staffAccessKey} />
+          <BusinessPoliciesCard current={data.salonSettings.businessPolicies} />
         </div>
       )}
     </PageWrapper>

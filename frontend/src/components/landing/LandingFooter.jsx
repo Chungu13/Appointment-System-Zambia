@@ -1,6 +1,6 @@
 const TEXT  = '#1a2e1c'
 const MUTED = '#6b7c6d'
-const PRIMARY = '#3d5c40'
+const PRIMARY = '#6B2737'
 
 const OWNER_LINKS = ['How it Works', 'Pricing', 'For Businesses', 'Sign Up Free']
 const OWNER_HREFS = ['/how-it-works', '/pricing', '/for-businesses', '/signup']

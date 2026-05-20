@@ -6,14 +6,17 @@ function generateSessionId() {
   return `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-export function useAgentChat(customerPhone) {
+export function useAgentChat(customerPhone, salonName) {
   const [sessionId] = useState(generateSessionId)
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: "Hi! I'm your booking assistant. How can I help you today?",
-    },
-  ])
+  const [messages, setMessages] = useState(() => {
+    const name = salonName || 'us'
+    return [
+      {
+        role: 'assistant',
+        content: `Hi! 👋 Welcome to ${name}! I'm here to help you with anything — booking an appointment, checking our prices and availability, or answering any questions about our services. Just type what you need and I'll sort it out for you!`,
+      },
+    ]
+  })
   const [chatMutation, { loading }] = useMutation(AGENT_CHAT)
 
   const sendMessage = useCallback(

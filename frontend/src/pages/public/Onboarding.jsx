@@ -6,10 +6,10 @@ import { useAuth } from '../../context/AuthContext'
 import { setTokens, saveRole } from '../../lib/auth'
 import { CREATE_SERVICE } from '../../graphql/mutations/services'
 import { CREATE_STAFF, SET_WORKING_HOURS } from '../../graphql/mutations/staff'
-import { UPDATE_TENANT_PROFILE } from '../../graphql/mutations/tenant'
+import { UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 
-const PRIMARY   = '#3d5c40'
+const PRIMARY   = '#6B2737'
 const TEXT      = '#1a2e1c'
 const MUTED     = '#6b7c6d'
 const MINT      = '#f4faf4'
@@ -47,7 +47,7 @@ const DURATIONS = [
   { label: '4 hours', value: 240 },
 ]
 
-const STEP_LABELS = ['Business Hours', 'Your Services', 'Your Team', "You're Ready!"]
+const STEP_LABELS = ['Business Hours', 'Your Services', 'Your Team', 'AI Policies', "You're Ready!"]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function copyToClipboard(text, onSuccess) {
@@ -518,7 +518,299 @@ function TeamStep({ isSoloOperator, setIsSoloOperator, staffList, setStaffList, 
   )
 }
 
-// ── Step 4 — Ready ────────────────────────────────────────────────────────────
+// ── Shared policy UI helpers ──────────────────────────────────────────────────
+function RadioOption({ label, selected, onClick, children }) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex items-center gap-3 w-full text-left"
+      >
+        <div
+          className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5"
+          style={{ borderColor: selected ? PRIMARY : '#d1d5db' }}
+        >
+          {selected && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIMARY }} />}
+        </div>
+        <span className="text-sm" style={{ color: TEXT }}>{label}</span>
+      </button>
+      {selected && children}
+    </div>
+  )
+}
+
+function CheckOption({ label, checked, onChange }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className="flex items-center gap-3 w-full text-left"
+    >
+      <div
+        className="w-4 h-4 rounded border-2 flex items-center justify-center shrink-0"
+        style={{ borderColor: checked ? PRIMARY : '#d1d5db', backgroundColor: checked ? PRIMARY : 'transparent' }}
+      >
+        {checked && <Check size={10} color="#fff" />}
+      </div>
+      <span className="text-sm" style={{ color: TEXT }}>{label}</span>
+    </button>
+  )
+}
+
+function PolicySection({ title, children }) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold" style={{ color: TEXT }}>{title}</p>
+      <div className="space-y-2.5">{children}</div>
+    </div>
+  )
+}
+
+function OtherInput({ value, onChange }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Describe your policy…"
+      className="mt-2 ml-7 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+      style={{ color: TEXT }}
+    />
+  )
+}
+
+// ── Step 4 — AI Policies ──────────────────────────────────────────────────────
+const POLICY_DEFAULTS = {
+  cancellationPolicy: '',
+  cancellationOther: '',
+  lateArrivalPolicy: '',
+  lateArrivalOther: '',
+  lateFee: '',
+  lateFeeAmount: '',
+  lateFeeOther: '',
+  waitingTime: '',
+  waitingOther: '',
+  whatToBring: [],
+  whatToBringOther: '',
+  parking: '',
+  parkingOther: '',
+  contactPreference: '',
+  contactOther: '',
+  additionalInfo: '',
+}
+
+function PoliciesStep({ policies, setPolicies }) {
+  function set(key, val) {
+    setPolicies((p) => ({ ...p, [key]: val }))
+  }
+
+  function toggleBring(item) {
+    setPolicies((p) => ({
+      ...p,
+      whatToBring: p.whatToBring.includes(item)
+        ? p.whatToBring.filter((i) => i !== item)
+        : [...p.whatToBring, item],
+    }))
+  }
+
+  const isCancOther  = policies.cancellationPolicy === 'other'
+  const isLateOther  = policies.lateArrivalPolicy === 'other'
+  const isFeeOther   = policies.lateFee === 'other'
+  const isWaitOther  = policies.waitingTime === 'other'
+  const isBringOther = policies.whatToBring.includes('other')
+  const isParkOther  = policies.parking === 'other'
+  const isContOther  = policies.contactPreference === 'other'
+
+  return (
+    <div className="space-y-7">
+      <div>
+        <h2 className="font-display text-2xl font-bold mb-1" style={{ color: TEXT }}>
+          Help your AI assistant
+        </h2>
+        <p className="text-sm" style={{ color: MUTED }}>
+          These policies let your AI agent answer common customer questions accurately.
+          Skip anything that doesn't apply — you can update this anytime in Settings.
+        </p>
+      </div>
+
+      {/* Cancellation policy */}
+      <PolicySection title="Cancellation policy">
+        {[
+          'Free cancellation anytime',
+          'Free cancellation up to 24hrs before',
+          'Deposit non-refundable on cancellation',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.cancellationPolicy === opt}
+            onClick={() => set('cancellationPolicy', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isCancOther} onClick={() => set('cancellationPolicy', 'other')}>
+          <OtherInput value={policies.cancellationOther} onChange={(v) => set('cancellationOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Late arrival */}
+      <PolicySection title="Late arrival policy">
+        {[
+          'We allow up to 15 minutes late',
+          'We allow up to 30 minutes late',
+          'No late arrivals — appointment cancelled if late',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.lateArrivalPolicy === opt}
+            onClick={() => set('lateArrivalPolicy', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isLateOther} onClick={() => set('lateArrivalPolicy', 'other')}>
+          <OtherInput value={policies.lateArrivalOther} onChange={(v) => set('lateArrivalOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Late fee */}
+      <PolicySection title="Is there a late fee?">
+        <RadioOption
+          label="No charge — we accommodate late arrivals"
+          selected={policies.lateFee === 'no_charge'}
+          onClick={() => set('lateFee', 'no_charge')}
+        />
+        <RadioOption
+          label="Yes — a late fee applies"
+          selected={policies.lateFee === 'fee_applies'}
+          onClick={() => set('lateFee', 'fee_applies')}
+        >
+          <div className="mt-2 ml-7 flex items-center gap-2">
+            <span className="text-sm" style={{ color: MUTED }}>ZMW</span>
+            <input
+              type="number"
+              min="0"
+              value={policies.lateFeeAmount}
+              onChange={(e) => set('lateFeeAmount', e.target.value)}
+              placeholder="Amount"
+              className="w-28 rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+              style={{ color: TEXT }}
+            />
+          </div>
+        </RadioOption>
+        <RadioOption
+          label="Appointment cancelled and deposit forfeited"
+          selected={policies.lateFee === 'deposit_forfeited'}
+          onClick={() => set('lateFee', 'deposit_forfeited')}
+        />
+        <RadioOption label="Other" selected={isFeeOther} onClick={() => set('lateFee', 'other')}>
+          <OtherInput value={policies.lateFeeOther} onChange={(v) => set('lateFeeOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Waiting time */}
+      <PolicySection title="How long should customers expect to wait if you're running behind?">
+        {[
+          'We run on time — no waiting',
+          'Allow up to 15 minutes waiting time',
+          'Allow up to 30 minutes waiting time',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.waitingTime === opt}
+            onClick={() => set('waitingTime', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isWaitOther} onClick={() => set('waitingTime', 'other')}>
+          <OtherInput value={policies.waitingOther} onChange={(v) => set('waitingOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* What to bring */}
+      <PolicySection title="What should customers bring? (select all that apply)">
+        {[
+          'Reference photos',
+          'Their own hair extensions',
+          'Their own nail polish colour',
+          'Nothing — we provide everything',
+        ].map((opt) => (
+          <CheckOption
+            key={opt}
+            label={opt}
+            checked={policies.whatToBring.includes(opt)}
+            onChange={() => toggleBring(opt)}
+          />
+        ))}
+        <div>
+          <CheckOption
+            label="Other"
+            checked={isBringOther}
+            onChange={() => toggleBring('other')}
+          />
+          {isBringOther && (
+            <OtherInput value={policies.whatToBringOther} onChange={(v) => set('whatToBringOther', v)} />
+          )}
+        </div>
+      </PolicySection>
+
+      {/* Parking */}
+      <PolicySection title="Parking">
+        {[
+          'Free parking on site',
+          'Paid parking nearby',
+          'Street parking available',
+          'No parking — public transport recommended',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.parking === opt}
+            onClick={() => set('parking', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isParkOther} onClick={() => set('parking', 'other')}>
+          <OtherInput value={policies.parkingOther} onChange={(v) => set('parkingOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Contact preference */}
+      <PolicySection title="How do customers prefer to contact you?">
+        {[
+          'BeautyBook ZM only',
+          'WhatsApp also welcome',
+          'Call us anytime',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.contactPreference === opt}
+            onClick={() => set('contactPreference', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isContOther} onClick={() => set('contactPreference', 'other')}>
+          <OtherInput value={policies.contactOther} onChange={(v) => set('contactOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Additional info */}
+      <div>
+        <p className="text-sm font-semibold mb-2" style={{ color: TEXT }}>
+          Anything else customers should know? (optional)
+        </p>
+        <textarea
+          value={policies.additionalInfo}
+          onChange={(e) => set('additionalInfo', e.target.value)}
+          placeholder="e.g. We specialise in natural African hair, by appointment only, etc."
+          rows={3}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm bg-white outline-none resize-none"
+          style={{ color: TEXT }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── Step 5 — Ready ────────────────────────────────────────────────────────────
 function ReadyStep({ subdomain, staffKey }) {
   const port = window.location.port || '3000'
   const bookingUrl = `${subdomain}.localhost:${port}`
@@ -639,16 +931,19 @@ export default function Onboarding() {
   const [services,     setServices]     = useState([])
   const [isSoloOperator,  setIsSoloOperator] = useState(false)
   const [staffList,    setStaffList]    = useState([])
+  const [policies,     setPolicies]     = useState(POLICY_DEFAULTS)
   const [saving,       setSaving]       = useState(false)
   const [error,        setError]        = useState('')
 
   const step2Done = useRef(false)
   const step3Done = useRef(false)
+  const step4Done = useRef(false)
 
-  const [createService]   = useMutation(CREATE_SERVICE)
-  const [createStaff]     = useMutation(CREATE_STAFF)
-  const [setWorkingHours] = useMutation(SET_WORKING_HOURS)
-  const [updateProfile]   = useMutation(UPDATE_TENANT_PROFILE)
+  const [createService]      = useMutation(CREATE_SERVICE)
+  const [createStaff]        = useMutation(CREATE_STAFF)
+  const [setWorkingHours]    = useMutation(SET_WORKING_HOURS)
+  const [updateProfile]      = useMutation(UPDATE_TENANT_PROFILE)
+  const [updatePolicies]     = useMutation(UPDATE_BUSINESS_POLICIES)
 
   async function handlePhotoUpload(dataUrl) {
     if (dataUrl) {
@@ -707,7 +1002,59 @@ export default function Onboarding() {
       setSaving(false)
     }
 
-    setStep((s) => Math.min(s + 1, 4))
+    if (step === 4 && !step4Done.current) {
+      setSaving(true)
+      try {
+        const lateFeeText =
+          policies.lateFee === 'fee_applies' && policies.lateFeeAmount
+            ? `Late fee applies: ZMW ${policies.lateFeeAmount}`
+            : policies.lateFee === 'other'
+            ? policies.lateFeeOther
+            : policies.lateFee === 'no_charge'
+            ? 'No charge — we accommodate late arrivals'
+            : policies.lateFee === 'deposit_forfeited'
+            ? 'Appointment cancelled and deposit forfeited'
+            : policies.lateFee
+
+        const whatToBring = [
+          ...policies.whatToBring.filter((i) => i !== 'other'),
+          ...(policies.whatToBring.includes('other') && policies.whatToBringOther
+            ? [policies.whatToBringOther]
+            : []),
+        ]
+
+        await updatePolicies({
+          variables: {
+            policies: {
+              cancellationPolicy: policies.cancellationPolicy === 'other'
+                ? policies.cancellationOther
+                : policies.cancellationPolicy,
+              lateArrivalPolicy: policies.lateArrivalPolicy === 'other'
+                ? policies.lateArrivalOther
+                : policies.lateArrivalPolicy,
+              lateFee: lateFeeText,
+              waitingTime: policies.waitingTime === 'other'
+                ? policies.waitingOther
+                : policies.waitingTime,
+              whatToBring,
+              parking: policies.parking === 'other' ? policies.parkingOther : policies.parking,
+              contactPreference: policies.contactPreference === 'other'
+                ? policies.contactOther
+                : policies.contactPreference,
+              additionalInfo: policies.additionalInfo,
+            },
+          },
+        })
+        step4Done.current = true
+      } catch (e) {
+        setError(e?.graphQLErrors?.[0]?.message || e.message)
+        setSaving(false)
+        return
+      }
+      setSaving(false)
+    }
+
+    setStep((s) => Math.min(s + 1, 5))
   }
 
   if (!tokenLoaded) {
@@ -729,7 +1076,7 @@ export default function Onboarding() {
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="font-display text-lg font-bold" style={{ color: PRIMARY }}>BeautyBook ZM</span>
           <span className="text-sm" style={{ color: MUTED }}>
-            Step {step} of {STEP_LABELS.length} — {STEP_LABELS[step - 1]}
+            Step {Math.min(step, STEP_LABELS.length)} of {STEP_LABELS.length} — {STEP_LABELS[step - 1] ?? STEP_LABELS[STEP_LABELS.length - 1]}
           </span>
         </div>
       </header>
@@ -753,7 +1100,8 @@ export default function Onboarding() {
               onPhotoUpload={handlePhotoUpload}
             />
           )}
-          {step === 4 && <ReadyStep subdomain={subdomain} staffKey={staffKey} />}
+          {step === 4 && <PoliciesStep policies={policies} setPolicies={setPolicies} />}
+          {step === 5 && <ReadyStep subdomain={subdomain} staffKey={staffKey} />}
 
           {error && (
             <div className="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
@@ -761,7 +1109,7 @@ export default function Onboarding() {
             </div>
           )}
 
-          {step < 4 && (
+          {step < 5 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t" style={{ borderColor: '#e8f0e8' }}>
               <button
                 onClick={() => setStep((s) => Math.max(s - 1, 1))}
@@ -777,16 +1125,16 @@ export default function Onboarding() {
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                 style={{ backgroundColor: PRIMARY }}
               >
-                {saving ? 'Saving…' : step === 3 ? 'Finish setup' : 'Next'}
+                {saving ? 'Saving…' : step === 4 ? 'Finish setup' : 'Next'}
                 {!saving && <ChevronRight size={16} />}
               </button>
             </div>
           )}
         </div>
 
-        {(step === 1 || step === 3) && (
+        {(step === 1 || step === 3 || step === 4) && (
           <p className="text-center mt-4 text-sm" style={{ color: MUTED }}>
-            <button onClick={() => setStep((s) => s + 1)} className="hover:underline" style={{ color: MUTED }}>
+            <button onClick={() => setStep((s) => Math.min(s + 1, 5))} className="hover:underline" style={{ color: MUTED }}>
               Skip this step — set it up later
             </button>
           </p>

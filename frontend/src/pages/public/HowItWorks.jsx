@@ -1,13 +1,14 @@
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
-const PRIMARY   = '#3d5c40'
-const DARK_CARD = '#4b6b4e'
-const TEXT      = '#1a2e1c'
-const MUTED     = '#6b7c6d'
-const MINT      = '#f4faf4'
-const MINT_ALT  = '#edf6ed'
-const MINT_CHIP = '#d4ecd4'
+const PRIMARY    = '#6B2737'
+const DARK_CARD  = '#4A1A25'
+const TEXT       = '#1A0A0D'
+const MUTED      = '#6B4A50'
+const CREAM      = '#FDF5F6'
+const CREAM_ALT  = '#FAF0F2'
+const CHIP       = '#E8C4CC'
+const BORDER     = '#D4B0B8'
 
 const CUSTOMER_STEPS = [
   {
@@ -18,7 +19,7 @@ const CUSTOMER_STEPS = [
   {
     n: '02',
     title: 'Book',
-    body: 'Pick your service, choose a time, pay a small deposit to secure your slot.',
+    body: "Pick your service and time, or simply chat with our AI assistant — just type what you want like 'I want braids Saturday' and it handles everything for you.",
   },
   {
     n: '03',
@@ -49,11 +50,11 @@ function StepCard({ step, dark }) {
   return (
     <div
       className="rounded-2xl p-8 flex flex-col"
-      style={{ backgroundColor: dark ? DARK_CARD : '#ffffff', border: dark ? 'none' : '1px solid #e8f0e8' }}
+      style={{ backgroundColor: dark ? DARK_CARD : '#ffffff', border: dark ? 'none' : `1px solid ${BORDER}` }}
     >
       <p
         className="font-display text-5xl font-bold mb-5 leading-none"
-        style={{ color: dark ? 'rgba(255,255,255,0.25)' : MINT_CHIP }}
+        style={{ color: dark ? 'rgba(255,255,255,0.25)' : CHIP }}
       >
         {step.n}
       </p>
@@ -79,15 +80,8 @@ export default function HowItWorks() {
       <LandingNav />
 
       {/* Hero */}
-      <section style={{ backgroundColor: MINT }} className="py-20 px-6 text-center">
+      <section style={{ backgroundColor: CREAM }} className="py-20 px-6 text-center">
         <div className="max-w-3xl mx-auto">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium"
-            style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-          >
-            <span>✦</span>
-            <span>Simple. Fast. Smart.</span>
-          </div>
           <h1
             className="font-display text-4xl md:text-5xl font-bold leading-tight mb-5"
             style={{ color: TEXT }}
@@ -124,7 +118,7 @@ export default function HowItWorks() {
       </section>
 
       {/* For Business Owners */}
-      <section style={{ backgroundColor: MINT_ALT }} className="py-20 px-6">
+      <section style={{ backgroundColor: CREAM_ALT }} className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <p
@@ -152,7 +146,7 @@ export default function HowItWorks() {
             Ready to get started?
           </h2>
           <p className="text-base mb-8" style={{ color: MUTED }}>
-            Join hundreds of Zambian beauty professionals already on BeautyBook ZM.
+            Be among the first beauty professionals in Zambia on BeautyBook ZM.
           </p>
           <a
             href="/signup"
