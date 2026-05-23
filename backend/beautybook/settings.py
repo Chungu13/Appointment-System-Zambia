@@ -1,6 +1,11 @@
 from pathlib import Path
-import dj_database_url
 from decouple import config, Csv
+
+try:
+    import dj_database_url as _dj_db_url
+    _HAS_DJ_DATABASE_URL = True
+except ImportError:
+    _HAS_DJ_DATABASE_URL = False
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -97,16 +102,21 @@ WSGI_APPLICATION = "beautybook.wsgi.application"
 # ---------------------------------------------------------------------------
 # Database (PostgreSQL + django-tenants requires the tenant DB engine)
 # ---------------------------------------------------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django_tenants.postgresql_backend",
-        "NAME": config("DB_NAME", default="beautybook_db"),
-        "USER": config("DB_USER", default="beautybook_user"),
-        "PASSWORD": config("DB_PASSWORD", default=""),
-        "HOST": config("DB_HOST", default="localhost"),
-        "PORT": config("DB_PORT", default="5432"),
+_DATABASE_URL = config("DATABASE_URL", default="")
+if _DATABASE_URL and _HAS_DJ_DATABASE_URL:
+    DATABASES = {"default": _dj_db_url.parse(_DATABASE_URL)}
+    DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django_tenants.postgresql_backend",
+            "NAME": config("DB_NAME", default="beautybook_db"),
+            "USER": config("DB_USER", default="beautybook_user"),
+            "PASSWORD": config("DB_PASSWORD", default=""),
+            "HOST": config("DB_HOST", default="localhost"),
+            "PORT": config("DB_PORT", default="5432"),
+        }
     }
-}
 
 AUTH_USER_MODEL = "staff.User"
 
