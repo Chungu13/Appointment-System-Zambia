@@ -14,13 +14,14 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ENVIRONMENT = config("ENVIRONMENT", default="development")
 IS_PRODUCTION = ENVIRONMENT == "production"
 
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS",
-    default="localhost,127.0.0.1,.localhost",
-    cast=Csv(),
-)
-if IS_PRODUCTION:
-    ALLOWED_HOSTS += [".kimawa.pro", ".railway.app"]
+ALLOWED_HOSTS = [
+    ".kimawa.pro",
+    ".railway.app",
+    ".vercel.app",
+    "localhost",
+    "127.0.0.1",
+    ".localhost",
+]
 
 # ---------------------------------------------------------------------------
 # django-tenants
@@ -152,8 +153,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # CORS
 # ---------------------------------------------------------------------------
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://.*\.localhost:\d+$",
-    r"^http://localhost:\d+$",
+    r"^https://.*\.kimawa\.pro$",
+    r"^https://kimawa\.pro$",
+    r"^https://.*\.vercel\.app$",
+    r"^http://.*\.localhost(:\d+)?$",
+    r"^http://localhost(:\d+)?$",
 ]
 CORS_ALLOW_CREDENTIALS = True
 

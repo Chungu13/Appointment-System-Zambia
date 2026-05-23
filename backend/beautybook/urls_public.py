@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from strawberry.django.views import GraphQLView
@@ -6,8 +7,14 @@ from beautybook.schema_public import schema as public_schema
 from payments.views import mock_pay
 from payments.webhook_views import payment_webhook
 
+
+def health(request):
+    return JsonResponse({"status": "ok"})
+
+
 # Public schema URLs (tenant registration, landing page, etc.)
 urlpatterns = [
+    path("health/", health),
     path("admin/", admin.site.urls),
     path("graphql/", csrf_exempt(GraphQLView.as_view(schema=public_schema))),
     path("payments/mock-pay/<str:transaction_ref>/", mock_pay, name="mock_pay"),
