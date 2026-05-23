@@ -131,7 +131,7 @@ export default function SalonDirectory() {
         <div className="max-w-5xl mx-auto px-4 py-16 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Scissors size={32} />
-            <span className="font-display text-4xl font-bold">BeautyBook ZM</span>
+            <span className="font-display text-4xl font-bold">Kimawa</span>
           </div>
           <p className="text-on-primary/80 text-lg mb-8 max-w-md mx-auto">
             Discover and book top salons and spas across Zambia — instantly.
@@ -187,7 +187,7 @@ export default function SalonDirectory() {
 
       {/* Footer */}
       <footer className="border-t border-outline-variant mt-16 py-8 text-center text-sm text-on-surface-variant">
-        © {new Date().getFullYear()} BeautyBook ZM · Built for Zambia
+        © {new Date().getFullYear()} Kimawa · Built for Zambia
       </footer>
     </div>
   )

@@ -13,7 +13,7 @@ export default function LandingFooter() {
           {/* Brand */}
           <div>
             <p className="font-display text-lg font-bold mb-2" style={{ color: TEXT }}>
-              BeautyBook ZM
+              Kimawa
             </p>
             <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
               The AI-powered booking platform for Zambia's beauty industry.
@@ -72,7 +72,7 @@ export default function LandingFooter() {
 
         <div className="pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: '#ddd' }}>
           <p className="text-xs" style={{ color: MUTED }}>
-            © 2025 BeautyBook ZM. Modern African Luxury.
+            © 2025 Kimawa. Modern African Luxury.
           </p>
           <p className="text-xs" style={{ color: MUTED }}>
             Built for Zambia 🇿🇲

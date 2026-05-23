@@ -1,8 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 
 const PRIMARY = "#6B2737";
-const TEXT = "#1a2e1c";
-const MUTED = "#6b7c6d";
+const TEXT = "#1A0A0D";
+const MUTED = "#6B4A50";
 
 const NAV_LINKS = [
   { label: "How it Works", to: "/how-it-works" },
@@ -19,17 +19,14 @@ export default function LandingNav() {
 
   return (
     <nav
-      style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #e8f0e8" }}
+      style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #D4B0B8" }}
       className="sticky top-0 z-50"
     >
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link
-          to="/"
-          className="font-display text-xl font-bold tracking-tight shrink-0"
-          style={{ color: PRIMARY }}
-        >
-          BeautyBook ZM
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: '52px' }} />
+          <span className="text-xl font-semibold" style={{ color: PRIMARY }}>Kimawa</span>
         </Link>
 
         {/* Nav links — desktop only */}

@@ -449,7 +449,7 @@ function DirectoryPreview() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <h2 className="font-display text-3xl font-bold mb-2" style={{ color: TEXT }}>
-              Businesses already on BeautyBook ZM
+              Businesses already on Kimawa
             </h2>
             <p className="text-sm" style={{ color: MUTED }}>
               Join beauty professionals across Zambia growing their business with AI.
@@ -472,7 +472,7 @@ function DirectoryPreview() {
           </div>
         ) : salons.length === 0 ? (
           <div className="text-center py-16 text-sm" style={{ color: MUTED }}>
-            Be the first beauty professional in Zambia on BeautyBook ZM
+            Be the first beauty professional in Zambia on Kimawa
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">

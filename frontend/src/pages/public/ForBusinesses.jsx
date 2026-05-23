@@ -56,7 +56,7 @@ export default function ForBusinesses() {
             Grow Your Beauty Business with AI.
           </h1>
           <p className="text-lg leading-relaxed mb-10 max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.75)' }}>
-            BeautyBook ZM automates your bookings, collects payments, and gives you insights —
+            Kimawa automates your bookings, collects payments, and gives you insights —
             so you can focus on what you do best.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -86,7 +86,7 @@ export default function ForBusinesses() {
               Sound familiar?
             </h2>
             <p className="text-base" style={{ color: MUTED }}>
-              Every beauty professional faces these problems. BeautyBook ZM solves all of them.
+              Every beauty professional faces these problems. Kimawa solves all of them.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 gap-5">
@@ -115,7 +115,7 @@ export default function ForBusinesses() {
               The Solution
             </p>
             <h2 className="font-display text-3xl md:text-4xl font-bold" style={{ color: TEXT }}>
-              BeautyBook ZM has you covered
+              Kimawa has you covered
             </h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-5">

@@ -776,7 +776,7 @@ function PoliciesStep({ policies, setPolicies }) {
       {/* Contact preference */}
       <PolicySection title="How do customers prefer to contact you?">
         {[
-          'BeautyBook ZM only',
+          'Kimawa only',
           'WhatsApp also welcome',
           'Call us anytime',
         ].map((opt) => (
@@ -830,7 +830,7 @@ function ReadyStep({ subdomain, staffKey }) {
       <div>
         <div className="text-5xl mb-4">🎉</div>
         <h2 className="font-display text-2xl font-bold mb-2" style={{ color: TEXT }}>You're all set!</h2>
-        <p className="text-sm" style={{ color: MUTED }}>Your BeautyBook ZM business is live. Here's everything you need.</p>
+        <p className="text-sm" style={{ color: MUTED }}>Your Kimawa business is live. Here's everything you need.</p>
       </div>
 
       {/* Booking URL */}
@@ -1074,7 +1074,7 @@ export default function Onboarding() {
     <div className="min-h-screen" style={{ backgroundColor: MINT, fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
       <header className="bg-white border-b" style={{ borderColor: '#e8f0e8' }}>
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="font-display text-lg font-bold" style={{ color: PRIMARY }}>BeautyBook ZM</span>
+          <span className="font-display text-lg font-bold" style={{ color: PRIMARY }}>Kimawa</span>
           <span className="text-sm" style={{ color: MUTED }}>
             Step {Math.min(step, STEP_LABELS.length)} of {STEP_LABELS.length} — {STEP_LABELS[step - 1] ?? STEP_LABELS[STEP_LABELS.length - 1]}
           </span>

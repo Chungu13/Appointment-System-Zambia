@@ -13,7 +13,7 @@ export default function Navbar() {
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2 text-primary font-bold shrink-0">
           <Scissors size={20} />
-          <span className="font-display text-lg">BeautyBook ZM</span>
+          <span className="font-display text-lg">Kimawa</span>
         </Link>
 
         <div className="flex items-center gap-2 ml-auto">

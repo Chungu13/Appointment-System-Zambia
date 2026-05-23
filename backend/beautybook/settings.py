@@ -1,11 +1,21 @@
 from pathlib import Path
+import dj_database_url
 from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost", cast=Csv())
+ENVIRONMENT = config("ENVIRONMENT", default="development")
+IS_PRODUCTION = ENVIRONMENT == "production"
+
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="localhost,127.0.0.1,.localhost",
+    cast=Csv(),
+)
+if IS_PRODUCTION:
+    ALLOWED_HOSTS += [".kimawa.pro", ".railway.app"]
 
 # ---------------------------------------------------------------------------
 # django-tenants

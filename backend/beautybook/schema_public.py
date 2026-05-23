@@ -1,7 +1,10 @@
+import logging
 import re
 import random
 import string
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 import strawberry
 
@@ -118,17 +121,20 @@ class Mutation:
         if len(base_slug) < 2:
             raise ValueError("Business name is too short or contains only special characters.")
 
-        subdomain   = base_slug
-        schema_name = base_slug.replace("-", "_")
+        # Append -2, -3 … if slug already taken
+        subdomain = base_slug
+        counter = 2
+        while Tenant.objects.filter(subdomain=subdomain).exists():
+            subdomain = f"{base_slug}-{counter}"
+            counter += 1
 
-        if Tenant.objects.filter(subdomain=subdomain).exists():
-            raise ValueError(
-                f"'{business_name}' is already registered on BeautyBook ZM. "
-                "Try adding your city — e.g. 'Glow Salon Lusaka'."
-            )
+        schema_name = subdomain.replace("-", "_")
         # Avoid schema_name collision (edge case)
         if Tenant.objects.filter(schema_name=schema_name).exists():
             schema_name = schema_name + "_biz"
+
+        logger.info("registerTenant: business_name=%r → subdomain=%r schema=%r", business_name, subdomain, schema_name)
+        print(f"[registerTenant] business_name={business_name!r} → subdomain={subdomain!r} schema={schema_name!r}")
 
         # ── Staff access key ──────────────────────────────────────────────────
         words = ["GLOW", "LUXE", "SHINE", "BLOOM", "GRACE", "SPARK", "VIBE", "GLAM", "SILK", "PURE"]

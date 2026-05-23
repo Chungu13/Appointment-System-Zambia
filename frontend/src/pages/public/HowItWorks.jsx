@@ -32,7 +32,7 @@ const OWNER_STEPS = [
   {
     n: '01',
     title: 'Sign up',
-    body: 'Create your BeautyBook ZM profile in minutes. No technical skills needed.',
+    body: 'Create your Kimawa profile in minutes. No technical skills needed.',
   },
   {
     n: '02',
@@ -86,7 +86,7 @@ export default function HowItWorks() {
             className="font-display text-4xl md:text-5xl font-bold leading-tight mb-5"
             style={{ color: TEXT }}
           >
-            How BeautyBook ZM Works
+            How Kimawa Works
           </h1>
           <p className="text-lg leading-relaxed" style={{ color: MUTED }}>
             Getting started takes minutes — whether you're booking an appointment or listing your
@@ -146,7 +146,7 @@ export default function HowItWorks() {
             Ready to get started?
           </h2>
           <p className="text-base mb-8" style={{ color: MUTED }}>
-            Be among the first beauty professionals in Zambia on BeautyBook ZM.
+            Be among the first beauty professionals in Zambia on Kimawa.
           </p>
           <a
             href="/signup"

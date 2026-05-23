@@ -460,7 +460,7 @@ function BusinessPoliciesCard({ current }) {
         {/* Contact preference */}
         <div className="pt-5">
           <PolicyGroup title="Customer contact preference">
-            {['BeautyBook ZM only', 'WhatsApp also welcome', 'Call us anytime'].map((opt) => (
+            {['Kimawa only', 'WhatsApp also welcome', 'Call us anytime'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.contactPreference} onChange={(v) => set('contactPreference', v)} />
             ))}
             <PolicyRadio label="Other" value="other" current={form.contactPreference} onChange={(v) => set('contactPreference', v)}>

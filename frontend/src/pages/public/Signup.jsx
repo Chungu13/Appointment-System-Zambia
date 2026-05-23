@@ -285,7 +285,7 @@ export default function Signup() {
                   )}
                 </div>
                 <span className="text-sm" style={{ color: MUTED }}>
-                  I agree to BeautyBook ZM's{' '}
+                  I agree to Kimawa's{' '}
                   <a href="#" style={{ color: PRIMARY }} className="hover:underline">Terms of Service</a>
                   {' '}and{' '}
                   <a href="#" style={{ color: PRIMARY }} className="hover:underline">Privacy Policy</a>

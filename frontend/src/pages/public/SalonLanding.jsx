@@ -522,7 +522,7 @@ export default function SalonLanding() {
       <footer className="border-t border-outline-variant mt-8 py-8 text-center text-sm text-on-surface-variant">
         © {new Date().getFullYear()} {profile.businessName} · Powered by{' '}
         <a href="http://localhost:3000" className="text-primary hover:underline">
-          BeautyBook ZM
+          Kimawa
         </a>
       </footer>
 

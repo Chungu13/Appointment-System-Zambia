@@ -1,4 +1,7 @@
 openai>=1.30.0
+gunicorn>=22.0.0
+dj-database-url>=2.2.0
+whitenoise>=6.7.0
 amqp==5.3.1
 asgiref==3.11.1
 billiard==4.2.4

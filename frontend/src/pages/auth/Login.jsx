@@ -30,7 +30,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 text-primary mb-3">
             <Scissors size={24} />
-            <span className="font-display text-2xl font-bold">BeautyBook ZM</span>
+            <span className="font-display text-2xl font-bold">Kimawa</span>
           </div>
           <h1 className="font-display text-2xl font-bold text-on-surface">Owner sign in</h1>
           <p className="text-sm text-on-surface-variant mt-1">
