@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 
-RUN python manage.py collectstatic --noinput || true
+RUN SECRET_KEY=dummy-build-key python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
