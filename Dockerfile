@@ -16,4 +16,4 @@ RUN SECRET_KEY=dummy-build-key python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-CMD gunicorn beautybook.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+CMD gunicorn beautybook.wsgi:application --bind 0.0.0.0:8000 --workers 2
