@@ -141,7 +141,7 @@ class Mutation:
         staff_key = random.choice(words) + "".join(random.choices(string.digits, k=4))
 
         # ── Create tenant (auto-creates schema + runs migrations) ─────────────
-        domain_suffix = "localhost" if settings.DEBUG else "beautybook.zm"
+        domain_suffix = "localhost" if settings.DEBUG else settings.TENANT_DOMAIN_SUFFIX
 
         tenant = Tenant(
             schema_name=schema_name,

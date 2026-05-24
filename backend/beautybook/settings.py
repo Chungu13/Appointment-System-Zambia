@@ -154,6 +154,7 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+TENANT_DOMAIN_SUFFIX = config("TENANT_DOMAIN_SUFFIX", default="kimawa.pro")
 
 # ---------------------------------------------------------------------------
 # CORS
