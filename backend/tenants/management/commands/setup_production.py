@@ -1,5 +1,7 @@
 import os
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from django_tenants.utils import schema_context
 from tenants.models import Domain, Tenant
 
 
@@ -49,5 +51,18 @@ class Command(BaseCommand):
                 domain.save(update_fields=["tenant"])
             status = "registered" if domain_created else "already exists"
             self.stdout.write(f"  Domain '{domain_name}': {status}")
+
+        # Create superuser in the public schema if one doesn't exist
+        with schema_context("public"):
+            User = get_user_model()
+            if not User.objects.filter(username="admin").exists():
+                User.objects.create_superuser(
+                    username="admin",
+                    email="admin@kimawa.pro",
+                    password="admin1234",
+                )
+                self.stdout.write(self.style.SUCCESS("Superuser 'admin' created."))
+            else:
+                self.stdout.write("Superuser 'admin' already exists.")
 
         self.stdout.write(self.style.SUCCESS("Production setup complete."))
