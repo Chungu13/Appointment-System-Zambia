@@ -161,11 +161,14 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS",
-    default="http://localhost:8000,http://glow.localhost:8000",
-    cast=Csv(),
-)
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.kimawa.pro",
+    "https://kimawa.pro",
+    "https://*.kimawa.pro",
+    "http://localhost:8000",
+    "http://glow.localhost:8000",
+]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # ---------------------------------------------------------------------------
 # Cache (Redis db 2 — booking holds)
