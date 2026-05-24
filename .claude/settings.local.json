@@ -5,7 +5,8 @@
       "Read(//c/Users/User/**)",
       "Bash(docker-compose build *)",
       "Bash(docker-compose restart *)",
-      "Bash(docker-compose exec *)"
+      "Bash(docker-compose exec *)",
+      "Bash(git push *)"
     ]
   }
 }
