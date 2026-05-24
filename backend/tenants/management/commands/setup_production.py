@@ -22,6 +22,10 @@ class Command(BaseCommand):
         # Collect all domains that should point at the public tenant
         domains_to_register = {"localhost"}
 
+        # Production domains — always register these
+        for d in ["api.kimawa.pro", "kimawa.pro"]:
+            domains_to_register.add(d)
+
         # Railway injects RAILWAY_PUBLIC_DOMAIN automatically
         railway_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
         if railway_domain:
