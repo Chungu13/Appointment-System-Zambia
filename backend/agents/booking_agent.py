@@ -168,10 +168,10 @@ class BookingAgent:
             "Formatting rules — VERY IMPORTANT:\n"
             "- Never use markdown. No **bold**, no *italic*, no asterisks of any kind.\n"
             "- List services as numbered lines: 1. Box Braids — ZMW 280 (3 hrs)\n"
-            "- List time slots simply: 9:00am, 9:30am, 10:00am\n"
-            "- When multiple stylists have slots, group by name on separate lines:\n"
-            "  Alice: 9am, 10am, 11am\n"
-            "  Bob: 9am, 10:30am\n"
+            "- When you call check_availability, the app will display the slots as tappable cards.\n"
+            "  Do NOT list times in your reply — just say how many slots are available and invite\n"
+            "  the customer to tap one. Example: 'Great, I found 8 slots for that day. Tap a time\n"
+            "  above to continue.'\n"
             "- Put a blank line between sections so the message is easy to read on a phone.\n"
             "- Never write one long paragraph — use short lines with line breaks.\n"
             "- End each message with a short question to keep the conversation moving.\n\n"
@@ -220,61 +220,24 @@ class BookingAgent:
             except ValueError:
                 return {"error": f"Invalid date '{inputs['date']}'. Use YYYY-MM-DD."}
 
-            try:
-                service = Service.objects.get(pk=inputs["service_id"], is_active=True)
-            except Service.DoesNotExist:
-                return {"error": f"Service {inputs['service_id']} not found."}
+            from bookings.availability import build_availability_slots
 
-            staff_ids = list(StaffService.objects.filter(service=service).values_list("staff_id", flat=True))
-            tz = timezone.get_current_timezone()
-            slot_duration = _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
-            now = _dt.datetime.now(tz=tz)
-            today = now.date()
-            # 30-minute booking buffer — only applied when checking today's slots
-            earliest = (now + _dt.timedelta(minutes=30)) if date == today else None
+            raw_slots = build_availability_slots(inputs["service_id"], date)
+            self._last_availability_slots = raw_slots
 
-            from staff.models import WorkingHours
-            slots = []
-            for staff_id in staff_ids:
-                staff_name = (
-                    User.objects.filter(pk=staff_id).values_list("full_name", flat=True).first() or "Unknown"
-                )
-                wh = WorkingHours.objects.filter(
-                    staff_id=staff_id, day_of_week=date.weekday()
-                ).first()
-                if wh and not wh.is_day_off and wh.start_time and wh.end_time:
-                    day_start = _dt.datetime.combine(date, wh.start_time).replace(tzinfo=tz)
-                    day_end = _dt.datetime.combine(date, wh.end_time).replace(tzinfo=tz)
-                else:
-                    day_start = _dt.datetime(date.year, date.month, date.day, 9, 0, tzinfo=tz)
-                    day_end = _dt.datetime(date.year, date.month, date.day, 17, 0, tzinfo=tz)
+            if not raw_slots:
+                return {"date": inputs["date"], "available_slots": [], "message": "No slots available on this date."}
 
-                # All slots have passed for today
-                if earliest is not None and earliest >= day_end:
-                    continue
+            by_staff: dict[str, list[str]] = {}
+            for s in raw_slots:
+                by_staff.setdefault(s["staff_name"], []).append(s["starts_at"].strftime("%H:%M"))
 
-                cursor = day_start
-                while cursor + slot_duration <= day_end:
-                    slot_end = cursor + slot_duration
-                    # Skip past slots (with 30-min buffer)
-                    if earliest is not None and cursor < earliest:
-                        cursor += _dt.timedelta(minutes=30)
-                        continue
-                    conflict = Appointment.objects.filter(
-                        staff_id=staff_id,
-                        status__in=["confirmed", "in_progress"],
-                        starts_at__lt=slot_end,
-                        ends_at__gt=cursor,
-                    ).exists()
-                    if not conflict:
-                        slots.append({
-                            "staff_id": staff_id,
-                            "staff_name": staff_name,
-                            "starts_at": cursor.isoformat(),
-                        })
-                    cursor += _dt.timedelta(minutes=30)
-
-            return {"date": inputs["date"], "service": service.name, "available_slots": slots}
+            return {
+                "date": inputs["date"],
+                "service": raw_slots[0]["service_name"],
+                "slots_by_staff": by_staff,
+                "total_slots": len(raw_slots),
+            }
 
         elif name == "get_staff_for_service":
             staff_ids = StaffService.objects.filter(service_id=inputs["service_id"]).values_list("staff_id", flat=True)
@@ -436,11 +399,14 @@ class BookingAgent:
         customer_phone: str,
         conversation_history: list,
         site_url: str = "",
-    ) -> tuple[str, list]:
+    ) -> tuple[str, list, list]:
         """
         Run one customer turn through the agentic loop.
-        Returns (response_text, updated_conversation_history).
+        Returns (response_text, updated_conversation_history, availability_slots).
+        availability_slots is the list of slot dicts from the last check_availability call,
+        or [] if check_availability was not called this turn.
         """
+        self._last_availability_slots: list = []
         messages = list(conversation_history)
         messages.append({"role": "user", "content": message})
 
@@ -457,7 +423,7 @@ class BookingAgent:
 
             if choice.finish_reason == "stop":
                 messages.append(assistant_dict)
-                return choice.message.content or "", messages
+                return choice.message.content or "", messages, self._last_availability_slots
 
             elif choice.finish_reason == "tool_calls":
                 messages.append(assistant_dict)
@@ -492,4 +458,4 @@ class BookingAgent:
 
             else:
                 messages.append(assistant_dict)
-                return "Sorry, something went wrong. Please try again.", messages
+                return "Sorry, something went wrong. Please try again.", messages, self._last_availability_slots

@@ -23,83 +23,16 @@ def _build_availability_slots(
     date: datetime.date,
     staff_id: Optional[int] = None,
 ) -> List[AvailabilitySlotType]:
-    import zoneinfo
-    from django.conf import settings
-    from services.models import Service, StaffService
-    from staff.models import WorkingHours
+    from bookings.availability import build_availability_slots
 
-    service = Service.objects.filter(pk=service_id, is_active=True).first()
-    if not service:
-        return []
-
-    tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
-    slot_duration = datetime.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
-    step = datetime.timedelta(minutes=30)
-
-    eligible_staff = StaffService.objects.filter(service=service).select_related("staff")
-    if staff_id:
-        eligible_staff = eligible_staff.filter(staff_id=staff_id)
-
-    day_of_week = date.weekday()
-
-    # Batch-load working hours and booked appointments for all eligible staff
-    staff_objects = [ss.staff for ss in eligible_staff]
-    wh_by_staff = {
-        wh.staff_id: wh
-        for wh in WorkingHours.objects.filter(
-            staff__in=staff_objects, day_of_week=day_of_week
+    return [
+        AvailabilitySlotType(
+            starts_at=s["starts_at"],
+            ends_at=s["ends_at"],
+            staff=user_to_type(s["staff_obj"]),
         )
-    }
-    staff_ids = [s.pk for s in staff_objects]
-    booked_by_staff: dict[int, list] = {}
-    for row in Appointment.objects.filter(
-        staff_id__in=staff_ids,
-        status__in=("confirmed", "in_progress"),
-        starts_at__date=date,
-    ).values("staff_id", "starts_at", "ends_at"):
-        booked_by_staff.setdefault(row["staff_id"], []).append(
-            (row["starts_at"], row["ends_at"])
-        )
-
-    today = datetime.date.today()
-    now = datetime.datetime.now(tz=tz)
-    # Earliest bookable start: now + 30-min buffer, only relevant for today
-    earliest = (now + datetime.timedelta(minutes=30)) if date == today else None
-
-    slots: List[AvailabilitySlotType] = []
-
-    for ss in eligible_staff:
-        wh = wh_by_staff.get(ss.staff_id)
-        if not wh or wh.is_day_off or not wh.start_time or not wh.end_time:
-            continue
-
-        day_start = datetime.datetime.combine(date, wh.start_time).replace(tzinfo=tz)
-        day_end = datetime.datetime.combine(date, wh.end_time).replace(tzinfo=tz)
-
-        # If today and already past working hours, no slots for this staff member
-        if earliest is not None and earliest >= day_end:
-            continue
-
-        booked = booked_by_staff.get(ss.staff_id, [])
-
-        cursor = day_start
-        while cursor + slot_duration <= day_end:
-            slot_end = cursor + slot_duration
-            # Skip slots that have already passed (with 30-min booking buffer)
-            if earliest is not None and cursor < earliest:
-                cursor += step
-                continue
-            if not any(not (slot_end <= b_start or cursor >= b_end) for b_start, b_end in booked):
-                slots.append(
-                    AvailabilitySlotType(
-                        starts_at=cursor,
-                        ends_at=slot_end,
-                        staff=user_to_type(ss.staff),
-                    )
-                )
-            cursor += step
-
-    return slots
+        for s in build_availability_slots(service_id, date, staff_id)
+    ]
 
 
 @strawberry.type
