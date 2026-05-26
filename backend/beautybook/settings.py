@@ -193,6 +193,14 @@ CACHES = {
 PAYMENT_PROVIDER = config("PAYMENT_PROVIDER", default="mock")
 OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
 
+# ---------------------------------------------------------------------------
+# Vercel API (auto-provision tenant subdomains on registration)
+# ---------------------------------------------------------------------------
+VERCEL_API_TOKEN  = config("VERCEL_API_TOKEN",  default="")
+VERCEL_PROJECT_ID = config("VERCEL_PROJECT_ID", default="")
+VERCEL_TEAM_ID    = config("VERCEL_TEAM_ID",    default="")
+VERCEL_APP_DOMAIN = config("VERCEL_APP_DOMAIN", default="kimawa.pro")
+
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="redis://localhost:6379/1")
 CELERY_ACCEPT_CONTENT = ["json"]

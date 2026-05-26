@@ -163,6 +163,13 @@ class Mutation:
             is_primary=True,
         )
 
+        # ── Provision Vercel subdomain (non-blocking) ─────────────────────────
+        try:
+            from tenants.vercel import add_vercel_domain
+            add_vercel_domain(subdomain)
+        except Exception as exc:
+            logger.error("registerTenant: Vercel domain provisioning failed for %r: %s", subdomain, exc)
+
         # ── Create owner inside tenant schema ─────────────────────────────────
         with tenant_context(tenant):
             from staff.models import User
