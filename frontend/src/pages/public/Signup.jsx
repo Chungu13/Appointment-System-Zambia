@@ -146,6 +146,7 @@ export default function Signup() {
       url.searchParams.set('bt', form.businessType)
       url.searchParams.set('sk', staffAccessKey)
 
+      alert('Redirecting to: ' + url.toString())
       window.location.href = url.toString()
     } catch (err) {
       const msg = err?.graphQLErrors?.[0]?.message || err?.message || 'Something went wrong.'
