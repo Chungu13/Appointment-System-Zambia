@@ -34,7 +34,10 @@ export function AuthProvider({ children }) {
     const urlR = params.get('r')
     if (urlT && urlR && !isTokenExpired(urlT)) {
       setTokens(urlT, urlR)
-      window.history.replaceState({}, '', window.location.pathname)
+      params.delete('t')
+      params.delete('r')
+      const remaining = params.toString()
+      window.history.replaceState({}, '', window.location.pathname + (remaining ? '?' + remaining : ''))
       return urlT
     }
     const t = getToken()
