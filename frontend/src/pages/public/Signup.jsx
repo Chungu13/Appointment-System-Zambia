@@ -107,6 +107,7 @@ export default function Signup() {
   }
 
   async function handleSubmit(e) {
+    console.log('[signup] handleSubmit fired')
     e.preventDefault()
     setServerError('')
 
@@ -130,6 +131,8 @@ export default function Signup() {
         },
       })
 
+      console.log('[signup] mutation done', data)
+
       const { accessToken, refreshToken, tenantSubdomain, staffAccessKey } = data.registerTenant
 
       // Onboarding always stays on the main domain — no SSL delay waiting for new subdomain cert.
@@ -146,6 +149,7 @@ export default function Signup() {
       url.searchParams.set('bt', form.businessType)
       url.searchParams.set('sk', staffAccessKey)
 
+      console.log('[signup] about to redirect', url.toString())
       alert('Redirecting to: ' + url.toString())
       window.location.href = url.toString()
     } catch (err) {
