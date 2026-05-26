@@ -912,10 +912,7 @@ export default function Onboarding() {
   const { login, isAuthenticated, isOwner } = useAuth()
   const navigate = useNavigate()
 
-  console.log('[onboarding] mounted, search=', window.location.search)
-
   const [slug] = useState(() => new URLSearchParams(window.location.search).get('slug') || '')
-  console.log('[onboarding] slug=', slug)
   const tenantClient = useMemo(() => {
     if (!slug) return undefined
     const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN
@@ -953,7 +950,6 @@ export default function Onboarding() {
     if (sk) setStaffKey(sk)
 
     setTokenLoaded(true)
-    console.log('[onboarding] tokenLoaded=', true, 'isAuthenticated=', isAuthenticated, 'isOwner=', isOwner)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: settingsData } = useQuery(SALON_SETTINGS, { skip: !tokenLoaded || !!staffKey || !tenantClient, client: tenantClient })
@@ -1109,13 +1105,11 @@ export default function Onboarding() {
   }
 
   if (!isAuthenticated || !isOwner) {
-    console.log('[onboarding] GUARD redirecting to /login because', { tokenLoaded, isAuthenticated, isOwner, slug })
     navigate('/login', { replace: true })
     return null
   }
 
   if (!slug) {
-    console.log('[onboarding] GUARD redirecting to /signup because', { tokenLoaded, isAuthenticated, isOwner, slug })
     navigate('/signup', { replace: true })
     return null
   }
