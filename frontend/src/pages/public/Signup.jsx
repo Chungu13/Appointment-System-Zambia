@@ -132,11 +132,14 @@ export default function Signup() {
 
       const { accessToken, refreshToken, tenantSubdomain, staffAccessKey } = data.registerTenant
 
-      // Store tokens in current origin's localStorage — they'll be re-read via URL
-      // params when we land on the subdomain (different origin).
-      // Passing tokens + business metadata via URL search params.
-      const port = window.location.port || '3000'
-      const url = new URL(`http://${tenantSubdomain}.localhost:${port}/onboarding`)
+      // Redirect to the tenant's subdomain so tokens are consumed in the right origin.
+      // In production: https://{slug}.{VITE_TENANT_APP_DOMAIN}/onboarding
+      // In dev (no env var set): http://{slug}.localhost:{port}/onboarding
+      const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+      const base = appDomain
+        ? `https://${tenantSubdomain}.${appDomain}`
+        : `http://${tenantSubdomain}.localhost:${window.location.port || '3000'}`
+      const url = new URL(`${base}/onboarding`)
       url.searchParams.set('t', accessToken)
       url.searchParams.set('r', refreshToken)
       url.searchParams.set('bt', form.businessType)

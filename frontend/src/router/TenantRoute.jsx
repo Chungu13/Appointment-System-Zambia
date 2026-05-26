@@ -5,19 +5,27 @@ import { ApolloClient, InMemoryCache, ApolloLink, createHttpLink } from '@apollo
 import { setContext } from '@apollo/client/link/context'
 import { getToken } from '../lib/auth'
 
-// Extract subdomain from hostname: "glow.localhost" → "glow", "localhost" → null
+// Extract subdomain from hostname.
+// "glow.localhost"    → "glow"   (local dev)
+// "glow.kimawa.pro"   → "glow"   (production subdomain)
+// "localhost"         → null
+// "kimawa.pro"        → null     (apex — no tenant)
 export function getSubdomain() {
-  const parts = window.location.hostname.split('.')
-  if (parts.length > 1 && parts[parts.length - 1] === 'localhost') {
-    return parts[0]
-  }
+  const { hostname } = window.location
+  const parts = hostname.split('.')
+  // Need at least 3 parts (sub.domain.tld) to have a meaningful subdomain.
+  // "glow.localhost" is a special 2-part case handled separately.
+  if (parts.length >= 3) return parts[0]
+  if (parts.length === 2 && parts[1] === 'localhost') return parts[0]
   return null
 }
 
 function useTenantClient(slug) {
   return useMemo(() => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'localhost:8000'
-    const uri = `http://${slug}.${baseUrl}/graphql/`
+    const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN
+    const uri = apiDomain
+      ? `https://${slug}.${apiDomain}/graphql/`
+      : `http://${slug}.localhost:8000/graphql/`
     const authLink = setContext((_, { headers }) => {
       const token = getToken()
       return {

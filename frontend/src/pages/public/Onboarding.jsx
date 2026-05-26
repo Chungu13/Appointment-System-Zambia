@@ -812,9 +812,17 @@ function PoliciesStep({ policies, setPolicies }) {
 
 // ── Step 5 — Ready ────────────────────────────────────────────────────────────
 function ReadyStep({ subdomain, staffKey }) {
+  const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
   const port = window.location.port || '3000'
-  const bookingUrl = `${subdomain}.localhost:${port}`
-  const ownerUrl = `http://${bookingUrl}/owner`
+  // bookingOrigin: full URL with protocol — used for links and clipboard
+  // bookingDisplay: human-readable without protocol — shown in the UI
+  const bookingOrigin = appDomain
+    ? `https://${subdomain}.${appDomain}`
+    : `http://${subdomain}.localhost:${port}`
+  const bookingDisplay = appDomain
+    ? `${subdomain}.${appDomain}`
+    : `${subdomain}.localhost:${port}`
+  const ownerUrl = `${bookingOrigin}/owner`
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [copiedKey, setCopiedKey] = useState(false)
 
@@ -837,9 +845,9 @@ function ReadyStep({ subdomain, staffKey }) {
       <div className="rounded-xl p-5 text-left" style={{ backgroundColor: MINT, border: '1px solid #d4ecd4' }}>
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: PRIMARY }}>Your booking page</p>
         <div className="flex items-center justify-between gap-3">
-          <p className="font-semibold text-sm break-all" style={{ color: TEXT }}>{bookingUrl}</p>
+          <p className="font-semibold text-sm break-all" style={{ color: TEXT }}>{bookingDisplay}</p>
           <button
-            onClick={() => copy(`http://${bookingUrl}`, setCopiedUrl)}
+            onClick={() => copy(bookingOrigin, setCopiedUrl)}
             className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
             style={{
               backgroundColor: copiedUrl ? '#dcfce7' : MINT_CHIP,
@@ -870,7 +878,7 @@ function ReadyStep({ subdomain, staffKey }) {
             </button>
           </div>
           <p className="text-xs mt-2" style={{ color: MUTED }}>
-            Your staff enter this key at {bookingUrl}/staff to view their schedule. Change it any time in Settings.
+            Your staff enter this key at {bookingDisplay}/staff to view their schedule. Change it any time in Settings.
           </p>
         </div>
       )}
