@@ -5,6 +5,7 @@ export const SALON_SETTINGS = gql`
     salonSettings {
       staffAccessKey
       coverImageUrl
+      onboardingCompleted
       businessPolicies {
         cancellationPolicy
         lateArrivalPolicy

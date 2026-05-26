@@ -27,6 +27,16 @@ function ProfileLoader({ onProfile }) {
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => {
+    // Consume ?t= and ?r= URL params — handles cross-origin handoff (onboarding → owner dashboard).
+    // Must run before ProtectedRoute evaluates isAuthenticated.
+    const params = new URLSearchParams(window.location.search)
+    const urlT = params.get('t')
+    const urlR = params.get('r')
+    if (urlT && urlR && !isTokenExpired(urlT)) {
+      setTokens(urlT, urlR)
+      window.history.replaceState({}, '', window.location.pathname)
+      return urlT
+    }
     const t = getToken()
     return t && !isTokenExpired(t) ? t : null
   })

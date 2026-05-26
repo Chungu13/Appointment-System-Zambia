@@ -42,6 +42,7 @@ export const SALON_PROFILE = gql`
         serviceName
         displayOrder
       }
+      onboardingCompleted
     }
   }
 `

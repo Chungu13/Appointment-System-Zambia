@@ -45,6 +45,7 @@ class SalonProfileType:
     staff_count: int
     portfolio_images: List[PortfolioImageType]
     business_policies: BusinessPoliciesType
+    onboarding_completed: bool
 
 
 @strawberry.type
@@ -151,4 +152,5 @@ class ServicesQuery:
             staff_count=len(staff_list),
             portfolio_images=portfolio,
             business_policies=_policies_from_db(tenant.business_policies or {}),
+            onboarding_completed=tenant.onboarding_completed,
         )

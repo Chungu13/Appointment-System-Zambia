@@ -55,6 +55,7 @@ class SalonSettingsType:
     staff_access_key: str
     cover_image_url: str
     business_policies: BusinessPoliciesType
+    onboarding_completed: bool
 
 
 @strawberry.type
@@ -91,6 +92,7 @@ class TenantQuery:
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
             business_policies=_policies_from_db(tenant.business_policies or {}),
+            onboarding_completed=tenant.onboarding_completed,
         )
 
     @strawberry.field
@@ -194,6 +196,15 @@ class TenantMutation:
             "additionalInfo": policies.additional_info,
         }
         tenant.save(update_fields=["business_policies", "updated_at"])
+        return True
+
+    @strawberry.mutation
+    def complete_onboarding(self, info: Info) -> bool:
+        from beautybook.permissions import require_owner
+        require_owner(info)
+        tenant = info.context.request.tenant
+        tenant.onboarding_completed = True
+        tenant.save(update_fields=["onboarding_completed", "updated_at"])
         return True
 
     @strawberry.mutation

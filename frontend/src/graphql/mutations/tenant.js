@@ -29,3 +29,9 @@ export const UPDATE_BUSINESS_POLICIES = gql`
     updateBusinessPolicies(policies: $policies)
   }
 `
+
+export const COMPLETE_ONBOARDING = gql`
+  mutation CompleteOnboarding {
+    completeOnboarding
+  }
+`

@@ -382,6 +382,22 @@ export default function SalonLanding() {
   const profile = data?.salonProfile
   if (!profile) return null
 
+  if (!profile.onboardingCompleted) {
+    const homeUrl = import.meta.env.VITE_TENANT_APP_DOMAIN
+      ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}`
+      : '/'
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-6" style={{ backgroundColor: '#f9fafb' }}>
+        <div className="max-w-sm">
+          <Calendar size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+          <h1 className="text-2xl font-bold mb-2" style={{ color: '#1f2937' }}>{profile.businessName}</h1>
+          <p className="mb-6" style={{ color: '#6b7280' }}>We're getting ready to take bookings. Check back soon.</p>
+          <a href={homeUrl} className="text-sm font-medium" style={{ color: '#6B2737' }}>← Back to Kimawa</a>
+        </div>
+      </div>
+    )
+  }
+
   const openToday = profile.openingHours.find((h) => {
     const today = new Date().getDay()
     const todayIdx = today === 0 ? 6 : today - 1

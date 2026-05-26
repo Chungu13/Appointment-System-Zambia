@@ -22,6 +22,7 @@ class Tenant(TenantMixin):
     cover_image_url = models.TextField(blank=True)
     portfolio_preview_url = models.TextField(blank=True)
     business_policies = models.JSONField(default=dict, blank=True)
+    onboarding_completed = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     on_trial = models.BooleanField(default=True)
     trial_ends_at = models.DateTimeField(null=True, blank=True)

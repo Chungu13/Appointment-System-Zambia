@@ -1,12 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@apollo/client/react'
+import { ApolloClient, InMemoryCache, ApolloLink, createHttpLink } from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
 import { Check, Plus, Trash2, ChevronLeft, ChevronRight, Camera, X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { setTokens, saveRole } from '../../lib/auth'
+import { setTokens, saveRole, getToken, getRefreshToken } from '../../lib/auth'
 import { CREATE_SERVICE } from '../../graphql/mutations/services'
 import { CREATE_STAFF, SET_WORKING_HOURS } from '../../graphql/mutations/staff'
-import { UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
+import { UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES, COMPLETE_ONBOARDING } from '../../graphql/mutations/tenant'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 
 const PRIMARY   = '#6B2737'
@@ -811,7 +813,7 @@ function PoliciesStep({ policies, setPolicies }) {
 }
 
 // ── Step 5 — Ready ────────────────────────────────────────────────────────────
-function ReadyStep({ subdomain, staffKey }) {
+function ReadyStep({ subdomain, staffKey, onComplete }) {
   const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
   const port = window.location.port || '3000'
   // bookingOrigin: full URL with protocol — used for links and clipboard
@@ -825,6 +827,7 @@ function ReadyStep({ subdomain, staffKey }) {
   const ownerUrl = `${bookingOrigin}/owner`
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [copiedKey, setCopiedKey] = useState(false)
+  const [going, setGoing] = useState(false)
 
   function copy(text, setFlag) {
     copyToClipboard(text, () => {
@@ -883,13 +886,23 @@ function ReadyStep({ subdomain, staffKey }) {
         </div>
       )}
 
-      <a
-        href={ownerUrl}
-        className="block w-full py-4 rounded-xl font-semibold text-white text-center transition-opacity hover:opacity-90"
+      <button
+        onClick={async () => {
+          setGoing(true)
+          try { await onComplete() } catch { /* non-blocking */ }
+          const t = getToken()
+          const r = getRefreshToken()
+          const dest = new URL(ownerUrl)
+          if (t) dest.searchParams.set('t', t)
+          if (r) dest.searchParams.set('r', r)
+          window.location.href = dest.toString()
+        }}
+        disabled={going}
+        className="block w-full py-4 rounded-xl font-semibold text-white text-center transition-opacity hover:opacity-90 disabled:opacity-60"
         style={{ backgroundColor: PRIMARY }}
       >
-        Go to my dashboard →
-      </a>
+        {going ? 'Taking you there…' : 'Go to my dashboard →'}
+      </button>
     </div>
   )
 }
@@ -899,9 +912,25 @@ export default function Onboarding() {
   const { login, isAuthenticated, isOwner } = useAuth()
   const navigate = useNavigate()
 
+  const [slug] = useState(() => new URLSearchParams(window.location.search).get('slug') || '')
+  const tenantClient = useMemo(() => {
+    if (!slug) return undefined
+    const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN
+    const uri = apiDomain
+      ? `https://${slug}.${apiDomain}/graphql/`
+      : `http://${slug}.localhost:8000/graphql/`
+    const authLink = setContext((_, { headers }) => {
+      const token = getToken()
+      return { headers: { ...headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) } }
+    })
+    return new ApolloClient({
+      link: ApolloLink.from([authLink, createHttpLink({ uri })]),
+      cache: new InMemoryCache(),
+    })
+  }, [slug])
+
   const [tokenLoaded, setTokenLoaded] = useState(false)
   const [businessType, setBusinessType] = useState('salon')
-  const [subdomain, setSubdomain] = useState('')
   const [staffKey, setStaffKey] = useState('')
 
   useEffect(() => {
@@ -920,13 +949,10 @@ export default function Onboarding() {
     if (bt) setBusinessType(bt)
     if (sk) setStaffKey(sk)
 
-    const parts = window.location.hostname.split('.')
-    if (parts.length > 1) setSubdomain(parts[0])
-
     setTokenLoaded(true)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { data: settingsData } = useQuery(SALON_SETTINGS, { skip: !tokenLoaded || !!staffKey })
+  const { data: settingsData } = useQuery(SALON_SETTINGS, { skip: !tokenLoaded || !!staffKey || !tenantClient, client: tenantClient })
   useEffect(() => {
     if (settingsData?.salonSettings?.staffAccessKey) {
       setStaffKey(settingsData.salonSettings.staffAccessKey)
@@ -947,11 +973,12 @@ export default function Onboarding() {
   const step3Done = useRef(false)
   const step4Done = useRef(false)
 
-  const [createService]      = useMutation(CREATE_SERVICE)
-  const [createStaff]        = useMutation(CREATE_STAFF)
-  const [setWorkingHours]    = useMutation(SET_WORKING_HOURS)
-  const [updateProfile]      = useMutation(UPDATE_TENANT_PROFILE)
-  const [updatePolicies]     = useMutation(UPDATE_BUSINESS_POLICIES)
+  const [createService]      = useMutation(CREATE_SERVICE,           { client: tenantClient })
+  const [createStaff]        = useMutation(CREATE_STAFF,             { client: tenantClient })
+  const [setWorkingHours]    = useMutation(SET_WORKING_HOURS,        { client: tenantClient })
+  const [updateProfile]      = useMutation(UPDATE_TENANT_PROFILE,    { client: tenantClient })
+  const [updatePolicies]     = useMutation(UPDATE_BUSINESS_POLICIES, { client: tenantClient })
+  const [completeOnboarding] = useMutation(COMPLETE_ONBOARDING,      { client: tenantClient })
 
   async function handlePhotoUpload(dataUrl) {
     if (dataUrl) {
@@ -1065,6 +1092,10 @@ export default function Onboarding() {
     setStep((s) => Math.min(s + 1, 5))
   }
 
+  async function handleComplete() {
+    try { await completeOnboarding() } catch { /* non-blocking */ }
+  }
+
   if (!tokenLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: MINT }}>
@@ -1075,6 +1106,11 @@ export default function Onboarding() {
 
   if (!isAuthenticated || !isOwner) {
     navigate('/login', { replace: true })
+    return null
+  }
+
+  if (!slug) {
+    navigate('/signup', { replace: true })
     return null
   }
 
@@ -1109,7 +1145,7 @@ export default function Onboarding() {
             />
           )}
           {step === 4 && <PoliciesStep policies={policies} setPolicies={setPolicies} />}
-          {step === 5 && <ReadyStep subdomain={subdomain} staffKey={staffKey} />}
+          {step === 5 && <ReadyStep subdomain={slug} staffKey={staffKey} onComplete={handleComplete} />}
 
           {error && (
             <div className="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
