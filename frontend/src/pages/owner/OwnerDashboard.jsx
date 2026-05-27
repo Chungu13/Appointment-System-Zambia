@@ -209,9 +209,8 @@ export default function OwnerDashboard() {
       {/* 3 stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard
-          label="Weekly Revenue"
+          label="Today's Revenue"
           value={loading ? '…' : stats ? formatZMW(stats.todayRevenue) : null}
-          sub="+12% vs last week"
           sage
         />
         <StatCard

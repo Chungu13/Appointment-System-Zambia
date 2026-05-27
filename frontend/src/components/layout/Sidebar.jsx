@@ -4,8 +4,11 @@ import {
   LayoutDashboard, Calendar, Activity, Scissors,
   Users, UserCircle, Settings, HelpCircle, Images,
 } from 'lucide-react'
+import { useQuery } from '@apollo/client/react'
 import { useAuth } from '../../context/AuthContext'
 import { useLogout } from '../../hooks/useAuth'
+import { MY_PROFILE } from '../../graphql/queries/staff'
+import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const BG          = '#4A1A25'
@@ -63,10 +66,30 @@ function NavItem({ to, end, icon: Icon, label }) {
   )
 }
 
+const BUSINESS_TYPE_LABELS = {
+  salon:        'Salon',
+  barbershop:   'Barbershop',
+  nail_tech:    'Nail Studio',
+  spa:          'Spa',
+  lash_studio:  'Lash Studio',
+  makeup_artist:'Makeup Artist',
+  other:        'Beauty Business',
+}
+
 export default function Sidebar() {
-  const { profile } = useAuth()
+  const { profile, setProfile } = useAuth()
   const logout = useLogout()
   const navigate = useNavigate()
+
+  const { data: profileData } = useQuery(MY_PROFILE, {
+    skip: !!profile,
+    onCompleted: (d) => { if (d?.myProfile) setProfile(d.myProfile) },
+  })
+  const ownerName = profile?.fullName ?? profileData?.myProfile?.fullName ?? ''
+
+  const { data: settingsData } = useQuery(SALON_SETTINGS)
+  const businessName = settingsData?.salonSettings?.businessName
+  const businessType = settingsData?.salonSettings?.businessType
 
   return (
     <aside
@@ -80,11 +103,16 @@ export default function Sidebar() {
             className="font-display text-xl font-bold leading-tight"
             style={{ color: TEXT }}
           >
-            Salon Manager
+            {businessName ?? 'My Salon'}
           </p>
+          {businessType && (
+            <p className="text-xs mt-0.5" style={{ color: MUTED }}>
+              {BUSINESS_TYPE_LABELS[businessType] ?? businessType}
+            </p>
+          )}
         </Link>
-        <p className="text-xs mt-1 truncate" style={{ color: MUTED }}>
-          {profile?.fullName ?? 'Loading…'}
+        <p className="text-xs mt-2 truncate" style={{ color: MUTED }}>
+          {ownerName || 'Loading…'}
         </p>
       </div>
 

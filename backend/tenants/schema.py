@@ -52,6 +52,8 @@ def _policies_from_db(data: dict) -> BusinessPoliciesType:
 
 @strawberry.type
 class SalonSettingsType:
+    business_name: str
+    business_type: str
     staff_access_key: str
     cover_image_url: str
     business_policies: BusinessPoliciesType
@@ -89,6 +91,8 @@ class TenantQuery:
         require_owner(info)
         tenant = info.context.request.tenant
         return SalonSettingsType(
+            business_name=tenant.business_name,
+            business_type=tenant.business_type,
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
             business_policies=_policies_from_db(tenant.business_policies or {}),

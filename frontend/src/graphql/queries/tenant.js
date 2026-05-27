@@ -3,6 +3,8 @@ import { gql } from '@apollo/client'
 export const SALON_SETTINGS = gql`
   query SalonSettings {
     salonSettings {
+      businessName
+      businessType
       staffAccessKey
       coverImageUrl
       onboardingCompleted
