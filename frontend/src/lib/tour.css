@@ -1,0 +1,70 @@
+/* driver.js theme overrides — burgundy palette */
+:root {
+  --driver-overlay-color: rgba(26, 10, 13, 0.78);
+  --driver-popover-bg-color: #ffffff;
+  --driver-popover-title-color: #6B2737;
+  --driver-popover-description-color: #8B4A5A;
+  --driver-popover-arrow-color: #ffffff;
+  --driver-popover-border-radius: 16px;
+}
+
+.driver-popover {
+  box-shadow: 0 8px 32px rgba(107, 39, 55, 0.18) !important;
+  border: 1px solid #D4B0B8 !important;
+  padding: 20px !important;
+  max-width: 300px !important;
+}
+
+.driver-popover-title {
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  margin-bottom: 6px !important;
+}
+
+.driver-popover-description {
+  font-size: 0.8125rem !important;
+  line-height: 1.55 !important;
+}
+
+.driver-popover-progress-text {
+  font-size: 0.75rem !important;
+  color: #D4B0B8 !important;
+}
+
+.driver-popover-next-btn {
+  background-color: #6B2737 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  padding: 7px 16px !important;
+  text-shadow: none !important;
+}
+
+.driver-popover-next-btn:hover {
+  background-color: #5a1f2d !important;
+}
+
+.driver-popover-prev-btn {
+  border-radius: 10px !important;
+  font-size: 0.8125rem !important;
+  color: #8B4A5A !important;
+  border-color: #D4B0B8 !important;
+  padding: 7px 16px !important;
+}
+
+.driver-popover-prev-btn:hover {
+  background-color: #FDF5F6 !important;
+  border-color: #6B2737 !important;
+}
+
+.driver-popover-close-btn {
+  color: #D4B0B8 !important;
+  font-size: 1.2rem !important;
+}
+
+.driver-popover-close-btn:hover {
+  color: #6B2737 !important;
+}

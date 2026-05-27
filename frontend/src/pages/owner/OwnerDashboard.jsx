@@ -1,12 +1,15 @@
+import { useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { Lightbulb } from 'lucide-react'
 import { DASHBOARD_STATS, MY_STAFF_APPOINTMENTS } from '../../graphql/queries/bookings'
 import AgentFeed from '../../components/dashboard/AgentFeed'
+import GettingStarted from '../../components/dashboard/GettingStarted'
 import { UPDATE_APPOINTMENT_STATUS } from '../../graphql/mutations/bookings'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { useAuth } from '../../context/AuthContext'
 import { formatZMW, toDateInputValue, formatTime } from '../../lib/utils'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
+import { startTour, isTourDone } from '../../lib/tour'
 
 const PAGE_BG  = '#FDF5F6'
 const SAGE_CARD = '#E8C4CC'
@@ -175,6 +178,13 @@ export default function OwnerDashboard() {
   const stats = data?.dashboardStats
   const firstName = profileData?.myProfile?.fullName?.split(' ')[0] ?? ''
 
+  // Auto-start the tour on first login only
+  useEffect(() => {
+    if (isTourDone()) return
+    const t = setTimeout(startTour, 900)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="min-h-screen px-6 py-7" style={{ backgroundColor: PAGE_BG }}>
 
@@ -205,6 +215,9 @@ export default function OwnerDashboard() {
       </div>
 
       {error && <ErrorMessage message={error.message} className="mb-4" />}
+
+      {/* Getting-started checklist */}
+      <GettingStarted />
 
       {/* 3 stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

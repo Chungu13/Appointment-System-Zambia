@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Activity, Scissors,
-  Users, UserCircle, Settings, HelpCircle, Images,
+  Users, UserCircle, Settings, HelpCircle, Images, Compass,
 } from 'lucide-react'
 import { useQuery } from '@apollo/client/react'
 import { useAuth } from '../../context/AuthContext'
 import { useLogout } from '../../hooks/useAuth'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
+import { startTour, resetTour } from '../../lib/tour'
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const BG          = '#4A1A25'
@@ -20,20 +21,20 @@ const DIVIDER     = 'rgba(255,255,255,0.12)'
 
 const mainLinks = [
   { to: '/owner',           icon: LayoutDashboard, label: 'Dashboard',  end: true },
-  { to: '/owner/calendar',  icon: Calendar,        label: 'Calendar' },
+  { to: '/owner/calendar',  icon: Calendar,        label: 'Calendar',   id: 'tour-calendar' },
   { to: '/owner/analytics', icon: Activity,        label: 'Activity' },
-  { to: '/owner/services',  icon: Scissors,        label: 'Services' },
+  { to: '/owner/services',  icon: Scissors,        label: 'Services',   id: 'tour-services' },
   { to: '/owner/portfolio', icon: Images,          label: 'Portfolio' },
-  { to: '/owner/staff',     icon: Users,           label: 'Staff' },
+  { to: '/owner/staff',     icon: Users,           label: 'Staff',      id: 'tour-staff' },
   { to: '/owner/customers', icon: UserCircle,      label: 'Customers' },
 ]
 
 const bottomLinks = [
-  { to: '/owner/settings', icon: Settings,    label: 'Settings' },
+  { to: '/owner/settings', icon: Settings,    label: 'Settings',  id: 'tour-settings' },
   { to: '/how-it-works',   icon: HelpCircle,  label: 'Support' },
 ]
 
-function NavItem({ to, end, icon: Icon, label }) {
+function NavItem({ to, end, icon: Icon, label, id }) {
   const [hovered, setHovered] = useState(false)
   const location = useLocation()
   const isActive = end
@@ -44,6 +45,7 @@ function NavItem({ to, end, icon: Icon, label }) {
     <NavLink
       to={to}
       end={end}
+      id={id}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -119,6 +121,7 @@ export default function Sidebar() {
       {/* Book Appointment CTA */}
       <div className="px-4 pb-5 shrink-0">
         <button
+          id="tour-book-btn"
           onClick={() => navigate('/book')}
           className="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
           style={{ backgroundColor: TEXT, color: BG }}
@@ -132,16 +135,26 @@ export default function Sidebar() {
 
       {/* Main nav */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        {mainLinks.map(({ to, end, icon, label }) => (
-          <NavItem key={to} to={to} end={end} icon={icon} label={label} />
+        {mainLinks.map(({ to, end, icon, label, id }) => (
+          <NavItem key={to} to={to} end={end} icon={icon} label={label} id={id} />
         ))}
       </nav>
 
       {/* Bottom nav */}
-      <div className="px-3 pb-6 pt-3 space-y-0.5 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
-        {bottomLinks.map(({ to, icon, label }) => (
-          <NavItem key={to} to={to} icon={icon} label={label} />
+      <div className="px-3 pb-4 pt-3 space-y-0.5 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
+        {bottomLinks.map(({ to, icon, label, id }) => (
+          <NavItem key={to} to={to} icon={icon} label={label} id={id} />
         ))}
+
+        {/* Take the tour */}
+        <button
+          onClick={() => { resetTour(); startTour() }}
+          className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-white/10"
+          style={{ color: MUTED }}
+        >
+          <Compass size={15} strokeWidth={1.8} />
+          Take the tour
+        </button>
       </div>
     </aside>
   )
