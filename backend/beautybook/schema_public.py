@@ -19,6 +19,7 @@ class SalonType:
     subdomain: str
     phone: str
     city: str
+    area: str
     address: str
     is_active: bool
     cover_image_url: str
@@ -74,6 +75,7 @@ class Query:
                 subdomain=_subdomain(t),
                 phone=t.phone,
                 city=t.city,
+                area=t.area or "",
                 address=t.address,
                 is_active=t.is_active,
                 cover_image_url=t.cover_image_url or "",
@@ -98,6 +100,7 @@ class Mutation:
         email: str,
         password: str,
         address: str = "",
+        area: str = "",
     ) -> RegisterPayload:
         from django.conf import settings
         from django_tenants.utils import tenant_context
@@ -149,6 +152,7 @@ class Mutation:
             business_type=business_type,
             subdomain=subdomain,
             city=city,
+            area=area.strip(),
             address=address,
             phone=phone,
             on_trial=True,

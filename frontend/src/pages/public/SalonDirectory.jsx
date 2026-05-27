@@ -405,8 +405,7 @@ function SalonCard({ salon, index }) {
         {salon.city && (
           <p className="flex items-center gap-1 text-xs mb-3" style={{ color: MUTED }}>
             <MapPin size={11} />
-            {salon.city}
-            {salon.address ? ` · ${salon.address}` : ''}
+            {[salon.city, salon.area, salon.address].filter(Boolean).join(' · ')}
           </p>
         )}
         <div className="flex flex-wrap gap-1.5 mb-4">

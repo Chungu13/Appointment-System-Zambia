@@ -5,6 +5,9 @@ export const SALON_SETTINGS = gql`
     salonSettings {
       businessName
       businessType
+      city
+      area
+      address
       staffAccessKey
       coverImageUrl
       onboardingCompleted

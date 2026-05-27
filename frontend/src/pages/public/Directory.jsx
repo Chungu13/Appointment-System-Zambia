@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client/react'
 import { MapPin, Star, Search } from 'lucide-react'
 import { publicClient } from '../../lib/apollo'
 import { ALL_SALONS } from '../../graphql/queries/salons'
+import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import { getSalonUrl } from '../../lib/utils'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
@@ -35,7 +36,7 @@ const TYPE_SERVICES = {
   makeup_artist: ['Bridal Makeup', 'Party Glam', 'Natural Look'],
 }
 
-const CITIES = ['All Cities', 'Lusaka', 'Ndola', 'Kitwe', 'Livingstone', 'Kabwe', 'Chipata', 'Solwezi']
+const FILTER_CITIES = ['All Cities', ...CITIES.filter((c) => c !== 'Other')]
 
 const CATEGORIES = [
   { value: 'all',          label: 'All' },
@@ -129,8 +130,7 @@ function SalonCard({ salon }) {
         {salon.city && (
           <p className="flex items-center gap-1 text-xs mb-3" style={{ color: MUTED }}>
             <MapPin size={11} />
-            {salon.city}
-            {salon.address ? ` · ${salon.address}` : ''}
+            {[salon.city, salon.area, salon.address].filter(Boolean).join(' · ')}
           </p>
         )}
         <div className="flex flex-wrap gap-1.5 mb-4">
@@ -188,9 +188,9 @@ export default function Directory() {
           TYPE_LABELS[s.businessType]?.toLowerCase().includes(q),
       )
     }
-    if (area.trim()) {
+    if (area.trim() && area !== 'All Areas') {
       const q = area.toLowerCase()
-      list = list.filter((s) => s.address?.toLowerCase().includes(q))
+      list = list.filter((s) => s.area?.toLowerCase().includes(q))
     }
     return list
   }, [data, city, category, search, area])
@@ -223,15 +223,29 @@ export default function Directory() {
               />
             </div>
             <div className="relative flex-1">
-              <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: MUTED }} />
-              <input
-                type="text"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="Area e.g. Kabulonga, Woodlands…"
-                className="w-full rounded-full pl-10 pr-5 py-3.5 text-sm outline-none"
-                style={{ color: TEXT, backgroundColor: '#ffffff' }}
-              />
+              <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: MUTED }} />
+              {city === 'Lusaka' ? (
+                <select
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  className="w-full rounded-full pl-10 pr-5 py-3.5 text-sm outline-none bg-white"
+                  style={{ color: area ? TEXT : '#9ca3af' }}
+                >
+                  <option value="">All Lusaka areas…</option>
+                  {LUSAKA_AREAS.filter((a) => a !== 'Other').map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Area e.g. Kabulonga, Woodlands…"
+                  className="w-full rounded-full pl-10 pr-5 py-3.5 text-sm outline-none"
+                  style={{ color: TEXT, backgroundColor: '#ffffff' }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -245,11 +259,11 @@ export default function Directory() {
             {/* City dropdown */}
             <select
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => { setCity(e.target.value); setArea('') }}
               className="rounded-full border px-4 py-2 text-sm bg-white outline-none"
               style={{ borderColor: BORDER, color: TEXT }}
             >
-              {CITIES.map((c) => (
+              {FILTER_CITIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>

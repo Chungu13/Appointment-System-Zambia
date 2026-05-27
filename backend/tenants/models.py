@@ -17,6 +17,7 @@ class Tenant(TenantMixin):
     subdomain = models.SlugField(unique=True)
     phone = models.CharField(max_length=20, blank=True)
     city = models.CharField(max_length=100, default="Lusaka")
+    area = models.CharField(max_length=120, blank=True, default="")
     address = models.TextField(blank=True)
     staff_access_key = models.CharField(max_length=50, blank=True)
     cover_image_url = models.TextField(blank=True)

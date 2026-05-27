@@ -54,6 +54,9 @@ def _policies_from_db(data: dict) -> BusinessPoliciesType:
 class SalonSettingsType:
     business_name: str
     business_type: str
+    city: str
+    area: str
+    address: str
     staff_access_key: str
     cover_image_url: str
     business_policies: BusinessPoliciesType
@@ -93,6 +96,9 @@ class TenantQuery:
         return SalonSettingsType(
             business_name=tenant.business_name,
             business_type=tenant.business_type,
+            city=tenant.city,
+            area=tenant.area or "",
+            address=tenant.address or "",
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
             business_policies=_policies_from_db(tenant.business_policies or {}),
@@ -167,6 +173,8 @@ class TenantMutation:
         cover_image_url: Optional[str] = None,
         address: Optional[str] = None,
         phone: Optional[str] = None,
+        city: Optional[str] = None,
+        area: Optional[str] = None,
     ) -> bool:
         from beautybook.permissions import require_owner
         require_owner(info)
@@ -177,7 +185,11 @@ class TenantMutation:
             tenant.address = address.strip()
         if phone is not None:
             tenant.phone = phone.strip()
-        tenant.save(update_fields=["cover_image_url", "address", "phone", "updated_at"])
+        if city is not None:
+            tenant.city = city.strip()
+        if area is not None:
+            tenant.area = area.strip()
+        tenant.save(update_fields=["cover_image_url", "address", "phone", "city", "area", "updated_at"])
         return True
 
     @strawberry.mutation

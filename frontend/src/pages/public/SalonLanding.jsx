@@ -439,8 +439,8 @@ export default function SalonLanding() {
           <div className="flex flex-wrap gap-4 text-white/85 text-sm">
             {profile.city && (
               <span className="flex items-center gap-1.5">
-                <MapPin size={14} /> {profile.city}
-                {profile.address && ` · ${profile.address}`}
+                <MapPin size={14} />
+                {[profile.city, profile.area, profile.address].filter(Boolean).join(' · ')}
               </span>
             )}
             {profile.phone && (

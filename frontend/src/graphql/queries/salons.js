@@ -7,6 +7,7 @@ export const SALON_PROFILE = gql`
       businessType
       phone
       city
+      area
       address
       coverImageUrl
       staffCount
@@ -56,6 +57,7 @@ export const ALL_SALONS = gql`
       subdomain
       phone
       city
+      area
       address
       isActive
       coverImageUrl

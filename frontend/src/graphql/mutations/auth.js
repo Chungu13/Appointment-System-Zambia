@@ -5,6 +5,7 @@ export const REGISTER_TENANT = gql`
     $businessName: String!
     $businessType: String!
     $city: String!
+    $area: String
     $ownerName: String!
     $phone: String!
     $email: String!
@@ -15,6 +16,7 @@ export const REGISTER_TENANT = gql`
       businessName: $businessName
       businessType: $businessType
       city: $city
+      area: $area
       ownerName: $ownerName
       phone: $phone
       email: $email

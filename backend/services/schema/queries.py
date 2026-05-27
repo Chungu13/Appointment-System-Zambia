@@ -37,6 +37,7 @@ class SalonProfileType:
     business_type: str
     phone: str
     city: str
+    area: str
     address: str
     cover_image_url: str
     services: List[ServiceType]
@@ -144,6 +145,7 @@ class ServicesQuery:
             business_type=tenant.business_type,
             phone=tenant.phone,
             city=tenant.city,
+            area=tenant.area or "",
             address=tenant.address,
             cover_image_url=tenant.cover_image_url or "",
             services=services,

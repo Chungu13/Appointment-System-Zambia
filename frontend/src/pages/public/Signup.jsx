@@ -5,6 +5,7 @@ import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { publicClient } from '../../lib/apollo'
 import { REGISTER_TENANT } from '../../graphql/mutations/auth'
 import { setTokens, saveRole } from '../../lib/auth'
+import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
@@ -24,8 +25,6 @@ const BUSINESS_TYPES = [
   { value: 'makeup_artist',  label: 'Makeup Artist' },
   { value: 'other',          label: 'Other' },
 ]
-
-const CITIES = ['Lusaka', 'Ndola', 'Kitwe', 'Livingstone', 'Kabwe', 'Chipata', 'Solwezi', 'Other']
 
 function Field({ label, error, children }) {
   return (
@@ -73,6 +72,8 @@ export default function Signup() {
     businessName: '',
     businessType: 'salon',
     city: 'Lusaka',
+    area: '',
+    areaOther: '',
     address: '',
     ownerName: '',
     phone: '+260',
@@ -89,7 +90,13 @@ export default function Signup() {
 
   function set(k) {
     return (e) => {
-      setForm((f) => ({ ...f, [k]: e.target.value }))
+      const val = e.target.value
+      setForm((f) => {
+        const next = { ...f, [k]: val }
+        if (k === 'city') { next.area = ''; next.areaOther = '' }
+        if (k === 'area') { next.areaOther = '' }
+        return next
+      })
       setFieldErrors((fe) => ({ ...fe, [k]: '' }))
     }
   }
@@ -117,11 +124,16 @@ export default function Signup() {
     }
 
     try {
+      const effectiveArea = form.city === 'Lusaka'
+        ? (form.area === 'Other' ? form.areaOther.trim() : form.area)
+        : form.area.trim()
+
       const { data } = await register({
         variables: {
           businessName: form.businessName.trim(),
           businessType: form.businessType,
           city: form.city,
+          area: effectiveArea,
           address: form.address.trim(),
           ownerName: form.ownerName.trim(),
           phone: form.phone.trim(),
@@ -202,7 +214,34 @@ export default function Signup() {
               </Field>
             </div>
 
-            <Field label="Address (optional)">
+            <Field label="Area">
+              {form.city === 'Lusaka' ? (
+                <>
+                  <Select value={form.area} onChange={set('area')}>
+                    <option value="">Select area…</option>
+                    {LUSAKA_AREAS.map((a) => (
+                      <option key={a} value={a}>{a}</option>
+                    ))}
+                  </Select>
+                  {form.area === 'Other' && (
+                    <Input
+                      className="mt-2"
+                      value={form.areaOther}
+                      onChange={set('areaOther')}
+                      placeholder="Enter your area"
+                    />
+                  )}
+                </>
+              ) : (
+                <Input
+                  value={form.area}
+                  onChange={set('area')}
+                  placeholder="Area / suburb (optional)"
+                />
+              )}
+            </Field>
+
+            <Field label="Detailed address / directions (optional)">
               <Input
                 value={form.address}
                 onChange={set('address')}

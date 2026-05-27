@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot } from 'lucide-react'
+import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
+import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -120,6 +121,118 @@ function BusinessProfileCard({ currentImageUrl }) {
       />
 
       {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+    </div>
+  )
+}
+
+function LocationCard({ currentCity, currentArea, currentAddress }) {
+  const [city, setCity]         = useState(currentCity || 'Lusaka')
+  const [area, setArea]         = useState(currentArea || '')
+  const [areaOther, setAreaOther] = useState('')
+  const [address, setAddress]   = useState(currentAddress || '')
+  const [saved, setSaved]       = useState(false)
+
+  const [updateProfile, { loading, error }] = useMutation(UPDATE_TENANT_PROFILE, {
+    refetchQueries: [SALON_SETTINGS],
+    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
+  })
+
+  const isLusaka = city === 'Lusaka'
+  const effectiveArea = isLusaka ? (area === 'Other' ? areaOther.trim() : area) : area
+
+  function handleCityChange(e) {
+    setCity(e.target.value)
+    setArea('')
+    setAreaOther('')
+  }
+
+  function save() {
+    updateProfile({ variables: { city, area: effectiveArea, address: address.trim() } })
+  }
+
+  return (
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-5">
+      <div>
+        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+          <MapPin size={18} className="text-primary" />
+          Location
+        </h2>
+        <p className="text-sm text-on-surface-variant mt-1">
+          Shown on your public listing so customers can find you.
+        </p>
+      </div>
+
+      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-on-surface mb-1.5">City</label>
+          <select
+            value={city}
+            onChange={handleCityChange}
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+          >
+            {CITIES.filter((c) => c !== 'Other').map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-on-surface mb-1.5">
+            {isLusaka ? 'Area (Lusaka neighbourhood)' : 'Area / suburb'}
+          </label>
+          {isLusaka ? (
+            <>
+              <select
+                value={area}
+                onChange={(e) => { setArea(e.target.value); setAreaOther('') }}
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+              >
+                <option value="">Select area…</option>
+                {LUSAKA_AREAS.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+              {area === 'Other' && (
+                <input
+                  type="text"
+                  value={areaOther}
+                  onChange={(e) => setAreaOther(e.target.value)}
+                  placeholder="Enter your area"
+                  className="mt-2 w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+                />
+              )}
+            </>
+          ) : (
+            <input
+              type="text"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              placeholder="e.g. Riverside, CBD"
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+            />
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-on-surface mb-1.5">
+            Detailed address / directions
+          </label>
+          <textarea
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="e.g. Shop 4, Cairo Road, next to Game"
+            rows={2}
+            className="w-full rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-4 py-3 focus:outline-none focus:border-primary transition-colors resize-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button onClick={save} loading={loading}>Save location</Button>
+        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+      </div>
     </div>
   )
 }
@@ -503,6 +616,11 @@ export default function Settings() {
       {data && (
         <div className="max-w-lg space-y-6">
           <BusinessProfileCard currentImageUrl={data.salonSettings.coverImageUrl} />
+          <LocationCard
+            currentCity={data.salonSettings.city}
+            currentArea={data.salonSettings.area}
+            currentAddress={data.salonSettings.address}
+          />
           <StaffKeyCard currentKey={data.salonSettings.staffAccessKey} />
           <BusinessPoliciesCard current={data.salonSettings.businessPolicies} />
         </div>
