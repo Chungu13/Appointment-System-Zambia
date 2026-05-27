@@ -4,17 +4,33 @@ import { onError } from '@apollo/client/link/error'
 import { getToken, getRefreshToken, setTokens, clearToken } from './auth'
 
 const PUBLIC_API_URL =
-  import.meta.env.VITE_PUBLIC_API_URL || 'http://localhost:8000/graphql/'
+  import.meta.env.VITE_PUBLIC_API_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:8000/graphql/'
 
-// Derive tenant API URL from the current hostname so any new tenant's
-// subdomain (e.g. mynails.localhost:3000) hits the right backend schema.
-const TENANT_API_URL = (() => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+// Same reserved-subdomain list as TenantRoute.jsx — keep in sync.
+const RESERVED = new Set(['www', 'api', 'app', 'admin', 'mail', 'smtp', 'ftp', 'cdn'])
+
+function getTenantSlug() {
   const { hostname } = window.location
-  if (hostname === 'localhost') return 'http://localhost:8000/graphql/'
-  if (import.meta.env.DEV) return `http://${hostname}:8000/graphql/`
-  return `https://${hostname}/graphql/`
-})()
+  const parts = hostname.split('.')
+  const sub =
+    parts.length >= 3 ? parts[0] :
+    parts.length === 2 && parts[1] === 'localhost' ? parts[0] :
+    null
+  return sub && !RESERVED.has(sub) ? sub : null
+}
+
+// On a tenant subdomain (e.g. lina-salon-2.kimawa.pro) → hit that tenant's API.
+// On the apex / main domain (kimawa.pro) → fall back to the public API.
+const slug = getTenantSlug()
+const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN
+
+const TENANT_API_URL = slug
+  ? (apiDomain
+      ? `https://${slug}.${apiDomain}/graphql/`
+      : `http://${slug}.localhost:8000/graphql/`)
+  : PUBLIC_API_URL
 
 // ── Silent refresh — raw fetch to avoid circular Apollo dependency ────────────
 async function doRefresh() {
