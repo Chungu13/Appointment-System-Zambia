@@ -74,6 +74,48 @@ class StaffMutation:
             user=user_to_type(user),
         )
 
+    # ── Self-service: update own profile (any authenticated user) ───────────
+    @strawberry.mutation
+    def update_my_profile(
+        self,
+        info: strawberry.types.Info,
+        full_name: Optional[str] = None,
+        phone: Optional[str] = None,
+        avatar_url: Optional[str] = None,
+    ) -> UserType:
+        from beautybook.permissions import require_auth
+        user = require_auth(info)
+        fields = ["updated_at"]
+        if full_name is not None:
+            user.full_name = full_name.strip()
+            fields.append("full_name")
+        if phone is not None:
+            user.phone = phone.strip()
+            fields.append("phone")
+        if avatar_url is not None:
+            user.avatar_url = avatar_url.strip()
+            fields.append("avatar_url")
+        user.save(update_fields=fields)
+        return user_to_type(user)
+
+    # ── Self-service: change own password (any authenticated user) ───────────
+    @strawberry.mutation
+    def change_password(
+        self,
+        info: strawberry.types.Info,
+        current_password: str,
+        new_password: str,
+    ) -> bool:
+        from beautybook.permissions import require_auth
+        user = require_auth(info)
+        if not user.check_password(current_password):
+            raise ValueError("Current password is incorrect.")
+        if len(new_password) < 8:
+            raise ValueError("New password must be at least 8 characters.")
+        user.set_password(new_password)
+        user.save(update_fields=["password", "updated_at"])
+        return True
+
     # ── Owner: create staff account (or mark self as also-staff) ─────────────
     @strawberry.mutation
     def create_staff(

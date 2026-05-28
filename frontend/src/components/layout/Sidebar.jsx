@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Activity, Scissors,
-  Users, UserCircle, Settings, HelpCircle, Images, Compass,
+  Users, UserCircle, User, Settings, HelpCircle, Images, Compass,
 } from 'lucide-react'
 import { useQuery } from '@apollo/client/react'
 import { useAuth } from '../../context/AuthContext'
@@ -31,6 +31,7 @@ const mainLinks = [
 
 const bottomLinks = [
   { to: '/owner/settings', icon: Settings,    label: 'Settings',  id: 'tour-settings' },
+  { to: '/owner/profile',  icon: User,        label: 'Profile',   id: 'tour-profile'  },
   { to: '/how-it-works',   icon: HelpCircle,  label: 'Support' },
 ]
 

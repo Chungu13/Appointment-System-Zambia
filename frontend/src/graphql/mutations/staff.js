@@ -74,6 +74,29 @@ export const REMOVE_SERVICE = gql`
   }
 `
 
+export const UPDATE_MY_PROFILE = gql`
+  mutation UpdateMyProfile($fullName: String, $phone: String, $avatarUrl: String) {
+    updateMyProfile(fullName: $fullName, phone: $phone, avatarUrl: $avatarUrl) {
+      id
+      username
+      fullName
+      email
+      phone
+      role
+      avatarUrl
+      isActive
+      isAlsoStaff
+      dateJoined
+    }
+  }
+`
+
+export const CHANGE_PASSWORD = gql`
+  mutation ChangePassword($currentPassword: String!, $newPassword: String!) {
+    changePassword(currentPassword: $currentPassword, newPassword: $newPassword)
+  }
+`
+
 export const UPDATE_STAFF_PROFILE = gql`
   mutation UpdateStaffProfile(
     $staffId: Int!

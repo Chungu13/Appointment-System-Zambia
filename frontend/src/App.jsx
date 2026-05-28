@@ -34,6 +34,7 @@ import Customers from './pages/owner/Customers'
 import Analytics from './pages/owner/Analytics'
 import Settings from './pages/owner/Settings'
 import Portfolio from './pages/owner/Portfolio'
+import Profile from './pages/owner/Profile'
 
 // Staff portal — no auth, shared key
 import StaffPortal from './pages/staff/StaffPortal'
@@ -108,6 +109,7 @@ export default function App() {
                       <Route path="analytics" element={<Analytics />} />
                       <Route path="portfolio" element={<Portfolio />} />
                       <Route path="settings" element={<Settings />} />
+                      <Route path="profile" element={<Profile />} />
                     </Routes>
                   </AppShell>
                 </ProtectedRoute>
