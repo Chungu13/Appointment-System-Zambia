@@ -20,13 +20,13 @@ const MUTED       = 'rgba(255,255,255,0.6)'
 const DIVIDER     = 'rgba(255,255,255,0.12)'
 
 const mainLinks = [
-  { to: '/owner',           icon: LayoutDashboard, label: 'Dashboard',  end: true },
+  { to: '/owner',           icon: LayoutDashboard, label: 'Dashboard',  end: true, id: 'tour-dashboard' },
   { to: '/owner/calendar',  icon: Calendar,        label: 'Calendar',   id: 'tour-calendar' },
-  { to: '/owner/analytics', icon: Activity,        label: 'Activity' },
+  { to: '/owner/analytics', icon: Activity,        label: 'Activity',   id: 'tour-activity' },
   { to: '/owner/services',  icon: Scissors,        label: 'Services',   id: 'tour-services' },
-  { to: '/owner/portfolio', icon: Images,          label: 'Portfolio' },
+  { to: '/owner/portfolio', icon: Images,          label: 'Portfolio',  id: 'tour-portfolio' },
   { to: '/owner/staff',     icon: Users,           label: 'Staff',      id: 'tour-staff' },
-  { to: '/owner/customers', icon: UserCircle,      label: 'Customers' },
+  { to: '/owner/customers', icon: UserCircle,      label: 'Customers',  id: 'tour-customers' },
 ]
 
 const bottomLinks = [
@@ -121,7 +121,6 @@ export default function Sidebar() {
       {/* Book Appointment CTA */}
       <div className="px-4 pb-5 shrink-0">
         <button
-          id="tour-book-btn"
           onClick={() => navigate('/book')}
           className="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
           style={{ backgroundColor: TEXT, color: BG }}

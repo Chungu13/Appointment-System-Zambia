@@ -23,10 +23,55 @@ export function startTour() {
     },
     steps: [
       {
+        element: '#tour-dashboard',
+        popover: {
+          title: 'Your dashboard',
+          description: 'This is your business home — today\'s revenue, bookings, and a live feed of everything your AI agents are doing.',
+          side: 'right',
+          align: 'start',
+        },
+      },
+      {
+        element: '#tour-checklist',
+        popover: {
+          title: 'Getting started',
+          description: 'Complete these steps to go live. The checklist tracks your real setup — it checks off automatically as you add services, staff, and hours.',
+          side: 'bottom',
+          align: 'start',
+        },
+      },
+      {
+        element: '#tour-calendar',
+        popover: {
+          title: 'Your calendar',
+          description: 'Every booking appears here. You can view by week or day, mark appointments as done, and see your full schedule at a glance.',
+          side: 'right',
+          align: 'start',
+        },
+      },
+      {
+        element: '#tour-activity',
+        popover: {
+          title: 'AI activity',
+          description: 'A live log of every action your AI agents take — bookings made, deposits chased, slots recovered, and weekly insights.',
+          side: 'right',
+          align: 'start',
+        },
+      },
+      {
         element: '#tour-services',
         popover: {
-          title: 'Your Services',
-          description: 'Add every service you offer — name, price, and duration. This is what customers can book.',
+          title: 'Your services',
+          description: 'Add every service you offer with a name, price in ZMW, duration, and deposit amount. Customers see this on your public page.',
+          side: 'right',
+          align: 'start',
+        },
+      },
+      {
+        element: '#tour-portfolio',
+        popover: {
+          title: 'Your portfolio',
+          description: 'Upload photos of your work. Your portfolio shows on your public booking page and helps customers decide to book.',
           side: 'right',
           align: 'start',
         },
@@ -34,26 +79,17 @@ export function startTour() {
       {
         element: '#tour-staff',
         popover: {
-          title: 'Your Team',
-          description: 'Add your staff and assign which services each person performs. Bookings need this to work.',
+          title: 'Your team',
+          description: 'Add your staff, assign which services each person does, and set their working hours. This is what makes the booking system work — without it, no slots are available.',
           side: 'right',
           align: 'start',
         },
       },
       {
-        element: '#tour-calendar',
+        element: '#tour-customers',
         popover: {
-          title: 'Your Calendar',
-          description: 'All bookings appear here. Manage appointments, mark no-shows, and track your schedule.',
-          side: 'right',
-          align: 'start',
-        },
-      },
-      {
-        element: '#tour-book-btn',
-        popover: {
-          title: 'Book an Appointment',
-          description: 'Use this for walk-ins or phone bookings. Customers can also book themselves through your public booking page.',
+          title: 'Your customers',
+          description: 'Everyone who has booked with you. The system automatically tracks visit history and no-shows so your AI can serve them better.',
           side: 'right',
           align: 'start',
         },
@@ -62,7 +98,7 @@ export function startTour() {
         element: '#tour-settings',
         popover: {
           title: 'Settings',
-          description: 'Your booking link lives here — share it with customers so they can book anytime. Also manage your business policies.',
+          description: 'Update your location, cover photo, staff access key, and business policies. Your policies are loaded into your AI agent so it gives accurate answers.',
           side: 'right',
           align: 'start',
         },

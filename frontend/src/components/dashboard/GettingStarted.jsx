@@ -123,6 +123,7 @@ export default function GettingStarted() {
 
   return (
     <div
+      id="tour-checklist"
       className="rounded-2xl p-5 mb-6"
       style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}` }}
     >
