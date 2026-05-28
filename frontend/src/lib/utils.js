@@ -65,9 +65,9 @@ export function getInitials(name = '') {
 }
 
 export function getSalonUrl(subdomain) {
-  if (import.meta.env.DEV) {
-    const port = window.location.port || '3000'
-    return `http://${subdomain}.localhost:${port}`
-  }
-  return `https://${subdomain}.beautybook.zm`
+  const port = window.location.port || '3000'
+  const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+  return appDomain
+    ? `https://${subdomain}.${appDomain}`
+    : `http://${subdomain}.localhost:${port}`
 }
