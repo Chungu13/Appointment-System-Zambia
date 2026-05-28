@@ -78,7 +78,7 @@ function CreateStaffModal({ onClose, onCreated }) {
             <div>
               <p className="text-sm font-semibold text-on-surface">This is me (I also do the work)</p>
               <p className="text-xs text-on-surface-variant mt-0.5">
-                Tick this if you're the sole operator — your appointments will show on the dashboard.
+                Tick this if you're the sole operator. Your appointments will show on the dashboard.
               </p>
             </div>
           </label>
@@ -180,7 +180,7 @@ function HoursRow({ staffId, day, wh }) {
             onChange={(e) => setStart(e.target.value)}
             className="text-sm border border-outline-variant rounded-lg px-2 py-1 bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 w-28"
           />
-          <span className="text-xs text-on-surface-variant">–</span>
+          <span className="text-xs text-on-surface-variant">-</span>
           <input
             type="time"
             value={end}

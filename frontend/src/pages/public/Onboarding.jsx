@@ -126,7 +126,7 @@ function ScheduleStep({ scheduleType, setScheduleType, sameHours, setSameHours }
 
       <div className="space-y-3">
         {[
-          { val: 'same',       label: 'All staff work the same hours', desc: 'Simple — set one schedule for everyone' },
+          { val: 'same',       label: 'All staff work the same hours', desc: 'Simple: set one schedule for everyone' },
           { val: 'individual', label: 'Staff have different schedules', desc: 'Set hours per person when adding your team' },
         ].map(({ val, label, desc }) => (
           <button
@@ -466,7 +466,7 @@ function TeamStep({ isSoloOperator, setIsSoloOperator, staffList, setStaffList, 
             {isSoloOperator && <Check size={12} color="#fff" />}
           </div>
           <div>
-            <p className="font-semibold text-sm" style={{ color: TEXT }}>I work alone — I am the only staff member</p>
+            <p className="font-semibold text-sm" style={{ color: TEXT }}>I work alone. I am the only staff member.</p>
             <p className="text-xs mt-0.5" style={{ color: MUTED }}>Your schedule will be applied directly to your owner account</p>
           </div>
         </div>
@@ -512,7 +512,7 @@ function TeamStep({ isSoloOperator, setIsSoloOperator, staffList, setStaffList, 
           )}
 
           <p className="text-xs" style={{ color: MUTED }}>
-            Not ready to add staff? Skip this step — you can add them later from your dashboard.
+            Not ready to add staff? Skip this step. Add them later from your dashboard.
           </p>
         </>
       )}
@@ -632,7 +632,7 @@ function PoliciesStep({ policies, setPolicies }) {
         </h2>
         <p className="text-sm" style={{ color: MUTED }}>
           These policies let your AI agent answer common customer questions accurately.
-          Skip anything that doesn't apply — you can update this anytime in Settings.
+          Skip anything that doesn't apply. Update this anytime in Settings.
         </p>
       </div>
 
@@ -1120,7 +1120,7 @@ export default function Onboarding() {
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="font-display text-lg font-bold" style={{ color: PRIMARY }}>Kimawa</span>
           <span className="text-sm" style={{ color: MUTED }}>
-            Step {Math.min(step, STEP_LABELS.length)} of {STEP_LABELS.length} — {STEP_LABELS[step - 1] ?? STEP_LABELS[STEP_LABELS.length - 1]}
+            Step {Math.min(step, STEP_LABELS.length)} of {STEP_LABELS.length}: {STEP_LABELS[step - 1] ?? STEP_LABELS[STEP_LABELS.length - 1]}
           </span>
         </div>
       </header>
@@ -1179,7 +1179,7 @@ export default function Onboarding() {
         {(step === 1 || step === 3 || step === 4) && (
           <p className="text-center mt-4 text-sm" style={{ color: MUTED }}>
             <button onClick={() => setStep((s) => Math.min(s + 1, 5))} className="hover:underline" style={{ color: MUTED }}>
-              Skip this step — set it up later
+              Skip this step. Set it up later.
             </button>
           </p>
         )}

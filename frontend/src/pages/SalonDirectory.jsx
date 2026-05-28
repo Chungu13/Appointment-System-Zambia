@@ -9,7 +9,7 @@ const MOCK_SALONS = [
     reviews: 124,
     tags: ['Hair', 'Nails', 'Facials'],
     openNow: true,
-    hours: '08:00 – 19:00',
+    hours: '08:00 - 19:00',
     image: null,
   },
   {
@@ -20,7 +20,7 @@ const MOCK_SALONS = [
     reviews: 87,
     tags: ['Massage', 'Waxing', 'Nails'],
     openNow: true,
-    hours: '09:00 – 20:00',
+    hours: '09:00 - 20:00',
     image: null,
   },
   {
@@ -31,7 +31,7 @@ const MOCK_SALONS = [
     reviews: 203,
     tags: ['Hair', 'Braiding', 'Makeup'],
     openNow: false,
-    hours: '08:00 – 18:00',
+    hours: '08:00 - 18:00',
     image: null,
   },
   {
@@ -42,7 +42,7 @@ const MOCK_SALONS = [
     reviews: 56,
     tags: ['Facials', 'Lashes', 'Brows'],
     openNow: true,
-    hours: '10:00 – 19:00',
+    hours: '10:00 - 19:00',
     image: null,
   },
 ]
@@ -134,7 +134,7 @@ export default function SalonDirectory() {
             <span className="font-display text-4xl font-bold">Kimawa</span>
           </div>
           <p className="text-on-primary/80 text-lg mb-8 max-w-md mx-auto">
-            Discover and book top salons and spas across Zambia — instantly.
+            Discover and book top salons and spas across Zambia, instantly.
           </p>
 
           {/* Search bar */}

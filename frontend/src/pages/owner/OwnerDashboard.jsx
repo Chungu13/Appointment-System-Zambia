@@ -39,7 +39,7 @@ function StatCard({ label, value, sub, sage }) {
       style={{ backgroundColor: sage ? SAGE_CARD : CARD_BG, border: sage ? 'none' : `1px solid ${BORDER}` }}
     >
       <p className="text-xs font-medium mb-1" style={{ color: sage ? '#3d6040' : MUTED }}>{label}</p>
-      <p className="text-2xl font-bold" style={{ color: PRIMARY }}>{value ?? '—'}</p>
+      <p className="text-2xl font-bold" style={{ color: PRIMARY }}>{value ?? '-'}</p>
       {sub && <p className="text-xs mt-0.5" style={{ color: sage ? '#3d6040' : MUTED }}>{sub}</p>}
     </div>
   )
@@ -81,7 +81,7 @@ function WeeklySchedule({ isAlsoStaff }) {
         <ErrorMessage message={error.message} />
       ) : appts.length === 0 ? (
         <p className="text-sm text-center py-8" style={{ color: MUTED }}>
-          No appointments this week — enjoy the calm!
+          No appointments this week. Enjoy the calm!
         </p>
       ) : (
         <div className="space-y-2">
@@ -145,9 +145,9 @@ function AIInsightCard({ bookedByAgent, slotsRecovered }) {
       </div>
       <p className="text-sm leading-relaxed mb-4" style={{ color: MUTED }}>
         Your AI agent booked{' '}
-        <span className="font-semibold" style={{ color: PRIMARY }}>{bookedByAgent ?? '—'}</span>{' '}
+        <span className="font-semibold" style={{ color: PRIMARY }}>{bookedByAgent ?? '-'}</span>{' '}
         appointments and recovered{' '}
-        <span className="font-semibold" style={{ color: PRIMARY }}>{slotsRecovered ?? '—'}</span>{' '}
+        <span className="font-semibold" style={{ color: PRIMARY }}>{slotsRecovered ?? '-'}</span>{' '}
         cancelled slots this week.
       </p>
       <button
@@ -155,7 +155,7 @@ function AIInsightCard({ bookedByAgent, slotsRecovered }) {
         className="w-full py-2 rounded-xl text-sm font-semibold cursor-not-allowed"
         style={{ backgroundColor: '#e0e0e0', color: '#9e9e9e' }}
       >
-        Generate Campaign — Coming Soon
+        Generate Campaign · Coming Soon
       </button>
       <p className="text-xs text-center mt-2" style={{ color: MUTED }}>
         AI-powered promotions coming soon
@@ -209,7 +209,7 @@ export default function OwnerDashboard() {
         >
           <p className="text-xs font-medium" style={{ opacity: 0.75 }}>Revenue Today</p>
           <p className="text-xl font-bold tabular-nums">
-            {loading ? '—' : stats ? formatZMW(stats.todayRevenue) : '—'}
+            {loading ? '-' : stats ? formatZMW(stats.todayRevenue) : '-'}
           </p>
         </div>
       </div>

@@ -310,7 +310,7 @@ export default function Directory() {
                 No results found
               </p>
               <p className="text-sm" style={{ color: MUTED }}>
-                Try a different city or category — or{' '}
+                Try a different city or category, or{' '}
                 <a href="/" className="hover:underline" style={{ color: PRIMARY }}>
                   list your business
                 </a>{' '}

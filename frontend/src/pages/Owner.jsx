@@ -23,10 +23,10 @@ export default function Owner() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Calendar}   label="Bookings today"  value="—"  color="violet" />
-        <StatCard icon={TrendingUp} label="Revenue (week)"  value="—"  color="green"  />
-        <StatCard icon={Users}      label="Customers"       value="—"  color="blue"   />
-        <StatCard icon={AlertCircle} label="No-shows"       value="—"  color="rose"   />
+        <StatCard icon={Calendar}   label="Bookings today"  value="-"  color="violet" />
+        <StatCard icon={TrendingUp} label="Revenue (week)"  value="-"  color="green"  />
+        <StatCard icon={Users}      label="Customers"       value="-"  color="blue"   />
+        <StatCard icon={AlertCircle} label="No-shows"       value="-"  color="rose"   />
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">

@@ -151,7 +151,7 @@ function ServiceModal({ service, onClose, onSaved }) {
                 onChange={(e) => set('depositZmw', e.target.value)}
               />
               <p className="text-xs text-on-surface-variant">
-                Set to 0 for pay-at-salon — customers book instantly with no upfront payment
+                Set to 0 for pay-at-salon. Customers book instantly with no upfront payment.
               </p>
             </div>
           </div>

@@ -278,7 +278,7 @@ function StaffKeyCard({ currentKey }) {
           <span className="font-mono text-xs bg-surface-container px-1.5 py-0.5 rounded">
             {window.location.origin}/staff
           </span>{' '}
-          to see today's schedule — no individual accounts needed.
+          to see today's schedule. No individual accounts needed.
         </p>
       </div>
 
@@ -319,7 +319,7 @@ function StaffKeyCard({ currentKey }) {
         <p className="font-semibold text-on-surface mb-1">How to share with staff</p>
         <ol className="text-on-surface-variant space-y-1 list-decimal list-inside">
           <li>Tell all staff: "Go to <span className="font-medium text-on-surface">{window.location.origin}/staff</span>"</li>
-          <li>Enter the key: <span className="font-mono font-bold text-primary">{key || '—'}</span></li>
+          <li>Enter the key: <span className="font-mono font-bold text-primary">{key || '-'}</span></li>
           <li>Type your name to filter to just your appointments</li>
         </ol>
       </div>

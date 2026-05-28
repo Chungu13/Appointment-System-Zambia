@@ -36,7 +36,7 @@ export default function Login() {
           <p className="text-sm text-on-surface-variant mt-1">
             Staff?{' '}
             <Link to="/staff" className="text-primary hover:underline font-medium">Use the staff portal</Link>
-            {' '}— no account needed.
+            {' '}(no account needed).
           </p>
         </div>
 

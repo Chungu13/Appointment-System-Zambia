@@ -10,10 +10,10 @@ function DashboardHome() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Bookings today', value: '—' },
-          { label: 'Revenue (week)', value: '—' },
-          { label: 'Customers', value: '—' },
-          { label: 'No-shows', value: '—' },
+          { label: 'Bookings today', value: '-' },
+          { label: 'Revenue (week)', value: '-' },
+          { label: 'Customers', value: '-' },
+          { label: 'No-shows', value: '-' },
         ].map(({ label, value }) => (
           <div
             key={label}

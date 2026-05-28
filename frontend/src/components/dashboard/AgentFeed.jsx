@@ -88,7 +88,7 @@ export default function AgentFeed({ limit = 10 }) {
 
       {!loading && !error && logs.length === 0 && (
         <p className="text-sm text-center py-6" style={{ color: '#8B4A5A' }}>
-          No activity yet — agents are standing by.
+          No activity yet. Agents are standing by.
         </p>
       )}
 

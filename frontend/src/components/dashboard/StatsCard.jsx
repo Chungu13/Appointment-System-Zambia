@@ -18,7 +18,7 @@ export default function StatsCard({ icon: Icon, label, value, sub, color = 'prim
         {loading ? (
           <div className="h-7 w-16 bg-surface-container animate-pulse rounded mb-1" />
         ) : (
-          <p className="text-2xl font-bold text-on-surface">{value ?? '—'}</p>
+          <p className="text-2xl font-bold text-on-surface">{value ?? '-'}</p>
         )}
         <p className="text-sm text-on-surface-variant truncate">{label}</p>
         {sub && <p className="text-xs text-on-surface-variant">{sub}</p>}

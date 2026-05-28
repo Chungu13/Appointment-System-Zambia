@@ -356,7 +356,7 @@ function HoursTable({ hours }) {
           <span className={h.isClosed ? 'text-on-surface-variant' : ''}>
             {h.isClosed
               ? 'Closed'
-              : `${formatTime(h.opensAt)} – ${formatTime(h.closesAt)}`}
+              : `${formatTime(h.opensAt)} - ${formatTime(h.closesAt)}`}
           </span>
         </div>
       ))}
@@ -365,7 +365,7 @@ function HoursTable({ hours }) {
 }
 
 function formatTime(timeStr) {
-  if (!timeStr) return '—'
+  if (!timeStr) return '-'
   const [h, m] = timeStr.split(':').map(Number)
   const period = h >= 12 ? 'PM' : 'AM'
   const hour = h % 12 || 12
@@ -451,7 +451,7 @@ export default function SalonLanding() {
             {openToday && (
               <span className="flex items-center gap-1.5">
                 <Clock size={14} />
-                Open today {formatTime(openToday.opensAt)} – {formatTime(openToday.closesAt)}
+                Open today {formatTime(openToday.opensAt)} - {formatTime(openToday.closesAt)}
               </span>
             )}
           </div>

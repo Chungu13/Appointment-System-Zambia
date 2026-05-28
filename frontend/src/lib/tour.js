@@ -26,7 +26,7 @@ export function startTour() {
         element: '#tour-dashboard',
         popover: {
           title: 'Your dashboard',
-          description: 'This is your business home — today\'s revenue, bookings, and a live feed of everything your AI agents are doing.',
+          description: 'This is your business home: today\'s revenue, bookings, and a live feed of everything your AI agents are doing.',
           side: 'right',
           align: 'start',
         },
@@ -35,7 +35,7 @@ export function startTour() {
         element: '#tour-checklist',
         popover: {
           title: 'Getting started',
-          description: 'Complete these steps to go live. The checklist tracks your real setup — it checks off automatically as you add services, staff, and hours.',
+          description: 'Complete these steps to go live. The checklist tracks your real setup. It checks off automatically as you add services, staff, and hours.',
           side: 'bottom',
           align: 'start',
         },
@@ -53,7 +53,7 @@ export function startTour() {
         element: '#tour-activity',
         popover: {
           title: 'AI activity',
-          description: 'A live log of every action your AI agents take — bookings made, deposits chased, slots recovered, and weekly insights.',
+          description: 'A live log of every action your AI agents take: bookings made, deposits chased, slots recovered, and weekly insights.',
           side: 'right',
           align: 'start',
         },
@@ -80,7 +80,7 @@ export function startTour() {
         element: '#tour-staff',
         popover: {
           title: 'Your team',
-          description: 'Add your staff, assign which services each person does, and set their working hours. This is what makes the booking system work — without it, no slots are available.',
+          description: 'Add your staff, assign which services each person does, and set their working hours. This is what makes the booking system work. Without it, no slots are available.',
           side: 'right',
           align: 'start',
         },

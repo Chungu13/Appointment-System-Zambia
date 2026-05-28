@@ -31,7 +31,7 @@ export default function Booking() {
 
       <div className="mt-10 p-5 bg-violet-50 border border-violet-200 rounded-2xl text-center">
         <p className="text-sm text-violet-700 font-medium">
-          💬 Chat with our booking assistant — just type what you need!
+          💬 Chat with our booking assistant. Just type what you need!
         </p>
       </div>
     </main>

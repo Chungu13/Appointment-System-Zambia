@@ -15,21 +15,21 @@ const PAIN_POINTS = [
   { Icon: Phone,       title: 'Missed calls = missed bookings',      body: "Clients call when you're hands-deep in a treatment. They don't leave a message. They book elsewhere." },
   { Icon: CalendarX,   title: 'No-shows cost you money',             body: 'Empty slots you could have filled. No warning. No compensation. Just lost revenue.' },
   { Icon: MessageSquare, title: "You're losing bookings to WhatsApp", body: "Clients message to book, you forget to reply, they go elsewhere." },
-  { Icon: Clock,       title: "You're too busy to do admin",         body: 'Running a business means bookings, reminders, records, follow-ups — on top of the actual work.' },
+  { Icon: Clock,       title: "You're too busy to do admin",         body: 'Running a business means bookings, reminders, records, and follow-ups, on top of the actual work.' },
 ]
 
 const SOLUTIONS = [
-  { Icon: Bot,          title: 'AI takes bookings 24/7',     body: 'Your booking page never sleeps. Clients book anytime — midnight, weekends, holidays — without calling you.' },
+  { Icon: Bot,          title: 'AI takes bookings 24/7',     body: 'Your booking page never sleeps. Clients book anytime: midnight, weekends, holidays, without calling you.' },
   { Icon: CreditCard,   title: 'Deposits lock in the slot',  body: 'Require a deposit at booking via Airtel Money, MTN MoMo or card. No-shows drop dramatically.' },
   { Icon: CheckCircle2, title: 'Auto-collect at checkout',   body: 'Send automatic payment links after appointments. Get paid without the awkward conversation.' },
-  { Icon: Zap,          title: 'Admin runs itself',          body: 'Confirmations, reminders, rescheduling, cancellations — all handled automatically in the background.' },
+  { Icon: Zap,          title: 'Admin runs itself',          body: 'Confirmations, reminders, rescheduling, and cancellations are all handled automatically in the background.' },
 ]
 
 const FEATURES = [
   { Icon: Globe,    title: 'Smart Booking Page',  body: '24/7 booking page your clients can use from any device. Share the link anywhere.' },
   { Icon: Bot,      title: 'AI Scheduling',       body: 'Automatically manage availability, prevent double-bookings, and fill gaps in your calendar.' },
   { Icon: CreditCard, title: 'Payment Collection', body: 'Accept deposits and full payments via Airtel Money, MTN MoMo, Visa, and Mastercard.' },
-  { Icon: BarChart2, title: 'Business Insights',  body: 'Revenue, top services, and client trends — updated in real time, in Zambian Kwacha.' },
+  { Icon: BarChart2, title: 'Business Insights',  body: 'Revenue, top services, and client trends, updated in real time in Zambian Kwacha.' },
   { Icon: Users,    title: 'Staff Management',    body: 'Assign services per staff, set working hours, and track individual performance easily.' },
 ]
 
@@ -56,8 +56,7 @@ export default function ForBusinesses() {
             Grow Your Beauty Business with AI.
           </h1>
           <p className="text-lg leading-relaxed mb-10 max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.75)' }}>
-            Kimawa automates your bookings, collects payments, and gives you insights —
-            so you can focus on what you do best.
+            Kimawa automates your bookings, collects payments, and gives you insights, so you can focus on what you do best.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

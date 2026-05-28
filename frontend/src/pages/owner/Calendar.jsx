@@ -389,7 +389,7 @@ export default function Calendar() {
   }, [appointments])
 
   const displayDays  = view === 'week' ? days : [selDay]
-  const rangeLabel   = `${days[0].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric' })} – ${days[6].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  const rangeLabel   = `${days[0].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric' })} - ${days[6].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric', year: 'numeric' })}`
 
   return (
     <PageWrapper maxWidth="full">

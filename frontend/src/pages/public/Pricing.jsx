@@ -27,11 +27,11 @@ const FAQS = [
   },
   {
     q: "Will I lose my data if I don't upgrade?",
-    a: 'Never. Your bookings, customers, and history are always yours — regardless of what plan you are on.',
+    a: 'Never. Your bookings, customers, and history are always yours, regardless of what plan you are on.',
   },
   {
     q: 'What payment methods will you accept?',
-    a: 'Airtel Money, MTN MoMo, and card payments. We are building for Zambia — local payments are a priority.',
+    a: 'Airtel Money, MTN MoMo, and card payments. We are building for Zambia. Local payments are a priority.',
   },
 ]
 

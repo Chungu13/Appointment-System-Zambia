@@ -19,7 +19,7 @@ const CUSTOMER_STEPS = [
   {
     n: '02',
     title: 'Book',
-    body: "Pick your service and time, or simply chat with our AI assistant — just type what you want like 'I want braids Saturday' and it handles everything for you.",
+    body: 'Pick your service and time, or simply chat with our AI assistant. Just type what you want, like "I want braids Saturday", and it handles everything for you.',
   },
   {
     n: '03',
@@ -89,8 +89,7 @@ export default function HowItWorks() {
             How Kimawa Works
           </h1>
           <p className="text-lg leading-relaxed" style={{ color: MUTED }}>
-            Getting started takes minutes — whether you're booking an appointment or listing your
-            business.
+            Getting started takes minutes, whether you're booking an appointment or listing your business.
           </p>
         </div>
       </section>

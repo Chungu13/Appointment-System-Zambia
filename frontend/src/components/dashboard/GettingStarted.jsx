@@ -115,7 +115,7 @@ export default function GettingStarted() {
         <div className="flex items-center gap-2">
           <Check size={14} style={{ color: '#16a34a' }} />
           <span className="text-sm font-medium" style={{ color: '#15803d' }}>
-            Setup complete — your business is ready to take bookings!
+            Setup complete. Your business is ready to take bookings!
           </span>
         </div>
         <button

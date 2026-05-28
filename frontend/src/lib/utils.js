@@ -1,5 +1,5 @@
 export function formatZMW(amount) {
-  if (amount == null) return '—'
+  if (amount == null) return '-'
   return `ZMW ${Number(amount).toLocaleString('en-ZM', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -7,7 +7,7 @@ export function formatZMW(amount) {
 }
 
 export function formatDate(dateStr, opts = {}) {
-  if (!dateStr) return '—'
+  if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('en-ZM', {
     weekday: opts.weekday ?? 'short',
     month: 'short',
@@ -18,7 +18,7 @@ export function formatDate(dateStr, opts = {}) {
 }
 
 export function formatTime(dateStr) {
-  if (!dateStr) return '—'
+  if (!dateStr) return '-'
   return new Date(dateStr).toLocaleTimeString('en-ZM', {
     hour: '2-digit',
     minute: '2-digit',

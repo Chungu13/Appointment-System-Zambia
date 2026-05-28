@@ -30,7 +30,7 @@ export default function AppointmentCard({ appointment, onStatusChange, loading }
       </div>
 
       <div className="flex items-center gap-4 text-xs text-on-surface-variant">
-        <span className="flex items-center gap-1"><Clock size={11} />{formatTime(startsAt)} – {formatTime(endsAt)}</span>
+        <span className="flex items-center gap-1"><Clock size={11} />{formatTime(startsAt)} - {formatTime(endsAt)}</span>
         <span className="flex items-center gap-1"><User size={11} />{staff.fullName}</span>
       </div>
 

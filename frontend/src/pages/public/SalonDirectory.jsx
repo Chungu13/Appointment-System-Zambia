@@ -352,7 +352,7 @@ function Features() {
             </div>
             <h3 className="font-display text-xl font-bold mb-3">Business Insights</h3>
             <p className="text-sm leading-relaxed" style={{ opacity: 0.8 }}>
-              See your revenue, top services and customer activity at a glance — all in Zambian Kwacha.
+              See your revenue, top services and customer activity at a glance, all in Zambian Kwacha.
             </p>
           </div>
         </div>

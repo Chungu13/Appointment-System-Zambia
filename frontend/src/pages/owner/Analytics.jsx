@@ -7,7 +7,7 @@ export default function Analytics() {
       <PageHeader title="Analytics" subtitle="Business insights" />
       <Card>
         <p className="text-sm text-on-surface-variant text-center py-12">
-          Detailed analytics powered by the InsightsAgent — coming soon.
+          Detailed analytics powered by the InsightsAgent. Coming soon.
         </p>
       </Card>
     </PageWrapper>
