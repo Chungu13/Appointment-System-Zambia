@@ -232,9 +232,9 @@ export default function OwnerDashboard() {
           sub="Appointments today"
         />
         <StatCard
-          label="AI-Recovered Slots"
+          label="Slots Recovered"
           value={loading ? '…' : stats?.slotsRecovered}
-          sub="Cancelled → rebooked"
+          sub="Filled from cancellations and waitlist"
           sage
         />
       </div>

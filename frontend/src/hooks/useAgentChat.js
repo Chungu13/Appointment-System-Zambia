@@ -13,7 +13,7 @@ export function useAgentChat(customerPhone, salonName) {
     return [
       {
         role: 'assistant',
-        content: `Hi! 👋 Welcome to ${name}! I'm here to help you with anything — booking an appointment, checking our prices and availability, or answering any questions about our services. Just type what you need and I'll sort it out for you!`,
+        content: `Hi! 👋 Welcome to ${name}! I can help you book an appointment, check our services and prices, or answer any questions. If your preferred day happens to be fully booked, I can also add you to the waitlist and let you know if a slot opens up. What can I help you with?`,
       },
     ]
   })
