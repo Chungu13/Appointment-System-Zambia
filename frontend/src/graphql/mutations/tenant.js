@@ -35,3 +35,9 @@ export const COMPLETE_ONBOARDING = gql`
     completeOnboarding
   }
 `
+
+export const DELETE_TENANT = gql`
+  mutation DeleteTenant($confirm: String!) {
+    deleteTenant(confirm: $confirm)
+  }
+`

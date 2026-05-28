@@ -224,6 +224,16 @@ class TenantMutation:
         return True
 
     @strawberry.mutation
+    def delete_tenant(self, info: Info, confirm: str) -> bool:
+        from beautybook.permissions import require_owner
+        require_owner(info)
+        tenant = info.context.request.tenant
+        if confirm != tenant.business_name:
+            raise ValueError("Confirmation does not match your business name.")
+        tenant.delete(force_drop=True)
+        return True
+
+    @strawberry.mutation
     def staff_update_appointment(
         self,
         info: Info,

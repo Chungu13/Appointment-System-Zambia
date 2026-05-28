@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Activity, Scissors,
-  Users, UserCircle, User, Settings, HelpCircle, Images, Compass,
+  Users, UserCircle, User, Settings, HelpCircle, Images, Compass, LogOut,
 } from 'lucide-react'
 import { useQuery } from '@apollo/client/react'
 import { useAuth } from '../../context/AuthContext'
@@ -154,6 +154,16 @@ export default function Sidebar() {
         >
           <Compass size={15} strokeWidth={1.8} />
           Take the tour
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-white/10"
+          style={{ color: MUTED }}
+        >
+          <LogOut size={15} strokeWidth={1.8} />
+          Log out
         </button>
       </div>
     </aside>

@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { User, Lock, Camera, Pencil } from 'lucide-react'
+import { User, Lock, Camera, Pencil, AlertTriangle } from 'lucide-react'
 import { MY_PROFILE } from '../../graphql/queries/staff'
+import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { UPDATE_MY_PROFILE, CHANGE_PASSWORD } from '../../graphql/mutations/staff'
+import { DELETE_TENANT } from '../../graphql/mutations/tenant'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
@@ -253,6 +255,82 @@ function ChangePasswordCard() {
   )
 }
 
+function DangerZoneCard() {
+  const [confirm, setConfirm] = useState('')
+  const [open, setOpen] = useState(false)
+
+  const { data: settingsData } = useQuery(SALON_SETTINGS)
+  const businessName = settingsData?.salonSettings?.businessName ?? ''
+
+  const [deleteTenant, { loading, error }] = useMutation(DELETE_TENANT, {
+    onCompleted: () => {
+      const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+      window.location.href = appDomain ? `https://${appDomain}` : 'http://localhost:3000'
+    },
+  })
+
+  function submit(e) {
+    e.preventDefault()
+    deleteTenant({ variables: { confirm } })
+  }
+
+  return (
+    <div className="rounded-2xl border border-red-200 p-6 space-y-4 bg-red-50">
+      <h2 className="font-semibold text-red-700 flex items-center gap-2">
+        <AlertTriangle size={18} />
+        Danger zone
+      </h2>
+      <p className="text-sm text-red-600">
+        Permanently delete your business account and all associated data. This cannot be undone.
+      </p>
+
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-sm font-medium text-red-600 underline underline-offset-2 hover:text-red-800 transition-colors"
+        >
+          Delete my account
+        </button>
+      )}
+
+      {open && (
+        <form onSubmit={submit} className="space-y-4">
+          <p className="text-sm text-red-700">
+            Type <strong>{businessName}</strong> to confirm deletion.
+          </p>
+          <Input
+            label="Business name"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder={businessName}
+          />
+          {error && (
+            <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not delete account.'} />
+          )}
+          <div className="flex items-center gap-3">
+            <Button
+              type="submit"
+              loading={loading}
+              disabled={confirm !== businessName}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete permanently
+            </Button>
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setConfirm('') }}
+              className="text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
+
 export default function Profile() {
   const { data, loading, error } = useQuery(MY_PROFILE)
 
@@ -267,6 +345,7 @@ export default function Profile() {
         <div className="max-w-lg space-y-6">
           <PersonalDetailsCard profile={data.myProfile} />
           <ChangePasswordCard />
+          <DangerZoneCard />
         </div>
       )}
     </PageWrapper>
