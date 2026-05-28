@@ -49,8 +49,8 @@ export const LOGIN_WITH_PIN = gql`
 `
 
 export const LOGIN = gql`
-  mutation Login($username: String!, $password: String!) {
-    login(username: $username, password: $password) {
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
       accessToken
       refreshToken
       user {

@@ -15,14 +15,17 @@ class AuthPayload:
 
 @strawberry.type
 class StaffMutation:
-    # ── Standard owner/staff login (username + password) ─────────────────────
+    # ── Standard owner login (email + password) ───────────────────────────────
     @strawberry.mutation
-    def login(self, username: str, password: str) -> AuthPayload:
-        from django.contrib.auth import authenticate
+    def login(self, email: str, password: str) -> AuthPayload:
         from beautybook.jwt_auth import make_access_token, make_refresh_token
+        from staff.models import User
 
-        user = authenticate(username=username, password=password)
-        if not user or not user.is_active:
+        try:
+            user = User.objects.get(email=email, is_active=True)
+        except User.DoesNotExist:
+            raise ValueError("Invalid credentials.")
+        if not user.check_password(password):
             raise ValueError("Invalid credentials.")
         return AuthPayload(
             access_token=make_access_token(user.pk, user.role),

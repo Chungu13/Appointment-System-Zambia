@@ -11,7 +11,7 @@ export default function Login() {
   const { isAuthenticated, isOwner } = useAuth()
   const location = useLocation()
   const { doLogin, loading, error } = useLogin()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   if (isAuthenticated) {
@@ -21,7 +21,7 @@ export default function Login() {
 
   async function submit(e) {
     e.preventDefault()
-    try { await doLogin(username, password) } catch {}
+    try { await doLogin(email, password) } catch {}
   }
 
   return (
@@ -43,7 +43,7 @@ export default function Login() {
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-6">
           <form onSubmit={submit} className="space-y-4">
             {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Invalid credentials.'} />}
-            <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
+            <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="your@email.com" required />
             <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
             <Button type="submit" fullWidth loading={loading}>Sign in</Button>
           </form>

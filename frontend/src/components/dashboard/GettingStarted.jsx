@@ -66,10 +66,19 @@ function Item({ isDone, label, sub, onClick, rightSlot }) {
   )
 }
 
+function getDismissedKey() {
+  const parts = window.location.hostname.split('.')
+  const slug =
+    parts.length >= 3 ? parts[0] :
+    parts.length === 2 && parts[1] === 'localhost' ? parts[0] :
+    'default'
+  return `kimawa_setup_dismissed_${slug}`
+}
+
 export default function GettingStarted() {
   const navigate  = useNavigate()
   const [copied, setCopied]       = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem(getDismissedKey()))
 
   const { data: servicesData } = useQuery(SERVICES)
   const { data: staffData }    = useQuery(STAFF_LIST)
@@ -111,7 +120,7 @@ export default function GettingStarted() {
         </div>
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={() => { localStorage.setItem(getDismissedKey(), '1'); setDismissed(true) }}
           className="text-sm leading-none hover:opacity-60 transition-opacity ml-4"
           style={{ color: '#6b7280' }}
         >

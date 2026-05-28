@@ -8,8 +8,8 @@ export function useLogin() {
   const navigate = useNavigate()
   const [loginMutation, { loading, error }] = useMutation(LOGIN)
 
-  async function doLogin(username, password) {
-    const { data } = await loginMutation({ variables: { username, password } })
+  async function doLogin(email, password) {
+    const { data } = await loginMutation({ variables: { email, password } })
     const { accessToken, refreshToken, user } = data.login
     login(accessToken, refreshToken, user)
     if (user.role === 'OWNER') navigate('/owner')
