@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation, Navigate } from 'react-router-dom'
+import { useMutation } from '@apollo/client/react'
 import { Scissors } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { useLogin } from '../../hooks/useAuth'
+import { publicClient } from '../../lib/apollo'
+import { OWNER_LOGIN } from '../../graphql/mutations/auth'
+import { setTokens, saveRole } from '../../lib/auth'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 import { ErrorMessage } from '../../components/ui/Spinner'
@@ -10,10 +13,13 @@ import { ErrorMessage } from '../../components/ui/Spinner'
 export default function Login() {
   const { isAuthenticated, isOwner } = useAuth()
   const location = useLocation()
-  const { doLogin, loading, error } = useLogin()
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
 
+  const [ownerLogin, { loading }] = useMutation(OWNER_LOGIN, { client: publicClient })
+
+  // Already authenticated on this origin — go straight to the dashboard
   if (isAuthenticated) {
     const dest = location.state?.from?.pathname ?? (isOwner ? '/owner' : '/staff')
     return <Navigate to={dest} replace />
@@ -21,7 +27,27 @@ export default function Login() {
 
   async function submit(e) {
     e.preventDefault()
-    try { await doLogin(email, password) } catch {}
+    setErrorMsg('')
+    try {
+      const { data } = await ownerLogin({ variables: { email: email.trim().toLowerCase(), password } })
+      const { accessToken, refreshToken, tenantSlug } = data.ownerLogin
+
+      // Store tokens on the current origin so AuthContext can read them
+      setTokens(accessToken, refreshToken)
+      saveRole('owner')
+
+      // Redirect to the tenant subdomain, passing tokens via URL for AuthContext
+      const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+      const dest = appDomain
+        ? new URL(`https://${tenantSlug}.${appDomain}/owner`)
+        : new URL(`http://${tenantSlug}.localhost:${window.location.port || '3000'}/owner`)
+      dest.searchParams.set('t', accessToken)
+      dest.searchParams.set('r', refreshToken)
+      window.location.href = dest.toString()
+    } catch (err) {
+      const msg = err?.graphQLErrors?.[0]?.message || err?.message || 'Invalid credentials.'
+      setErrorMsg(msg)
+    }
   }
 
   return (
@@ -42,7 +68,7 @@ export default function Login() {
 
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-6">
           <form onSubmit={submit} className="space-y-4">
-            {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Invalid credentials.'} />}
+            {errorMsg && <ErrorMessage message={errorMsg} />}
             <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="your@email.com" required />
             <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
             <Button type="submit" fullWidth loading={loading}>Sign in</Button>

@@ -64,6 +64,17 @@ export const LOGIN = gql`
   }
 `
 
+export const OWNER_LOGIN = gql`
+  mutation OwnerLogin($email: String!, $password: String!) {
+    ownerLogin(email: $email, password: $password) {
+      accessToken
+      refreshToken
+      tenantSlug
+      fullName
+    }
+  }
+`
+
 export const REFRESH_TOKEN = gql`
   mutation RefreshToken($refreshToken: String!) {
     refreshToken(refreshToken: $refreshToken) {

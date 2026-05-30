@@ -34,6 +34,14 @@ class RegisterPayload:
     staff_access_key: str
 
 
+@strawberry.type
+class OwnerLoginPayload:
+    access_token: str
+    refresh_token: str
+    tenant_slug: str
+    full_name: str
+
+
 # ── Query ─────────────────────────────────────────────────────────────────────
 
 @strawberry.type
@@ -89,6 +97,41 @@ class Query:
 
 @strawberry.type
 class Mutation:
+    @strawberry.mutation
+    def owner_login(self, email: str, password: str) -> OwnerLoginPayload:
+        from django_tenants.utils import schema_context
+        from beautybook.jwt_auth import make_access_token, make_refresh_token
+        from tenants.models import Tenant
+
+        email = email.strip().lower()
+        if not email or not password:
+            raise ValueError("Invalid credentials.")
+
+        tenants = Tenant.objects.exclude(schema_name="public")
+        for tenant in tenants:
+            with schema_context(tenant.schema_name):
+                from staff.models import User
+                try:
+                    user = User.objects.get(email=email, role="owner", is_active=True)
+                except User.DoesNotExist:
+                    continue
+                if not user.check_password(password):
+                    raise ValueError("Invalid credentials.")
+                # Generate tokens inside the schema_context so user.pk is scoped correctly
+                access_token  = make_access_token(user.pk, "owner")
+                refresh_token = make_refresh_token(user.pk)
+                full_name     = user.full_name
+                slug          = tenant.subdomain
+
+            return OwnerLoginPayload(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                tenant_slug=slug,
+                full_name=full_name,
+            )
+
+        raise ValueError("Invalid credentials.")
+
     @strawberry.mutation
     def register_tenant(
         self,
