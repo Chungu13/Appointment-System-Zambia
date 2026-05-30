@@ -230,7 +230,7 @@ function StatsBar({ profile, onBook }) {
 }
 
 // ── Services ──────────────────────────────────────────────────────────────────
-function ServicesSection({ services }) {
+function ServicesSection({ services, onBook }) {
   const grouped = services.reduce((acc, s) => {
     const cat = s.category || 'Services'
     if (!acc[cat]) acc[cat] = []
@@ -265,12 +265,12 @@ function ServicesSection({ services }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
                   <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
-                  <Link
-                    to="/book"
-                    style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, textDecoration: 'none', letterSpacing: '0.04em' }}
+                  <button
+                    onClick={() => onBook(`I want to book ${svc.name}`)}
+                    style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: 0, letterSpacing: '0.04em' }}
                   >
                     Book →
-                  </Link>
+                  </button>
                 </div>
               </div>
             ))}
@@ -489,7 +489,7 @@ export default function SalonLanding() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 64px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 56, alignItems: 'start' }} className="max-sm:grid-cols-1 max-sm:px-5 max-sm:py-10">
         {/* Main column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
-          <ServicesSection services={profile.services.filter((s) => s.isActive)} />
+          <ServicesSection services={profile.services.filter((s) => s.isActive)} onBook={openChat} />
           <PortfolioSection images={profile.portfolioImages} />
           <TeamSection staff={profile.staff} />
         </div>

@@ -6,7 +6,10 @@
       "Bash(docker-compose build *)",
       "Bash(docker-compose restart *)",
       "Bash(docker-compose exec *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit *)"
     ]
   }
 }

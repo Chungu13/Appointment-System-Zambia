@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useMutation } from '@apollo/client/react'
 import { AGENT_CHAT } from '../graphql/mutations/agents'
 
@@ -6,7 +6,7 @@ function generateSessionId() {
   return `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-export function useAgentChat(customerPhone, salonName) {
+export function useAgentChat(customerPhone, salonName, initialMessage) {
   const [sessionId] = useState(generateSessionId)
   const [messages, setMessages] = useState(() => {
     const name = salonName || 'us'
@@ -45,6 +45,14 @@ export function useAgentChat(customerPhone, salonName) {
     },
     [chatMutation, customerPhone, sessionId]
   )
+
+  const sentRef = useRef(false)
+  useEffect(() => {
+    if (initialMessage && !sentRef.current) {
+      sentRef.current = true
+      sendMessage(initialMessage)
+    }
+  }, [sendMessage, initialMessage])
 
   return { messages, sendMessage, loading, sessionId }
 }

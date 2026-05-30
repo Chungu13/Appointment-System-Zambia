@@ -5,8 +5,8 @@ import ChatInput from './ChatInput'
 import { useAgentChat } from '../../hooks/useAgentChat'
 import { playPopSound, playDingSound } from '../../lib/sounds'
 
-export default function ChatWindow({ customerPhone, onClose, salonName }) {
-  const { messages, sendMessage, loading } = useAgentChat(customerPhone, salonName)
+export default function ChatWindow({ customerPhone, onClose, salonName, initialMessage }) {
+  const { messages, sendMessage, loading } = useAgentChat(customerPhone, salonName, initialMessage)
   const bottomRef = useRef(null)
   const prevCountRef = useRef(messages.length)
 
