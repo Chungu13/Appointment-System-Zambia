@@ -24,30 +24,11 @@ echo "PostgreSQL is ready."
 echo "Running migrations..."
 python manage.py migrate_schemas --noinput
 
-# Seed dev tenants only if the test tenant schema doesn't exist yet.
-# Both commands are idempotent (get_or_create), but this avoids the noise
-# on every restart once the volume is populated.
-NEEDS_SEED=$(python -c "
-import psycopg2, os
-conn = psycopg2.connect(
-    dbname=os.environ['DB_NAME'],
-    user=os.environ['DB_USER'],
-    password=os.environ['DB_PASSWORD'],
-    host=os.environ['DB_HOST'],
-    port=os.environ.get('DB_PORT', '5432'),
-)
-cur = conn.cursor()
-cur.execute(\"SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'glow_salon'\")
-print('0' if cur.fetchone()[0] else '1')
-conn.close()
-" 2>/dev/null || echo "1")
+echo "Running setup_production..."
+python manage.py setup_production
 
-if [ "$NEEDS_SEED" = "1" ]; then
-    echo "First run — seeding dev tenants..."
-    python manage.py create_public_tenant
-    python manage.py create_test_tenant
-else
-    echo "Dev tenants already exist — skipping seed."
-fi
+echo "=== Fixing tenant API domains ==="
+python manage.py fix_all_tenant_domains --confirm
+echo "=== Domain fix complete ==="
 
 exec "$@"
