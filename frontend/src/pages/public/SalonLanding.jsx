@@ -1,367 +1,40 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
-import { MapPin, Phone, Clock, MessageCircle, X, Calendar, ChevronRight, ChevronLeft } from 'lucide-react'
+import { MapPin, Phone, Calendar, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { SALON_PROFILE } from '../../graphql/queries/salons'
-import Button from '../../components/ui/Button'
-import Badge from '../../components/ui/Badge'
 import ChatWindow from '../../components/chat/ChatWindow'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { formatZMW } from '../../lib/utils'
 import { playPopSound } from '../../lib/sounds'
 
+const PRIMARY   = '#6B2737'
+const DARK      = '#1A0A0D'
+const BORDER    = '#f0ece8'
+const serif     = "'Cormorant Garamond', Georgia, serif"
+const sans      = 'Inter, sans-serif'
+
 const TYPE_LABELS = {
-  salon: 'Salon',
-  barbershop: 'Barbershop',
-  nail_tech: 'Nail Tech',
-  spa: 'Spa',
-  lash_studio: 'Lash Studio',
+  salon:         'Salon',
+  barbershop:    'Barbershop',
+  nail_tech:     'Nail Tech',
+  spa:           'Spa',
+  lash_studio:   'Lash Studio',
   makeup_artist: 'Makeup Artist',
 }
 
 const DEFAULT_BANNERS = {
-  salon:        'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&q=80',
-  nail_tech:    'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&q=80',
-  barbershop:   'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80',
-  spa:          'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&q=80',
-  lash_studio:  'https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=1200&q=80',
-  _fallback:    'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&q=80',
+  salon:        'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1400&q=80',
+  nail_tech:    'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1400&q=80',
+  barbershop:   'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1400&q=80',
+  spa:          'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1400&q=80',
+  lash_studio:  'https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=1400&q=80',
+  _fallback:    'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1400&q=80',
 }
 
 function bannerFor(profile) {
   if (profile.coverImageUrl) return profile.coverImageUrl
   return DEFAULT_BANNERS[profile.businessType] ?? DEFAULT_BANNERS._fallback
-}
-
-const CATEGORY_COLORS = {
-  hair: 'blue',
-  nails: 'purple',
-  braids: 'yellow',
-  colour: 'red',
-  lashes: 'green',
-  other: 'gray',
-}
-
-const PREVIEW_USER = 'I want gel nails this Friday afternoon'
-const PREVIEW_AGENT = 'I found 3 slots with Natasha on Friday! 2pm, 3:30pm or 5pm — which works?'
-
-function ChatPreview() {
-  const [phase, setPhase] = useState(0)
-
-  useEffect(() => {
-    const ids = []
-    function cycle() {
-      setPhase(0)
-      ids.push(setTimeout(() => setPhase(1), 600))
-      ids.push(setTimeout(() => setPhase(2), 1900))
-      ids.push(setTimeout(() => setPhase(3), 3400))
-      ids.push(setTimeout(cycle, 6500))
-    }
-    cycle()
-    return () => ids.forEach(clearTimeout)
-  }, [])
-
-  return (
-    <div className="hidden sm:block mt-7">
-      <p className="text-xs text-white/70 mb-2.5 font-medium tracking-wide">✦ See how easy it is</p>
-      <div className="bg-black/25 backdrop-blur-sm rounded-2xl p-4 space-y-2 max-w-xs" style={{ minHeight: 96 }}>
-        {phase >= 1 && (
-          <div className="flex justify-end">
-            <div className="bg-white/90 text-primary rounded-2xl rounded-br-sm px-3 py-2 text-xs font-medium max-w-[85%]">
-              {PREVIEW_USER}
-            </div>
-          </div>
-        )}
-        {phase === 2 && (
-          <div className="flex justify-start">
-            <div className="bg-white/20 rounded-2xl rounded-bl-sm px-4 py-2.5 flex gap-1">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        {phase >= 3 && (
-          <div className="flex justify-start">
-            <div className="bg-white/20 text-white rounded-2xl rounded-bl-sm px-3 py-2 text-xs max-w-[85%] leading-relaxed">
-              {PREVIEW_AGENT}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function StaffInitials({ name, size = 'md' }) {
-  const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
-  const sizeClass = size === 'lg' ? 'w-20 h-20 text-xl' : 'w-14 h-14 text-base'
-  return (
-    <div className={`${sizeClass} rounded-full bg-primary flex items-center justify-center text-on-primary font-bold shrink-0`}>
-      {initials}
-    </div>
-  )
-}
-
-function TeamSection({ staff }) {
-  const publicStaff = staff.filter((s) => s.displayOnPublicPage)
-  if (publicStaff.length === 0) return null
-
-  return (
-    <section>
-      <div className="mb-8">
-        <h2 className="font-display text-2xl font-semibold text-on-surface">Meet Our Team</h2>
-        <p className="text-on-surface-variant text-sm mt-1">Book with a specific stylist you trust</p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {publicStaff.map((member) => (
-          <div
-            key={member.id}
-            className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4"
-          >
-            {/* Avatar + name */}
-            <div className="flex items-center gap-3">
-              {member.avatarUrl ? (
-                <img
-                  src={member.avatarUrl}
-                  alt={member.fullName}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-outline-variant shrink-0"
-                />
-              ) : (
-                <StaffInitials name={member.fullName} />
-              )}
-              <div className="min-w-0">
-                <p className="font-semibold text-on-surface">{member.fullName}</p>
-                {member.serviceNames?.length > 0 && (
-                  <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-1">
-                    {member.serviceNames.join(' · ')}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Bio */}
-            {member.bio && (
-              <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3">
-                {member.bio}
-              </p>
-            )}
-
-            {/* Book CTA */}
-            <Link
-              to={`/book?staffId=${member.id}`}
-              className="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-xl border-2 border-primary text-primary text-sm font-semibold py-2.5 hover:bg-primary hover:text-on-primary transition-colors"
-            >
-              Book with {member.fullName.split(' ')[0]}
-            </Link>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function Lightbox({ images, startIndex, onClose }) {
-  const [idx, setIdx] = useState(startIndex)
-  const img = images[idx]
-
-  useEffect(() => {
-    function onKey(e) {
-      if (e.key === 'ArrowLeft') setIdx((i) => Math.max(0, i - 1))
-      if (e.key === 'ArrowRight') setIdx((i) => Math.min(images.length - 1, i + 1))
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [images.length, onClose])
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-      onClick={onClose}
-    >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-      >
-        <X size={24} />
-      </button>
-
-      {idx > 0 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setIdx((i) => i - 1) }}
-          className="absolute left-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <ChevronLeft size={28} />
-        </button>
-      )}
-      {idx < images.length - 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setIdx((i) => i + 1) }}
-          className="absolute right-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <ChevronRight size={28} />
-        </button>
-      )}
-
-      <div className="max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
-        <img src={img.imageUrl} alt={img.caption || ''} className="w-full max-h-[80vh] object-contain rounded-xl" />
-        {(img.caption || img.serviceName) && (
-          <div className="mt-3 text-center">
-            {img.caption && <p className="text-white font-medium">{img.caption}</p>}
-            {img.serviceName && <p className="text-white/60 text-sm mt-0.5">{img.serviceName}</p>}
-          </div>
-        )}
-        <p className="text-white/40 text-xs text-center mt-2">{idx + 1} / {images.length}</p>
-      </div>
-    </div>
-  )
-}
-
-const GALLERY_LIMIT = 6
-
-function PortfolioGallery({ images }) {
-  const [lightboxIdx, setLightboxIdx] = useState(null)
-  const [showAll, setShowAll] = useState(false)
-
-  if (!images || images.length === 0) return null
-
-  const visible = showAll ? images : images.slice(0, GALLERY_LIMIT)
-  const hasMore = images.length > GALLERY_LIMIT
-
-  return (
-    <section>
-      <div className="mb-8">
-        <h2 className="font-display text-2xl font-semibold text-on-surface">Our Work</h2>
-        <p className="text-on-surface-variant text-sm mt-1">See what we can do for you</p>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {visible.map((img, i) => (
-          <div
-            key={img.id}
-            className="aspect-square cursor-pointer group relative rounded-2xl overflow-hidden border border-outline-variant"
-            onClick={() => setLightboxIdx(i)}
-          >
-            <img
-              src={img.imageUrl}
-              alt={img.caption || 'Portfolio'}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            {(img.caption || img.serviceName) && (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                {img.caption && <p className="text-white text-sm font-medium">{img.caption}</p>}
-                {img.serviceName && <p className="text-white/75 text-xs">{img.serviceName}</p>}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {hasMore && !showAll && (
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setShowAll(true)}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface-container transition-colors"
-          >
-            See More Work →
-          </button>
-        </div>
-      )}
-
-      {lightboxIdx !== null && (
-        <Lightbox
-          images={showAll ? images : visible}
-          startIndex={lightboxIdx}
-          onClose={() => setLightboxIdx(null)}
-        />
-      )}
-    </section>
-  )
-}
-
-function ServiceGrid({ services }) {
-  const grouped = services.reduce((acc, s) => {
-    const cat = s.category
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(s)
-    return acc
-  }, {})
-
-  return (
-    <div className="space-y-8">
-      {Object.entries(grouped).map(([category, items]) => (
-        <div key={category}>
-          <div className="flex items-center gap-3 mb-4">
-            <Badge color={CATEGORY_COLORS[category] ?? 'gray'} className="capitalize">
-              {category}
-            </Badge>
-            <div className="flex-1 h-px bg-outline-variant" />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((service) => (
-              <div
-                key={service.id}
-                className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4"
-              >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="font-medium text-on-surface text-sm leading-snug">{service.name}</p>
-                  <span className="text-sm font-bold text-primary shrink-0">
-                    {formatZMW(service.priceZmw)}
-                  </span>
-                </div>
-                {service.description && (
-                  <p className="text-xs text-on-surface-variant mb-2 line-clamp-2">
-                    {service.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-1 text-xs text-on-surface-variant">
-                  <Clock size={11} />
-                  {service.durationMinutes} min
-                  {service.depositZmw > 0 && (
-                    <span className="ml-2 text-on-surface-variant/70">
-                      · {formatZMW(service.depositZmw)} deposit
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function HoursTable({ hours }) {
-  const today = new Date().getDay()
-  // JS getDay(): 0=Sun, but our day_of_week: 0=Mon — shift
-  const todayIdx = today === 0 ? 6 : today - 1
-
-  return (
-    <div className="divide-y divide-outline-variant">
-      {hours.map((h) => (
-        <div
-          key={h.dayOfWeek}
-          className={`flex justify-between py-2.5 text-sm ${
-            h.dayOfWeek === todayIdx ? 'font-semibold text-primary' : 'text-on-surface'
-          }`}
-        >
-          <span>{h.dayName}</span>
-          <span className={h.isClosed ? 'text-on-surface-variant' : ''}>
-            {h.isClosed
-              ? 'Closed'
-              : `${formatTime(h.opensAt)} - ${formatTime(h.closesAt)}`}
-          </span>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 function formatTime(timeStr) {
@@ -372,12 +45,415 @@ function formatTime(timeStr) {
   return `${hour}:${String(m).padStart(2, '0')} ${period}`
 }
 
+function initials(name) {
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
+// ── Eyebrow ───────────────────────────────────────────────────────────────────
+function Eyebrow({ children }) {
+  return (
+    <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>
+      {children}
+    </p>
+  )
+}
+
+// ── Navbar ────────────────────────────────────────────────────────────────────
+function SalonNav() {
+  return (
+    <nav style={{ position: 'sticky', top: 0, zIndex: 50, backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} className="max-sm:px-5">
+        <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}` : '/'} style={{ textDecoration: 'none' }}>
+          <span style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>Kimawa</span>
+        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}/discover` : '/discover'} style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#888', textDecoration: 'none' }}>
+            Find Beauty Services
+          </a>
+          <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}/discover` : '/discover'} style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '9px 20px', borderRadius: 3, textDecoration: 'none' }}>
+            Browse &amp; Book
+          </a>
+        </div>
+      </div>
+    </nav>
+  )
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+function Hero({ profile, onChatOpen }) {
+  const bannerUrl = bannerFor(profile)
+  const openToday = profile.openingHours.find((h) => {
+    const today = new Date().getDay()
+    const todayIdx = today === 0 ? 6 : today - 1
+    return h.dayOfWeek === todayIdx && !h.isClosed
+  })
+
+  return (
+    <header style={{ position: 'relative', height: 400, overflow: 'hidden' }}>
+      {/* Background */}
+      <img src={bannerUrl} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }} />
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: DARK }} />
+      {/* Bottom gradient */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 160, background: 'linear-gradient(to top, rgba(10,3,5,0.9), transparent)', pointerEvents: 'none' }} />
+
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 10, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 64px 40px', maxWidth: 1200, margin: '0 auto' }} className="max-sm:px-5 max-sm:pb-8">
+        {/* Business type badge */}
+        <span style={{ display: 'inline-block', alignSelf: 'flex-start', fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', color: '#fff', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', padding: '5px 12px', borderRadius: 3, marginBottom: 12 }}>
+          {TYPE_LABELS[profile.businessType] ?? profile.businessType}
+        </span>
+
+        <h1 style={{ fontFamily: serif, fontSize: 52, fontWeight: 300, letterSpacing: '-1px', color: '#fff', margin: '0 0 14px', lineHeight: 1.05 }} className="max-sm:text-3xl">
+          {profile.businessName}
+        </h1>
+
+        {/* Meta row */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center' }}>
+          {profile.city && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.75)' }}>
+              <MapPin size={13} />
+              {[profile.city, profile.area, profile.address].filter(Boolean).join(', ')}
+            </span>
+          )}
+          {profile.phone && (
+            <a href={`tel:${profile.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>
+              <Phone size={13} />
+              {profile.phone}
+            </a>
+          )}
+          {openToday && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.75)' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }} />
+              Open now · closes {formatTime(openToday.closesAt)}
+            </span>
+          )}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+// ── AI Bar ────────────────────────────────────────────────────────────────────
+const SUGGESTION_CHIPS = [
+  'What services do you offer?',
+  'Book a service this Saturday',
+  'How much are your services?',
+  'What times are available?',
+]
+
+function AIBar({ salonName, onOpen, onChipClick }) {
+  const [input, setInput] = useState('')
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (input.trim()) { onOpen(input.trim()); setInput('') }
+  }
+
+  return (
+    <section style={{ backgroundColor: DARK, padding: '28px 64px' }} className="max-sm:px-5">
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        {/* Label */}
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.5)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: PRIMARY, display: 'inline-block' }} />
+          AI BOOKING ASSISTANT — ONLINE NOW
+        </p>
+
+        {/* Input row */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <Sparkles size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: PRIMARY, pointerEvents: 'none' }} />
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="What would you like today? e.g. I want gel nails this Saturday"
+              style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#fff', backgroundColor: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '13px 16px 13px 40px', outline: 'none' }}
+            />
+          </div>
+          <button
+            type="submit"
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '13px 24px', borderRadius: 6, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Ask or Book
+          </button>
+        </form>
+
+        {/* Suggestion chips */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {SUGGESTION_CHIPS.map((chip) => (
+            <button
+              key={chip}
+              onClick={() => onChipClick(chip)}
+              style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.55)', backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 3, padding: '6px 12px', cursor: 'pointer' }}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── Stats bar ─────────────────────────────────────────────────────────────────
+function StatsBar({ profile, onBook }) {
+  const minPrice = profile.services.length
+    ? Math.min(...profile.services.filter((s) => s.priceZmw > 0).map((s) => s.priceZmw))
+    : null
+
+  const stats = [
+    { label: 'Services', value: profile.services.length },
+    { label: 'Team members', value: profile.staffCount },
+    ...(minPrice ? [{ label: 'Starting from', value: formatZMW(minPrice) }] : []),
+  ]
+
+  return (
+    <section style={{ backgroundColor: '#faf8f6', borderBottom: `0.5px solid ${BORDER}`, padding: '18px 64px' }} className="max-sm:px-5">
+      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 0 }}>
+          {stats.map(({ label, value }, i) => (
+            <div key={label} style={{ paddingRight: 28, paddingLeft: i > 0 ? 28 : 0, borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}>
+              <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 500, color: '#1a1a1a', margin: '0 0 2px' }}>{value}</p>
+              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#aaa', margin: 0 }}>{label}</p>
+            </div>
+          ))}
+        </div>
+        <Link
+          to="/book"
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#888', border: `0.5px solid #ddd`, padding: '9px 20px', borderRadius: 3, textDecoration: 'none', letterSpacing: '0.04em' }}
+        >
+          Browse &amp; Book →
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+// ── Services ──────────────────────────────────────────────────────────────────
+function ServicesSection({ services }) {
+  const grouped = services.reduce((acc, s) => {
+    const cat = s.category || 'Services'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(s)
+    return acc
+  }, {})
+
+  if (services.length === 0) return null
+
+  return (
+    <section>
+      <Eyebrow>Services</Eyebrow>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        {Object.entries(grouped).map(([cat, items]) => (
+          <div key={cat} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+            {/* Category header */}
+            <div style={{ padding: '10px 16px', borderBottom: `0.5px solid ${BORDER}`, backgroundColor: '#faf8f6' }}>
+              <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#aaa', margin: 0 }}>{cat}</p>
+            </div>
+            {/* Service rows */}
+            {items.map((svc, i) => (
+              <div
+                key={svc.id}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderTop: i > 0 ? `0.5px solid ${BORDER}` : 'none', gap: 16 }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#1a1a1a', margin: '0 0 3px' }}>{svc.name}</p>
+                  <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#bbb', margin: 0 }}>
+                    {svc.durationMinutes} min
+                    {svc.depositZmw > 0 && ` · ${formatZMW(svc.depositZmw)} deposit`}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+                  <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
+                  <Link
+                    to="/book"
+                    style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, textDecoration: 'none', letterSpacing: '0.04em' }}
+                  >
+                    Book →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ── Portfolio ─────────────────────────────────────────────────────────────────
+function Lightbox({ images, startIndex, onClose }) {
+  const [idx, setIdx] = useState(startIndex)
+  const img = images[idx]
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'ArrowLeft')  setIdx((i) => Math.max(0, i - 1))
+      if (e.key === 'ArrowRight') setIdx((i) => Math.min(images.length - 1, i + 1))
+      if (e.key === 'Escape')     onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [images.length, onClose])
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
+      <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <X size={20} />
+      </button>
+      {idx > 0 && (
+        <button onClick={(e) => { e.stopPropagation(); setIdx((i) => i - 1) }} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ChevronLeft size={22} />
+        </button>
+      )}
+      {idx < images.length - 1 && (
+        <button onClick={(e) => { e.stopPropagation(); setIdx((i) => i + 1) }} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ChevronRight size={22} />
+        </button>
+      )}
+      <div style={{ maxWidth: 800, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+        <img src={img.imageUrl} alt={img.caption || ''} style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8 }} />
+        {img.caption && <p style={{ color: '#fff', textAlign: 'center', fontFamily: sans, fontSize: 13, marginTop: 12 }}>{img.caption}</p>}
+      </div>
+    </div>
+  )
+}
+
+function PortfolioSection({ images }) {
+  const [lightboxIdx, setLightboxIdx] = useState(null)
+  if (!images || images.length === 0) {
+    return (
+      <section>
+        <Eyebrow>Portfolio</Eyebrow>
+        <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '40px 24px', textAlign: 'center' }}>
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#ccc', margin: 0 }}>No portfolio photos yet.</p>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section>
+      <Eyebrow>Portfolio</Eyebrow>
+      {/* 3-column masonry-style grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        {images.slice(0, 7).map((img, i) => (
+          <div
+            key={img.id}
+            onClick={() => setLightboxIdx(i)}
+            style={{
+              borderRadius: 6,
+              overflow: 'hidden',
+              cursor: 'pointer',
+              gridRow: i === 0 ? 'span 2' : undefined,
+              height: i === 0 ? 288 : 140,
+            }}
+          >
+            <img
+              src={img.imageUrl}
+              alt={img.caption || 'Portfolio'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+            />
+          </div>
+        ))}
+      </div>
+      {lightboxIdx !== null && (
+        <Lightbox images={images} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
+    </section>
+  )
+}
+
+// ── Team ──────────────────────────────────────────────────────────────────────
+function TeamSection({ staff }) {
+  const publicStaff = staff.filter((s) => s.displayOnPublicPage)
+  if (publicStaff.length === 0) return null
+
+  return (
+    <section>
+      <Eyebrow>Meet the team</Eyebrow>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="max-sm:grid-cols-1">
+        {publicStaff.map((member) => (
+          <div key={member.id} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: 18, textAlign: 'center' }}>
+            {member.avatarUrl ? (
+              <img src={member.avatarUrl} alt={member.fullName} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px' }} />
+            ) : (
+              <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#f5eaec', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                <span style={{ fontFamily: sans, fontSize: 16, fontWeight: 500, color: PRIMARY }}>{initials(member.fullName)}</span>
+              </div>
+            )}
+            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 4px' }}>{member.fullName}</p>
+            {member.serviceNames?.length > 0 && (
+              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#aaa', margin: 0, lineHeight: 1.5 }}>
+                {member.serviceNames.slice(0, 2).join(' · ')}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ── Hours ─────────────────────────────────────────────────────────────────────
+function HoursCard({ hours }) {
+  const todayIdx = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1 })()
+  const todayRow = hours.find((h) => h.dayOfWeek === todayIdx)
+  const isOpenNow = todayRow && !todayRow.isClosed
+
+  return (
+    <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 16px', borderBottom: `0.5px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>Opening hours</p>
+        {isOpenNow && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: sans, fontSize: 11, fontWeight: 500, color: '#16a34a' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }} />
+            Open now
+          </span>
+        )}
+      </div>
+      <div>
+        {hours.map((h) => {
+          const isToday = h.dayOfWeek === todayIdx
+          return (
+            <div
+              key={h.dayOfWeek}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 16px', backgroundColor: isToday ? '#fdf8f8' : 'transparent', borderBottom: `0.5px solid ${BORDER}` }}
+            >
+              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: isToday ? 500 : 300, color: isToday ? '#1a1a1a' : '#888' }}>{h.dayName}</span>
+              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: h.isClosed ? '#ddd' : '#1a1a1a' }}>
+                {h.isClosed ? 'Closed' : `${formatTime(h.opensAt)} – ${formatTime(h.closesAt)}`}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Location ──────────────────────────────────────────────────────────────────
+function LocationCard({ profile }) {
+  return (
+    <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: 16 }}>
+      <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 10px' }}>Location</p>
+      {profile.area && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#888', margin: '0 0 4px' }}>{profile.area}</p>}
+      {profile.address && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#aaa', margin: '0 0 4px' }}>{profile.address}</p>}
+      {profile.city && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#aaa', margin: 0 }}>{profile.city}</p>}
+    </div>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function SalonLanding() {
-  const [chatOpen, setChatOpen] = useState(false)
+  const [chatOpen,      setChatOpen]      = useState(false)
+  const [chatInitMsg,   setChatInitMsg]   = useState('')
   const { data, loading, error } = useQuery(SALON_PROFILE)
 
   if (loading) return <PageSpinner />
-  if (error) return <ErrorMessage message={error.message} />
+  if (error)   return <ErrorMessage message={error.message} />
 
   const profile = data?.salonProfile
   if (!profile) return null
@@ -387,182 +463,68 @@ export default function SalonLanding() {
       ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}`
       : '/'
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center px-6" style={{ backgroundColor: '#f9fafb' }}>
-        <div className="max-w-sm">
-          <Calendar size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
-          <h1 className="text-2xl font-bold mb-2" style={{ color: '#1f2937' }}>{profile.businessName}</h1>
-          <p className="mb-6" style={{ color: '#6b7280' }}>We're getting ready to take bookings. Check back soon.</p>
-          <a href={homeUrl} className="text-sm font-medium" style={{ color: '#6B2737' }}>← Back to Kimawa</a>
-        </div>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px', backgroundColor: '#faf8f6' }}>
+        <Calendar size={48} style={{ color: '#ddd', marginBottom: 16 }} />
+        <h1 style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: '#1a1a1a', margin: '0 0 8px' }}>{profile.businessName}</h1>
+        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#aaa', margin: '0 0 24px' }}>We're getting ready to take bookings. Check back soon.</p>
+        <a href={homeUrl} style={{ fontFamily: sans, fontSize: 13, color: PRIMARY, textDecoration: 'none' }}>← Back to Kimawa</a>
       </div>
     )
   }
 
-  const openToday = profile.openingHours.find((h) => {
-    const today = new Date().getDay()
-    const todayIdx = today === 0 ? 6 : today - 1
-    return h.dayOfWeek === todayIdx && !h.isClosed
-  })
-
-  const bannerUrl = bannerFor(profile)
+  function openChat(msg = '') {
+    setChatInitMsg(msg)
+    playPopSound()
+    setChatOpen(true)
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <header className="relative overflow-hidden">
-        {/* Background image */}
-        <img
-          src={bannerUrl}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        {/* Dark green overlay */}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'rgba(74, 26, 37, 0.65)' }}
-        />
-        {/* Bottom fade into page background */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
-          style={{ background: 'linear-gradient(to bottom, transparent, var(--color-background, #fafaf8))' }}
-        />
+    <div style={{ backgroundColor: '#fff' }}>
+      <SalonNav />
+      <Hero profile={profile} onChatOpen={openChat} />
+      <AIBar salonName={profile.businessName} onOpen={openChat} onChipClick={openChat} />
+      <StatsBar profile={profile} />
 
-        {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-14">
-          {/* Badge + name + meta */}
-          <span className="inline-flex items-center self-start bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
-            {TYPE_LABELS[profile.businessType] ?? profile.businessType}
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow">
-            {profile.businessName}
-          </h1>
-          <div className="flex flex-wrap gap-4 text-white/85 text-sm">
-            {profile.city && (
-              <span className="flex items-center gap-1.5">
-                <MapPin size={14} />
-                {[profile.city, profile.area, profile.address].filter(Boolean).join(' · ')}
-              </span>
-            )}
-            {profile.phone && (
-              <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 hover:text-white">
-                <Phone size={14} /> {profile.phone}
-              </a>
-            )}
-            {openToday && (
-              <span className="flex items-center gap-1.5">
-                <Clock size={14} />
-                Open today {formatTime(openToday.opensAt)} - {formatTime(openToday.closesAt)}
-              </span>
-            )}
-          </div>
-
-          {/* Dual CTAs */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            {/* Ask or Book */}
-            <div className="flex flex-col gap-1">
-              <button
-                onClick={() => setChatOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-base px-6 py-3 bg-white text-primary hover:bg-white/90 shadow-lg transition-colors"
-              >
-                <MessageCircle size={18} />
-                Ask or Book
-                <ChevronRight size={16} />
-              </button>
-              <span className="text-xs text-white/70 text-center sm:text-left pl-1">
-                Just type what you want
-              </span>
-            </div>
-
-            {/* Browse & Book */}
-            <div className="flex flex-col gap-1">
-              <Link to="/book">
-                <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-base px-6 py-3 bg-transparent text-white border-2 border-white/70 hover:bg-white/10 shadow transition-colors">
-                  <Calendar size={18} />
-                  Browse &amp; Book
-                </button>
-              </Link>
-              <span className="text-xs text-white/70 text-center sm:text-left pl-1">
-                Pick a service and time
-              </span>
-            </div>
-          </div>
-
-          {/* Animated chat preview */}
-          <ChatPreview />
+      {/* Main content + sidebar */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 64px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 56, alignItems: 'start' }} className="max-sm:grid-cols-1 max-sm:px-5 max-sm:py-10">
+        {/* Main column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
+          <ServicesSection services={profile.services.filter((s) => s.isActive)} />
+          <PortfolioSection images={profile.portfolioImages} />
+          <TeamSection staff={profile.staff} />
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-12 space-y-16">
-        {/* Services */}
-        {profile.services.length > 0 && (
-          <section>
-            <h2 className="font-display text-2xl font-semibold text-on-surface mb-8">
-              Services & Pricing
-            </h2>
-            <ServiceGrid services={profile.services} />
-          </section>
-        )}
-
-        {/* Team */}
-        <TeamSection staff={profile.staff} />
-
-        {/* Portfolio */}
-        <PortfolioGallery images={profile.portfolioImages} />
-
-        {/* Hours + CTA */}
-        <div className="grid sm:grid-cols-2 gap-10">
-          <section>
-            <h2 className="font-display text-xl font-semibold text-on-surface mb-5">
-              Opening Hours
-            </h2>
-            <HoursTable hours={profile.openingHours} />
-          </section>
-
-          <section className="bg-primary-container rounded-2xl p-6 flex flex-col justify-center">
-            <h2 className="font-display text-xl font-semibold text-on-primary-container mb-2">
-              Ready to book?
-            </h2>
-            <p className="text-sm text-on-primary-container/80 mb-6">
-              Choose a service, pick a time, and confirm your appointment in under 2 minutes.
-            </p>
-            <Link to="/book">
-              <Button fullWidth>
-                <Calendar size={16} />
-                Book an Appointment
-              </Button>
-            </Link>
-          </section>
+        {/* Sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <HoursCard hours={profile.openingHours} />
+          <LocationCard profile={profile} />
         </div>
-      </main>
+      </div>
 
-      <footer className="border-t border-outline-variant mt-8 py-8 text-center text-sm text-on-surface-variant">
-        © {new Date().getFullYear()} {profile.businessName} · Powered by{' '}
-        <a href="http://localhost:3000" className="text-primary hover:underline">
-          Kimawa
-        </a>
+      {/* Footer */}
+      <footer style={{ borderTop: `0.5px solid ${BORDER}`, padding: '20px 64px', textAlign: 'center' }} className="max-sm:px-5">
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#ccc', margin: 0 }}>
+          {profile.businessName} &middot; Powered by{' '}
+          <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}` : '/'} style={{ color: PRIMARY, textDecoration: 'none' }}>Kimawa</a>
+        </p>
       </footer>
 
       {/* Chat FAB */}
-      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
         {!chatOpen && (
-          <span className="bg-white text-on-surface font-semibold text-sm px-3 py-1.5 rounded-full shadow-md select-none">
+          <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', backgroundColor: '#fff', padding: '8px 14px', borderRadius: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
             Ask or Book
           </span>
         )}
-        <div className="relative">
+        <div style={{ position: 'relative' }}>
           {!chatOpen && (
-            <span
-              className="absolute inset-0 rounded-full animate-ping opacity-60"
-              style={{ background: '#6B2737' }}
-            />
+            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: PRIMARY, opacity: 0.5, animation: 'ping 1.5s ease-in-out infinite' }} />
           )}
           <button
-            onClick={() => { playPopSound(); setChatOpen((v) => !v) }}
-            className="relative w-16 h-16 rounded-full text-white shadow-xl flex items-center justify-center transition-transform hover:scale-105"
-            style={{ background: '#4A1A25' }}
-            title="Chat with booking assistant"
+            onClick={() => { chatOpen ? setChatOpen(false) : openChat('') }}
+            style={{ position: 'relative', width: 60, height: 60, borderRadius: '50%', backgroundColor: DARK, color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
           >
-            {chatOpen ? <X size={22} /> : <MessageCircle size={22} />}
+            {chatOpen ? <X size={20} /> : <Sparkles size={20} />}
           </button>
         </div>
       </div>
@@ -571,6 +533,7 @@ export default function SalonLanding() {
         <ChatWindow
           customerPhone="+260000000000"
           salonName={profile.businessName}
+          initialMessage={chatInitMsg}
           onClose={() => setChatOpen(false)}
         />
       )}

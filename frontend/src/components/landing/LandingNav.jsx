@@ -1,78 +1,115 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 
-const PRIMARY = "#6B2737";
-const TEXT = "#1A0A0D";
-const MUTED = "#6B4A50";
+const PRIMARY = '#6B2737'
+const BORDER  = '#f0ece8'
 
 const NAV_LINKS = [
-  { label: "How it Works", to: "/how-it-works" },
-  { label: "Pricing", to: "/pricing" },
-  { label: "For Businesses", to: "/for-businesses" },
-];
+  { label: 'How it Works', to: '/how-it-works' },
+  { label: 'Pricing',      to: '/pricing' },
+  { label: 'For Businesses', to: '/for-businesses' },
+]
 
-export default function LandingNav() {
-  const { pathname } = useLocation();
-
-  function isActive(to) {
-    return pathname.startsWith(to);
-  }
+export default function LandingNav({ variant = 'public' }) {
+  const { pathname } = useLocation()
+  const [open, setOpen] = useState(false)
 
   return (
-    <nav
-      style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #D4B0B8" }}
-      className="sticky top-0 z-50"
-    >
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <nav style={{ backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }} className="sticky top-0 z-50">
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px' }} className="flex items-center justify-between h-16 max-sm:px-5">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: '52px' }} />
-          <span className="text-xl font-semibold" style={{ color: PRIMARY }}>Kimawa</span>
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 38 }} />
+          <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+            Kimawa
+          </span>
         </Link>
 
-        {/* Nav links — desktop only */}
-        <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map(({ label, to }) => (
-            <Link
-              key={to}
-              to={to}
-              className="text-sm font-medium pb-0.5 transition-colors whitespace-nowrap"
-              style={{
-                color: TEXT,
-                borderBottom: isActive(to)
-                  ? `2px solid ${PRIMARY}`
-                  : "2px solid transparent",
-              }}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
+        {/* Center links — desktop */}
+        {variant === 'public' && (
+          <div className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map(({ label, to }) => (
+              <Link
+                key={to}
+                to={to}
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 13,
+                  fontWeight: 400,
+                  color: pathname.startsWith(to) ? PRIMARY : '#1a1a1a',
+                  textDecoration: 'none',
+                  letterSpacing: '0.01em',
+                  borderBottom: pathname.startsWith(to) ? `1px solid ${PRIMARY}` : '1px solid transparent',
+                  paddingBottom: 1,
+                  transition: 'color 0.12s',
+                }}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
 
-        {/* Right side CTAs */}
-        <div className="flex items-center gap-4 shrink-0">
-          <Link
-            to="/discover"
-            className="text-sm font-medium hidden sm:block transition-opacity hover:opacity-70"
-            style={{ color: MUTED }}
-          >
-            Find Beauty Services
-          </Link>
+        {/* Right CTAs — desktop */}
+        <div className="hidden md:flex items-center gap-5">
+          {variant === 'public' && (
+            <Link
+              to="/discover"
+              style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400, color: '#888', textDecoration: 'none' }}
+            >
+              Find Beauty Services
+            </Link>
+          )}
           <Link
             to="/login"
-            className="text-sm font-medium hidden sm:block transition-opacity hover:opacity-70"
-            style={{ color: PRIMARY }}
+            style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400, color: '#1a1a1a', textDecoration: 'none' }}
           >
             Login
           </Link>
           <Link
             to="/signup"
-            className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: PRIMARY }}
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 12,
+              fontWeight: 500,
+              letterSpacing: '0.06em',
+              color: '#fff',
+              backgroundColor: PRIMARY,
+              padding: '10px 22px',
+              borderRadius: 3,
+              textDecoration: 'none',
+            }}
           >
             List Your Business
           </Link>
         </div>
+
+        {/* Mobile hamburger */}
+        <button className="md:hidden p-2" onClick={() => setOpen((v) => !v)} style={{ color: '#1a1a1a' }}>
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
+
+      {/* Mobile drawer */}
+      {open && (
+        <div style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {NAV_LINKS.map(({ label, to }) => (
+            <Link key={to} to={to} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#1a1a1a', textDecoration: 'none' }}>
+              {label}
+            </Link>
+          ))}
+          <Link to="/discover" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#888', textDecoration: 'none' }}>Find Beauty Services</Link>
+          <Link to="/login" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#1a1a1a', textDecoration: 'none' }}>Login</Link>
+          <Link
+            to="/signup"
+            onClick={() => setOpen(false)}
+            style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '11px 20px', borderRadius: 3, textDecoration: 'none', textAlign: 'center' }}
+          >
+            List Your Business
+          </Link>
+        </div>
+      )}
     </nav>
-  );
+  )
 }

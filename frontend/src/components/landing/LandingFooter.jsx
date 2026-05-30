@@ -1,83 +1,44 @@
-const TEXT  = '#1a2e1c'
-const MUTED = '#6b7c6d'
-const PRIMARY = '#6B2737'
+import { Link } from 'react-router-dom'
 
-const OWNER_LINKS = ['How it Works', 'Pricing', 'For Businesses', 'Sign Up Free']
-const OWNER_HREFS = ['/how-it-works', '/pricing', '/for-businesses', '/signup']
+const PRIMARY = '#6B2737'
+const BORDER  = '#f0ece8'
 
 export default function LandingFooter() {
   return (
-    <footer style={{ backgroundColor: '#eeeeee' }} className="py-12 px-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="grid sm:grid-cols-3 gap-8 mb-10">
-          {/* Brand */}
-          <div>
-            <p className="font-display text-lg font-bold mb-2" style={{ color: TEXT }}>
-              Kimawa
-            </p>
-            <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-              The AI-powered booking platform for Zambia's beauty industry.
-            </p>
-          </div>
+    <footer style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '24px 64px' }}>
+      <div
+        style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}
+        className="max-sm:px-0 max-sm:flex-col max-sm:items-start max-sm:gap-4"
+      >
+        {/* Logo */}
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+            Kimawa
+          </span>
+        </Link>
 
-          {/* For businesses */}
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PRIMARY }}>
-              For Businesses
-            </p>
-            <ul className="space-y-2">
-              {OWNER_LINKS.map((link, i) => (
-                <li key={link}>
-                  <a
-                    href={OWNER_HREFS[i]}
-                    className="text-sm transition-colors hover:underline"
-                    style={{ color: MUTED }}
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* For customers */}
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PRIMARY }}>
-              For Customers
-            </p>
-            <ul className="space-y-2">
-              <li>
-                <a href="/discover" className="text-sm hover:underline" style={{ color: MUTED }}>
-                  Find Beauty Services
-                </a>
-              </li>
-              <li>
-                <a href="/discover" className="text-sm hover:underline" style={{ color: MUTED }}>
-                  Book an Appointment
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:underline" style={{ color: MUTED }}>
-                  Contact Support
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:underline" style={{ color: MUTED }}>
-                  Privacy Policy
-                </a>
-              </li>
-            </ul>
-          </div>
+        {/* Nav links */}
+        <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
+          {[
+            { label: 'How it Works',    to: '/how-it-works' },
+            { label: 'Pricing',         to: '/pricing' },
+            { label: 'For Businesses',  to: '/for-businesses' },
+            { label: 'Find Services',   to: '/discover' },
+          ].map(({ label, to }) => (
+            <Link
+              key={to}
+              to={to}
+              style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 400, color: '#aaa', textDecoration: 'none' }}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
-        <div className="pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: '#ddd' }}>
-          <p className="text-xs" style={{ color: MUTED }}>
-            © 2025 Kimawa. Modern African Luxury.
-          </p>
-          <p className="text-xs" style={{ color: MUTED }}>
-            Built for Zambia 🇿🇲
-          </p>
-        </div>
+        {/* Copyright */}
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#ccc', margin: 0 }}>
+          &copy; {new Date().getFullYear()} Kimawa &middot; Zambia
+        </p>
       </div>
     </footer>
   )

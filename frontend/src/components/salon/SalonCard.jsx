@@ -1,53 +1,130 @@
-import { MapPin, ChevronRight, Phone } from 'lucide-react'
-import Badge from '../ui/Badge'
-import { getInitials } from '../../lib/utils'
+import { MapPin } from 'lucide-react'
+import { getSalonUrl } from '../../lib/utils'
+
+const PRIMARY = '#6B2737'
+const BORDER  = '#f0ece8'
 
 const TYPE_LABELS = {
-  salon: 'Salon',
-  barbershop: 'Barbershop',
-  nail_tech: 'Nail Tech',
-  spa: 'Spa',
+  salon:         'Salon',
+  barbershop:    'Barbershop',
+  nail_tech:     'Nail Tech',
+  spa:           'Spa',
+  lash_studio:   'Lash Studio',
+  makeup_artist: 'Makeup Artist',
 }
 
-function salonUrl(subdomain) {
-  const { protocol, port } = window.location
-  return `${protocol}//${subdomain}.localhost${port ? `:${port}` : ''}`
+const TYPE_SERVICES = {
+  salon:         ['Haircut', 'Colour', 'Styling'],
+  barbershop:    ['Fade', 'Shape Up', 'Beard Trim'],
+  nail_tech:     ['Manicure', 'Pedicure', 'Nail Art'],
+  spa:           ['Massage', 'Facial', 'Body Wrap'],
+  lash_studio:   ['Lash Extensions', 'Lash Lift', 'Brow Tint'],
+  makeup_artist: ['Bridal Makeup', 'Party Glam', 'Natural Look'],
 }
 
-export default function SalonCard({ salon }) {
-  const initials = getInitials(salon.businessName)
+function gradientFor(name) {
+  const hues = [340, 320, 350, 330, 345, 315]
+  const i = (name.charCodeAt(0) || 0) % hues.length
+  return `linear-gradient(135deg, hsl(${hues[i]}, 28%, 22%), hsl(${hues[i]}, 22%, 14%))`
+}
+
+function initials(name) {
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
+export default function SalonCard({ salon, placeholder = false }) {
+  if (placeholder) {
+    return (
+      <div
+        style={{
+          borderRadius: 12,
+          border: `0.5px dashed #ddd`,
+          height: 320,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          backgroundColor: '#faf8f6',
+        }}
+      >
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#bbb', fontWeight: 400 }}>
+          Your business could be here
+        </p>
+        <a
+          href="/signup"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: PRIMARY, textDecoration: 'underline', letterSpacing: '0.04em' }}
+        >
+          List free →
+        </a>
+      </div>
+    )
+  }
+
+  const hasImage = !!(salon.coverImageUrl || salon.portfolioPreviewUrl)
+  const imgSrc   = salon.coverImageUrl || salon.portfolioPreviewUrl
+  const typeLabel = TYPE_LABELS[salon.businessType] ?? salon.businessType
+  const services  = TYPE_SERVICES[salon.businessType] ?? ['Booking', 'Services']
+
   return (
     <a
-      href={salonUrl(salon.subdomain)}
-      className="group block bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-all overflow-hidden"
+      href={getSalonUrl(salon.subdomain)}
+      style={{ display: 'block', textDecoration: 'none', borderRadius: 12, border: `0.5px solid ${BORDER}`, overflow: 'hidden', backgroundColor: '#fff', transition: 'box-shadow 0.15s' }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none' }}
     >
-      <div className="h-36 bg-primary-container flex items-center justify-center">
-        <span className="font-display text-5xl font-bold text-on-primary-container select-none">
-          {initials}
-        </span>
-      </div>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-semibold text-on-surface text-sm leading-tight group-hover:text-primary transition-colors">
-            {salon.businessName}
-          </h3>
-          <Badge color="primary" className="shrink-0">
-            {TYPE_LABELS[salon.businessType] ?? salon.businessType}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-1 text-xs text-on-surface-variant mb-1">
-          <MapPin size={11} className="shrink-0" />
-          {salon.city}{salon.address ? ` · ${salon.address}` : ''}
-        </div>
-        {salon.phone && (
-          <div className="flex items-center gap-1 text-xs text-on-surface-variant mb-3">
-            <Phone size={11} className="shrink-0" />
-            {salon.phone}
+      {/* Photo — 260px */}
+      <div style={{ position: 'relative', height: 260, overflow: 'hidden' }}>
+        {hasImage ? (
+          <img
+            src={imgSrc}
+            alt={salon.businessName}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: gradientFor(salon.businessName), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 52, fontWeight: 300, color: 'rgba(255,255,255,0.25)' }}>
+              {initials(salon.businessName)}
+            </span>
           </div>
         )}
-        <div className="flex items-center justify-between pt-3 border-t border-outline-variant">
-          <span className="text-sm font-medium text-primary">Book now</span>
-          <ChevronRight size={15} className="text-primary" />
+        {/* Gradient overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 50%)' }} />
+        {/* Business type badge — top left */}
+        <span style={{
+          position: 'absolute', top: 12, left: 12,
+          backgroundColor: 'rgba(255,255,255,0.92)',
+          fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 500, letterSpacing: '0.08em',
+          color: '#1a1a1a', padding: '4px 10px', borderRadius: 3,
+        }}>
+          {typeLabel}
+        </span>
+      </div>
+
+      {/* Card body */}
+      <div style={{ padding: '14px 16px 16px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: '#1a1a1a', margin: '0 0 6px', lineHeight: 1.3 }}>
+          {salon.businessName}
+        </p>
+        {salon.city && (
+          <p style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#aaa', fontWeight: 300, margin: '0 0 10px' }}>
+            <MapPin size={11} style={{ flexShrink: 0 }} />
+            {[salon.city, salon.area].filter(Boolean).join(', ')}
+          </p>
+        )}
+        {/* Service tags */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+          {services.slice(0, 3).map((s) => (
+            <span key={s} style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 400, color: '#888', backgroundColor: '#f7f5f3', padding: '3px 8px', borderRadius: 3 }}>
+              {s}
+            </span>
+          ))}
+        </div>
+        {/* Footer */}
+        <div style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: PRIMARY, letterSpacing: '0.02em' }}>
+            Book Now →
+          </span>
         </div>
       </div>
     </a>
