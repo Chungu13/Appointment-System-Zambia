@@ -48,7 +48,7 @@ export default function SalonCard({ salon, placeholder = false }) {
           backgroundColor: '#faf8f6',
         }}
       >
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#bbb', fontWeight: 400 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#666', fontWeight: 400 }}>
           Your business could be here
         </p>
         <a
@@ -83,7 +83,7 @@ export default function SalonCard({ salon, placeholder = false }) {
           />
         ) : (
           <div style={{ width: '100%', height: '100%', background: gradientFor(salon.businessName), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 52, fontWeight: 300, color: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 52, fontWeight: 300, color: 'rgba(255,255,255,0.75)' }}>
               {initials(salon.businessName)}
             </span>
           </div>
@@ -107,7 +107,7 @@ export default function SalonCard({ salon, placeholder = false }) {
           {salon.businessName}
         </p>
         {salon.city && (
-          <p style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#aaa', fontWeight: 300, margin: '0 0 10px' }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#666', fontWeight: 300, margin: '0 0 10px' }}>
             <MapPin size={11} style={{ flexShrink: 0 }} />
             {[salon.city, salon.area].filter(Boolean).join(', ')}
           </p>

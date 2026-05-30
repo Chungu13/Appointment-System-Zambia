@@ -21,7 +21,7 @@ export default function LandingNav({ variant = 'public' }) {
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 38 }} />
-          <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
             Kimawa
           </span>
         </Link>

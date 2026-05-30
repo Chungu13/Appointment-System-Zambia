@@ -10,7 +10,7 @@ import SalonCard from '../../components/salon/SalonCard'
 
 const PRIMARY = '#6B2737'
 const BORDER  = '#f0ece8'
-const serif   = "'Cormorant Garamond', Georgia, serif"
+const serif   = 'Inter, sans-serif'
 const sans    = 'Inter, sans-serif'
 
 const CATEGORIES = [
@@ -74,7 +74,7 @@ export default function Directory() {
             Find Your Perfect{' '}
             <em style={{ color: PRIMARY, fontStyle: 'italic' }}>Beauty Professional</em>
           </h1>
-          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#aaa', margin: '0 0 36px', maxWidth: 520 }}>
+          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#666', margin: '0 0 36px', maxWidth: 520 }}>
             Discover and book salons, barbershops, nail techs, spas and more across Zambia.
           </p>
 
@@ -82,7 +82,7 @@ export default function Directory() {
           <div style={{ display: 'flex', gap: 12, maxWidth: 720 }} className="max-sm:flex-col">
             {/* Name/type */}
             <div style={{ flex: 1, position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#bbb', pointerEvents: 'none' }} />
+              <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#666', pointerEvents: 'none' }} />
               <input
                 type="text"
                 value={search}
@@ -99,7 +99,7 @@ export default function Directory() {
 
             {/* Area */}
             <div style={{ flex: 1, position: 'relative' }}>
-              <MapPin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#bbb', pointerEvents: 'none' }} />
+              <MapPin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#666', pointerEvents: 'none' }} />
               {city === 'Lusaka' ? (
                 <select
                   value={area}
@@ -165,7 +165,7 @@ export default function Directory() {
 
           {/* Results count */}
           {!loading && (
-            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#bbb' }}>
+            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666' }}>
               {salons.length} {salons.length === 1 ? 'result' : 'results'}
             </span>
           )}
@@ -176,7 +176,7 @@ export default function Directory() {
       <section style={{ padding: '40px 64px 80px', backgroundColor: '#fff' }} className="max-sm:px-5">
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {!loading && salons.length > 0 && (
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#bbb', margin: '0 0 24px' }}>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666', margin: '0 0 24px' }}>
               Showing {salons.length} {salons.length === 1 ? 'business' : 'businesses'}{city !== 'All Cities' ? ` in ${city}` : ' in Zambia'}
             </p>
           )}
@@ -189,7 +189,7 @@ export default function Directory() {
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
               <Search size={32} style={{ color: '#ddd', margin: '0 auto 16px' }} />
               <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#1a1a1a', margin: '0 0 6px' }}>No results found</p>
-              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#aaa', margin: '0 0 24px' }}>
+              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#666', margin: '0 0 24px' }}>
                 Try a different city or category, or{' '}
                 <a href="/signup" style={{ color: PRIMARY, textDecoration: 'underline' }}>list your business</a>.
               </p>

@@ -11,7 +11,7 @@ import { playPopSound } from '../../lib/sounds'
 const PRIMARY   = '#6B2737'
 const DARK      = '#1A0A0D'
 const BORDER    = '#f0ece8'
-const serif     = "'Cormorant Garamond', Georgia, serif"
+const serif     = 'Inter, sans-serif'
 const sans      = 'Inter, sans-serif'
 
 const TYPE_LABELS = {
@@ -153,7 +153,7 @@ function AIBar({ salonName, onOpen, onChipClick }) {
     <section style={{ backgroundColor: DARK, padding: '28px 64px' }} className="max-sm:px-5">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Label */}
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.5)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.8)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: PRIMARY, display: 'inline-block' }} />
           AI BOOKING ASSISTANT — ONLINE NOW
         </p>
@@ -184,7 +184,7 @@ function AIBar({ salonName, onOpen, onChipClick }) {
             <button
               key={chip}
               onClick={() => onChipClick(chip)}
-              style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.55)', backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 3, padding: '6px 12px', cursor: 'pointer' }}
+              style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.8)', backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 3, padding: '6px 12px', cursor: 'pointer' }}
             >
               {chip}
             </button>
@@ -214,7 +214,7 @@ function StatsBar({ profile, onBook }) {
           {stats.map(({ label, value }, i) => (
             <div key={label} style={{ paddingRight: 28, paddingLeft: i > 0 ? 28 : 0, borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}>
               <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 500, color: '#1a1a1a', margin: '0 0 2px' }}>{value}</p>
-              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#aaa', margin: 0 }}>{label}</p>
+              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', margin: 0 }}>{label}</p>
             </div>
           ))}
         </div>
@@ -248,7 +248,7 @@ function ServicesSection({ services }) {
           <div key={cat} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
             {/* Category header */}
             <div style={{ padding: '10px 16px', borderBottom: `0.5px solid ${BORDER}`, backgroundColor: '#faf8f6' }}>
-              <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#aaa', margin: 0 }}>{cat}</p>
+              <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#666', margin: 0 }}>{cat}</p>
             </div>
             {/* Service rows */}
             {items.map((svc, i) => (
@@ -258,7 +258,7 @@ function ServicesSection({ services }) {
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#1a1a1a', margin: '0 0 3px' }}>{svc.name}</p>
-                  <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#bbb', margin: 0 }}>
+                  <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', margin: 0 }}>
                     {svc.durationMinutes} min
                     {svc.depositZmw > 0 && ` · ${formatZMW(svc.depositZmw)} deposit`}
                   </p>
@@ -326,7 +326,7 @@ function PortfolioSection({ images }) {
       <section>
         <Eyebrow>Portfolio</Eyebrow>
         <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '40px 24px', textAlign: 'center' }}>
-          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#ccc', margin: 0 }}>No portfolio photos yet.</p>
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#666', margin: 0 }}>No portfolio photos yet.</p>
         </div>
       </section>
     )
@@ -386,7 +386,7 @@ function TeamSection({ staff }) {
             )}
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 4px' }}>{member.fullName}</p>
             {member.serviceNames?.length > 0 && (
-              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#aaa', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', margin: 0, lineHeight: 1.5 }}>
                 {member.serviceNames.slice(0, 2).join(' · ')}
               </p>
             )}
@@ -423,7 +423,7 @@ function HoursCard({ hours }) {
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 16px', backgroundColor: isToday ? '#fdf8f8' : 'transparent', borderBottom: `0.5px solid ${BORDER}` }}
             >
               <span style={{ fontFamily: sans, fontSize: 12, fontWeight: isToday ? 500 : 300, color: isToday ? '#1a1a1a' : '#888' }}>{h.dayName}</span>
-              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: h.isClosed ? '#ddd' : '#1a1a1a' }}>
+              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: h.isClosed ? '#999' : '#1a1a1a' }}>
                 {h.isClosed ? 'Closed' : `${formatTime(h.opensAt)} – ${formatTime(h.closesAt)}`}
               </span>
             </div>
@@ -440,8 +440,8 @@ function LocationCard({ profile }) {
     <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: 16 }}>
       <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 10px' }}>Location</p>
       {profile.area && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#888', margin: '0 0 4px' }}>{profile.area}</p>}
-      {profile.address && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#aaa', margin: '0 0 4px' }}>{profile.address}</p>}
-      {profile.city && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#aaa', margin: 0 }}>{profile.city}</p>}
+      {profile.address && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666', margin: '0 0 4px' }}>{profile.address}</p>}
+      {profile.city && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666', margin: 0 }}>{profile.city}</p>}
     </div>
   )
 }
@@ -466,7 +466,7 @@ export default function SalonLanding() {
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px', backgroundColor: '#faf8f6' }}>
         <Calendar size={48} style={{ color: '#ddd', marginBottom: 16 }} />
         <h1 style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: '#1a1a1a', margin: '0 0 8px' }}>{profile.businessName}</h1>
-        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#aaa', margin: '0 0 24px' }}>We're getting ready to take bookings. Check back soon.</p>
+        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#666', margin: '0 0 24px' }}>We're getting ready to take bookings. Check back soon.</p>
         <a href={homeUrl} style={{ fontFamily: sans, fontSize: 13, color: PRIMARY, textDecoration: 'none' }}>← Back to Kimawa</a>
       </div>
     )
@@ -503,7 +503,7 @@ export default function SalonLanding() {
 
       {/* Footer */}
       <footer style={{ borderTop: `0.5px solid ${BORDER}`, padding: '20px 64px', textAlign: 'center' }} className="max-sm:px-5">
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#ccc', margin: 0 }}>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', margin: 0 }}>
           {profile.businessName} &middot; Powered by{' '}
           <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}` : '/'} style={{ color: PRIMARY, textDecoration: 'none' }}>Kimawa</a>
         </p>

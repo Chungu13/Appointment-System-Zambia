@@ -12,7 +12,7 @@ export default function LandingFooter() {
       >
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 20, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
             Kimawa
           </span>
         </Link>
@@ -28,7 +28,7 @@ export default function LandingFooter() {
             <Link
               key={to}
               to={to}
-              style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 400, color: '#aaa', textDecoration: 'none' }}
+              style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 400, color: '#666', textDecoration: 'none' }}
             >
               {label}
             </Link>
@@ -36,7 +36,7 @@ export default function LandingFooter() {
         </div>
 
         {/* Copyright */}
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#ccc', margin: 0 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#666', margin: 0 }}>
           &copy; {new Date().getFullYear()} Kimawa &middot; Zambia
         </p>
       </div>
