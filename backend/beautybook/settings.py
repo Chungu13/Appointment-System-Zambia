@@ -164,11 +164,11 @@ TENANT_DOMAIN_SUFFIX = config("TENANT_DOMAIN_SUFFIX", default="kimawa.pro")
 # CORS
 # ---------------------------------------------------------------------------
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.kimawa\.pro$",
-    r"^https://kimawa\.pro$",
-    r"^https://.*\.vercel\.app$",
-    r"^http://.*\.localhost(:\d+)?$",
-    r"^http://localhost(:\d+)?$",
+    r"^https://[\w-]+\.kimawa\.pro$",   # any slug.kimawa.pro (frontend + API subdomains)
+    r"^https://kimawa\.pro$",           # apex domain
+    r"^https://www\.kimawa\.pro$",      # www
+    r"^http://localhost:\d+$",          # local dev
+    r"^http://[\w-]+\.localhost:\d+$",  # tenant local dev (slug.localhost:3000)
 ]
 CORS_ALLOW_CREDENTIALS = True
 
