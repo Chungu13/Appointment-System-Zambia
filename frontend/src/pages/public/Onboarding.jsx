@@ -828,6 +828,27 @@ function ReadyStep({ subdomain, staffKey, onComplete }) {
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [copiedKey, setCopiedKey] = useState(false)
   const [going, setGoing] = useState(false)
+  const [goingMsg, setGoingMsg] = useState('')
+
+  async function checkApiReady() {
+    const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN
+    if (!apiDomain) return true  // local dev — skip polling
+    const controller = new AbortController()
+    const tid = setTimeout(() => controller.abort(), 5000)
+    try {
+      const resp = await fetch(`https://${subdomain}.${apiDomain}/graphql/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ __typename }' }),
+        signal: controller.signal,
+      })
+      clearTimeout(tid)
+      return resp.status < 500
+    } catch {
+      clearTimeout(tid)
+      return false
+    }
+  }
 
   function copy(text, setFlag) {
     copyToClipboard(text, () => {
@@ -890,6 +911,16 @@ function ReadyStep({ subdomain, staffKey, onComplete }) {
         onClick={async () => {
           setGoing(true)
           try { await onComplete() } catch { /* non-blocking */ }
+
+          // Poll until the tenant API subdomain is reachable — Vercel SSL cert
+          // provisioning can take 30s+ for brand-new subdomains.
+          const MAX_ATTEMPTS = 10
+          for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            if (await checkApiReady()) break
+            setGoingMsg('Setting up your dashboard…')
+            await new Promise((r) => setTimeout(r, 3000))
+          }
+
           const t = getToken()
           const r = getRefreshToken()
           const dest = new URL(ownerUrl)
@@ -901,7 +932,7 @@ function ReadyStep({ subdomain, staffKey, onComplete }) {
         className="block w-full py-4 rounded-xl font-semibold text-white text-center transition-opacity hover:opacity-90 disabled:opacity-60"
         style={{ backgroundColor: PRIMARY }}
       >
-        {going ? 'Taking you there…' : 'Go to my dashboard →'}
+        {going ? (goingMsg || 'Taking you there…') : 'Go to my dashboard →'}
       </button>
     </div>
   )

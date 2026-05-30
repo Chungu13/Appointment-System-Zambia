@@ -34,6 +34,8 @@ export function AuthProvider({ children }) {
     const urlR = params.get('r')
     if (urlT && urlR && !isTokenExpired(urlT)) {
       setTokens(urlT, urlR)
+      const embeddedRole = getRoleFromToken(urlT)
+      if (embeddedRole) saveRole(embeddedRole)
       params.delete('t')
       params.delete('r')
       const remaining = params.toString()
