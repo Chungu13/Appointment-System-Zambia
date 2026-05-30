@@ -146,7 +146,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = Path(config("MEDIA_ROOT", default=str(BASE_DIR / "media")))
+MEDIA_ROOT = Path(config("MEDIA_ROOT", default=str(BASE_DIR / "backend" / "media")))
 MEDIA_BASE_URL = config("MEDIA_BASE_URL", default="")
 STORAGES = {
     "staticfiles": {
