@@ -1,1 +1,1 @@
-web: cd backend && python manage.py migrate_schemas --noinput && python manage.py setup_production && gunicorn beautybook.wsgi:application --bind 0.0.0.0:$PORT
+web: cd backend && python manage.py migrate_schemas --noinput && python manage.py setup_production && gunicorn beautybook.wsgi:application --bind 0.0.0.0:$PORT --limit-request-line 0 --limit-request-field-size 0
