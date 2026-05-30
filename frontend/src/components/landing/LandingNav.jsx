@@ -17,11 +17,11 @@ export default function LandingNav({ variant = 'public' }) {
 
   return (
     <nav style={{ backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }} className="sticky top-0 z-50">
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px' }} className="flex items-center justify-between h-16 max-sm:px-5">
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }} className="flex items-center justify-between h-16 max-sm:px-5">
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 38 }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 48 }} />
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
             Kimawa
           </span>
         </Link>
