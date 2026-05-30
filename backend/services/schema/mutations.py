@@ -113,9 +113,12 @@ class ServicesMutation:
         require_owner(info)
         if not image_url.strip():
             raise ValueError("Image URL is required.")
+        from beautybook.storage import save_image_from_base64
+        tenant_schema = info.context.request.tenant.schema_name
+        stored_url = save_image_from_base64(image_url.strip(), "portfolio", tenant_schema)
         next_order = (PortfolioImage.objects.aggregate(m=Max("display_order"))["m"] or 0) + 1
         img = PortfolioImage.objects.create(
-            image_url=image_url.strip(),
+            image_url=stored_url,
             caption=caption.strip(),
             service_id=service_id,
             display_order=next_order,

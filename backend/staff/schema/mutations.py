@@ -93,7 +93,9 @@ class StaffMutation:
             user.phone = phone.strip()
             fields.append("phone")
         if avatar_url is not None:
-            user.avatar_url = avatar_url.strip()
+            from beautybook.storage import save_image_from_base64
+            tenant_schema = info.context.request.tenant.schema_name
+            user.avatar_url = save_image_from_base64(avatar_url.strip(), "avatars", tenant_schema)
             fields.append("avatar_url")
         user.save(update_fields=fields)
         return user_to_type(user)
@@ -257,7 +259,9 @@ class StaffMutation:
 
         fields = ["updated_at"]
         if avatar_url is not None:
-            user.avatar_url = avatar_url.strip()
+            from beautybook.storage import save_image_from_base64
+            tenant_schema = info.context.request.tenant.schema_name
+            user.avatar_url = save_image_from_base64(avatar_url.strip(), "avatars", tenant_schema)
             fields.append("avatar_url")
         if bio is not None:
             user.bio = bio.strip()

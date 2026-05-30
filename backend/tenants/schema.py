@@ -180,7 +180,10 @@ class TenantMutation:
         require_owner(info)
         tenant = info.context.request.tenant
         if cover_image_url is not None:
-            tenant.cover_image_url = cover_image_url.strip()
+            from beautybook.storage import save_image_from_base64
+            tenant.cover_image_url = save_image_from_base64(
+                cover_image_url.strip(), "covers", tenant.schema_name
+            )
         if address is not None:
             tenant.address = address.strip()
         if phone is not None:
