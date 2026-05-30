@@ -187,7 +187,8 @@ class Mutation:
         staff_key = random.choice(words) + "".join(random.choices(string.digits, k=4))
 
         # ── Create tenant (auto-creates schema + runs migrations) ─────────────
-        domain_suffix = "localhost" if settings.DEBUG else settings.TENANT_DOMAIN_SUFFIX
+        domain_suffix     = "localhost" if settings.DEBUG else settings.TENANT_DOMAIN_SUFFIX
+        api_domain_suffix = None       if settings.DEBUG else settings.TENANT_API_DOMAIN_SUFFIX
 
         tenant = Tenant(
             schema_name=schema_name,
@@ -204,11 +205,19 @@ class Mutation:
         )
         tenant.save()  # triggers auto_create_schema
 
+        # Primary domain: {slug}.kimawa.pro → Vercel frontend (tenant identification)
         Domain.objects.create(
             domain=f"{subdomain}.{domain_suffix}",
             tenant=tenant,
             is_primary=True,
         )
+        # API domain: {slug}.api.kimawa.pro → Railway backend (django-tenants routing)
+        if api_domain_suffix:
+            Domain.objects.create(
+                domain=f"{subdomain}.{api_domain_suffix}",
+                tenant=tenant,
+                is_primary=False,
+            )
 
         # ── Provision Vercel subdomain (non-blocking) ─────────────────────────
         try:
