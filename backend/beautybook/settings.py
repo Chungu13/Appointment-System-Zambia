@@ -206,8 +206,8 @@ VERCEL_PROJECT_ID = config("VERCEL_PROJECT_ID", default="")
 VERCEL_TEAM_ID    = config("VERCEL_TEAM_ID",    default="")
 VERCEL_APP_DOMAIN = config("VERCEL_APP_DOMAIN", default="kimawa.pro")
 
-CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="redis://localhost:6379/1")
+CELERY_BROKER_URL     = config("CELERY_BROKER_URL",     default=config("REDIS_URL", default="redis://localhost:6379/0"))
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=config("REDIS_URL", default="redis://localhost:6379/1"))
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
