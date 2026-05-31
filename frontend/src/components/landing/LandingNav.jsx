@@ -6,8 +6,8 @@ const PRIMARY = '#6B2737'
 const BORDER  = '#f0ece8'
 
 const NAV_LINKS = [
-  { label: 'How it Works',        to: '/how-it-works' },
-  { label: 'For Businesses',      to: '/for-businesses' },
+  { label: 'How it Works',         to: '/how-it-works' },
+  { label: 'For Businesses',       to: '/for-businesses' },
   { label: 'Find Beauty Services', to: '/discover' },
 ]
 
@@ -16,19 +16,31 @@ export default function LandingNav({ variant = 'public' }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav style={{ backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }} className="sticky top-0 z-50">
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }} className="flex items-center justify-between h-16 max-sm:px-5">
-        {/* Logo */}
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 56 }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: '#1a1a1a' }}>
+    <nav style={{ backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}`, position: 'sticky', top: 0, zIndex: 50 }}>
+      {/* Desktop bar */}
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 24px',
+          position: 'relative',
+        }}
+        className="max-sm:hidden"
+      >
+        {/* Section 1 — Left: logo + wordmark */}
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 32 }} />
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: '#1a1a1a' }}>
             Kimawa
           </span>
         </Link>
 
-        {/* Center links — desktop */}
+        {/* Section 2 — Center: nav links (absolutely centered) */}
         {variant === 'public' && (
-          <div className="hidden md:flex items-center gap-8">
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 32 }}>
             {NAV_LINKS.map(({ label, to }) => (
               <Link
                 key={to}
@@ -42,6 +54,7 @@ export default function LandingNav({ variant = 'public' }) {
                   letterSpacing: '0.01em',
                   borderBottom: pathname.startsWith(to) ? `1px solid ${PRIMARY}` : '1px solid transparent',
                   paddingBottom: 1,
+                  whiteSpace: 'nowrap',
                   transition: 'color 0.12s',
                 }}
               >
@@ -51,8 +64,8 @@ export default function LandingNav({ variant = 'public' }) {
           </div>
         )}
 
-        {/* Right CTAs — desktop */}
-        <div className="hidden md:flex items-center gap-5" style={{ marginLeft: 'auto' }}>
+        {/* Section 3 — Right: Login + CTA */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
           <Link
             to="/login"
             style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400, color: '#333', textDecoration: 'none' }}
@@ -71,14 +84,21 @@ export default function LandingNav({ variant = 'public' }) {
               padding: '10px 22px',
               borderRadius: 3,
               textDecoration: 'none',
+              whiteSpace: 'nowrap',
             }}
           >
             List Your Business
           </Link>
         </div>
+      </div>
 
-        {/* Mobile hamburger */}
-        <button className="md:hidden p-2" onClick={() => setOpen((v) => !v)} style={{ color: '#1a1a1a' }}>
+      {/* Mobile bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }} className="sm:hidden">
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 28 }} />
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: '#1a1a1a' }}>Kimawa</span>
+        </Link>
+        <button onClick={() => setOpen((v) => !v)} style={{ color: '#1a1a1a', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
