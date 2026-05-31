@@ -42,7 +42,10 @@ export default function DatePicker({ selected, onChange, minDate }) {
   function selectDay(day) {
     const d = new Date(viewYear, viewMonth, day)
     if (d < min) return
-    onChange(toDateInputValue(d))
+    const yyyy = viewYear
+    const mm = String(viewMonth + 1).padStart(2, '0')
+    const dd = String(day).padStart(2, '0')
+    onChange(`${yyyy}-${mm}-${dd}`)
   }
 
   function isSelected(day) {

@@ -21,10 +21,7 @@ There is no 9am-5pm fallback.
 """
 
 import datetime
-import logging
 from typing import Optional
-
-logger = logging.getLogger(__name__)
 
 
 def build_availability_slots(
@@ -52,9 +49,6 @@ def build_availability_slots(
         eligible_staff = eligible_staff.filter(staff_id=staff_id)
 
     day_of_week = date.weekday()
-    logger.warning("[availability] date=%s day_of_week=%s eligible_staff=%s",
-                   date, day_of_week,
-                   list(eligible_staff.values("staff_id", "staff__full_name")))
     staff_objects = [ss.staff for ss in eligible_staff]
 
     wh_by_staff = {
@@ -63,9 +57,6 @@ def build_availability_slots(
             staff__in=staff_objects, day_of_week=day_of_week
         )
     }
-    logger.warning("[availability] wh_by_staff=%s",
-                   [(k, str(v.start_time), str(v.end_time), v.is_day_off)
-                    for k, v in wh_by_staff.items()])
 
     staff_ids = [s.pk for s in staff_objects]
     booked_by_staff: dict[int, list] = {}

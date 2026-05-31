@@ -82,7 +82,10 @@ function Step1Services() {
 // ── Step 2: Date + time ──────────────────────────────────────────────────────
 function Step2DateTime() {
   const { state, dispatch } = useBooking()
-  const [date, setDate] = useState(toDateInputValue())
+  const [date, setDate] = useState(() => {
+    const today = new Date()
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  })
   const [selectedStaffId, setSelectedStaffId] = useState(state.preferredStaffId ?? null)
   const { slots, loading, error } = useAvailability(state.service?.id, date, selectedStaffId)
   const { data: profileData } = useQuery(SALON_PROFILE)
