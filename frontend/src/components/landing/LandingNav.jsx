@@ -6,8 +6,9 @@ const PRIMARY = '#6B2737'
 const BORDER  = '#f0ece8'
 
 const NAV_LINKS = [
-  { label: 'How it Works', to: '/how-it-works' },
-  { label: 'For Businesses', to: '/for-businesses' },
+  { label: 'How it Works',        to: '/how-it-works' },
+  { label: 'For Businesses',      to: '/for-businesses' },
+  { label: 'Find Beauty Services', to: '/discover' },
 ]
 
 export default function LandingNav({ variant = 'public' }) {
@@ -16,11 +17,11 @@ export default function LandingNav({ variant = 'public' }) {
 
   return (
     <nav style={{ backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }} className="sticky top-0 z-50">
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px 0 32px' }} className="flex items-center justify-between h-16 max-sm:px-5">
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }} className="flex items-center justify-between h-16 max-sm:px-5">
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 56 }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: '#1a1a1a' }}>
             Kimawa
           </span>
         </Link>
@@ -36,7 +37,7 @@ export default function LandingNav({ variant = 'public' }) {
                   fontFamily: 'Inter, sans-serif',
                   fontSize: 13,
                   fontWeight: 400,
-                  color: pathname.startsWith(to) ? PRIMARY : '#1a1a1a',
+                  color: pathname.startsWith(to) ? PRIMARY : '#333',
                   textDecoration: 'none',
                   letterSpacing: '0.01em',
                   borderBottom: pathname.startsWith(to) ? `1px solid ${PRIMARY}` : '1px solid transparent',
@@ -51,18 +52,10 @@ export default function LandingNav({ variant = 'public' }) {
         )}
 
         {/* Right CTAs — desktop */}
-        <div className="hidden md:flex items-center gap-5">
-          {variant === 'public' && (
-            <Link
-              to="/discover"
-              style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400, color: '#888', textDecoration: 'none' }}
-            >
-              Find Beauty Services
-            </Link>
-          )}
+        <div className="hidden md:flex items-center gap-5" style={{ marginLeft: 'auto' }}>
           <Link
             to="/login"
-            style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400, color: '#1a1a1a', textDecoration: 'none' }}
+            style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400, color: '#333', textDecoration: 'none' }}
           >
             Login
           </Link>
@@ -94,12 +87,11 @@ export default function LandingNav({ variant = 'public' }) {
       {open && (
         <div style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {NAV_LINKS.map(({ label, to }) => (
-            <Link key={to} to={to} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#1a1a1a', textDecoration: 'none' }}>
+            <Link key={to} to={to} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
               {label}
             </Link>
           ))}
-          <Link to="/discover" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#888', textDecoration: 'none' }}>Find Beauty Services</Link>
-          <Link to="/login" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#1a1a1a', textDecoration: 'none' }}>Login</Link>
+          <Link to="/login" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>Login</Link>
           <Link
             to="/signup"
             onClick={() => setOpen(false)}
