@@ -132,12 +132,12 @@ export default function Directory() {
 
       {/* Filters bar */}
       <section style={{ padding: '16px 64px', borderBottom: `0.5px solid ${BORDER}` }} className="max-sm:px-5">
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div className="flex-wrap max-sm:flex-nowrap max-sm:overflow-x-auto" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* City selector */}
           <select
             value={city}
             onChange={(e) => { setCity(e.target.value); setArea('') }}
-            style={{ fontFamily: sans, fontSize: 12, color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, padding: '6px 12px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer' }}
+            style={{ fontFamily: sans, fontSize: 12, color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, padding: '10px 12px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer', flexShrink: 0 }}
           >
             {FILTER_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -154,8 +154,8 @@ export default function Directory() {
                   color: active ? '#fff' : '#333',
                   backgroundColor: active ? PRIMARY : 'transparent',
                   border: `0.5px solid ${active ? PRIMARY : '#ddd'}`,
-                  borderRadius: 3, padding: '6px 14px', cursor: 'pointer',
-                  transition: 'all 0.12s',
+                  borderRadius: 3, padding: '10px 16px', cursor: 'pointer',
+                  transition: 'all 0.12s', flexShrink: 0,
                 }}
               >
                 {label}

@@ -31,7 +31,7 @@ function Item({ isDone, label, sub, onClick, rightSlot }) {
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
-      className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors"
+      className="w-full flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors"
       style={{
         backgroundColor: isDone && !rightSlot ? '#f9fafb' : CREAM,
         cursor: clickable ? 'pointer' : 'default',

@@ -87,27 +87,29 @@ export default function LandingNav({ variant = 'public' }) {
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 28 }} />
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: '#1a1a1a' }}>Kimawa</span>
         </Link>
-        <button onClick={() => setOpen((v) => !v)} style={{ color: '#1a1a1a', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+        <button onClick={() => setOpen((v) => !v)} style={{ color: '#1a1a1a', background: 'none', border: 'none', cursor: 'pointer', padding: 12 }}>
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       {/* Mobile drawer */}
       {open && (
-        <div style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '8px 4px' }}>
           {NAV_LINKS.map(({ label, to }) => (
-            <Link key={to} to={to} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
+            <Link key={to} to={to} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none', padding: '14px 16px', display: 'block' }}>
               {label}
             </Link>
           ))}
-          <Link to="/login" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>Login</Link>
-          <Link
-            to="/signup"
-            onClick={() => setOpen(false)}
-            style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '11px 20px', borderRadius: 3, textDecoration: 'none', textAlign: 'center' }}
-          >
-            List Your Business
-          </Link>
+          <Link to="/login" onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none', padding: '14px 16px', display: 'block' }}>Login</Link>
+          <div style={{ padding: '8px 16px' }}>
+            <Link
+              to="/signup"
+              onClick={() => setOpen(false)}
+              style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 20px', borderRadius: 3, textDecoration: 'none', textAlign: 'center', display: 'block' }}
+            >
+              List Your Business
+            </Link>
+          </div>
         </div>
       )}
     </nav>

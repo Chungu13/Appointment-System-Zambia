@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
-import { MapPin, Phone, Calendar, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { MapPin, Phone, Calendar, Menu, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { SALON_PROFILE } from '../../graphql/queries/salons'
 import ChatWindow from '../../components/chat/ChatWindow'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
@@ -59,23 +59,52 @@ function Eyebrow({ children }) {
   )
 }
 
-// ── Navbar ────────────────────────────────────────────────────────────────────
+// ─��� Navbar ──────────────────────────���────────────────────────────────��────────
 function SalonNav() {
+  const [open, setOpen] = useState(false)
+  const homeUrl    = import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}` : '/'
+  const discoverUrl = import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}/discover` : '/discover'
+
   return (
     <nav style={{ position: 'sticky', top: 0, zIndex: 50, backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} className="max-sm:px-5">
-        <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}` : '/'} style={{ textDecoration: 'none' }}>
+      {/* Desktop bar */}
+      <div className="hidden sm:flex" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px', height: 56, alignItems: 'center', justifyContent: 'space-between' }}>
+        <a href={homeUrl} style={{ textDecoration: 'none' }}>
           <span style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: '#1a1a1a', letterSpacing: '-0.5px' }}>Kimawa</span>
         </a>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}/discover` : '/discover'} style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#888', textDecoration: 'none' }}>
+          <a href={discoverUrl} style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#888', textDecoration: 'none' }}>
             Find Beauty Services
           </a>
-          <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}/discover` : '/discover'} style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '9px 20px', borderRadius: 3, textDecoration: 'none' }}>
+          <a href={discoverUrl} style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '9px 20px', borderRadius: 3, textDecoration: 'none' }}>
             Browse &amp; Book
           </a>
         </div>
       </div>
+
+      {/* Mobile bar */}
+      <div className="flex sm:hidden" style={{ padding: '0 20px', height: 56, alignItems: 'center', justifyContent: 'space-between' }}>
+        <a href={homeUrl} style={{ textDecoration: 'none' }}>
+          <span style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: '#1a1a1a' }}>Kimawa</span>
+        </a>
+        <button onClick={() => setOpen((v) => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 12, color: '#1a1a1a' }}>
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      {open && (
+        <div style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '8px 4px' }}>
+          <a href={discoverUrl} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none', padding: '14px 16px', display: 'block' }}>
+            Find Beauty Services
+          </a>
+          <div style={{ padding: '8px 16px' }}>
+            <a href={discoverUrl} onClick={() => setOpen(false)} style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 20px', borderRadius: 3, textDecoration: 'none', textAlign: 'center', display: 'block' }}>
+              Browse &amp; Book
+            </a>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
@@ -160,7 +189,7 @@ function AIBar({ salonName, onOpen, onChipClick }) {
         </p>
 
         {/* Input row */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row" style={{ gap: 10, marginBottom: 14 }}>
           <div style={{ flex: 1, position: 'relative' }}>
             <Sparkles size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: PRIMARY, pointerEvents: 'none' }} />
             <input
@@ -221,7 +250,7 @@ function StatsBar({ profile, onBook }) {
         </div>
         <Link
           to="/book"
-          style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#888', border: `0.5px solid #ddd`, padding: '9px 20px', borderRadius: 3, textDecoration: 'none', letterSpacing: '0.04em' }}
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#888', border: `0.5px solid #ddd`, padding: '9px 20px', borderRadius: 3, textDecoration: 'none', letterSpacing: '0.04em', minHeight: 44, display: 'flex', alignItems: 'center' }}
         >
           Browse &amp; Book →
         </Link>
@@ -268,7 +297,7 @@ function ServicesSection({ services, onBook }) {
                   <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
                   <button
                     onClick={() => onBook(`I want to book ${svc.name}`)}
-                    style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: 0, letterSpacing: '0.04em' }}
+                    style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', letterSpacing: '0.04em' }}
                   >
                     Book →
                   </button>
@@ -336,19 +365,14 @@ function PortfolioSection({ images }) {
   return (
     <section>
       <Eyebrow>Portfolio</Eyebrow>
-      {/* 3-column masonry-style grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      {/* 2-col on mobile, 3-col on desktop; first image spans 2 rows on desktop only */}
+      <div className="grid grid-cols-2 sm:grid-cols-3" style={{ gap: 8 }}>
         {images.slice(0, 7).map((img, i) => (
           <div
             key={img.id}
             onClick={() => setLightboxIdx(i)}
-            style={{
-              borderRadius: 6,
-              overflow: 'hidden',
-              cursor: 'pointer',
-              gridRow: i === 0 ? 'span 2' : undefined,
-              height: i === 0 ? 288 : 140,
-            }}
+            className={i === 0 ? 'h-40 sm:h-[288px] sm:row-span-2' : 'h-36 sm:h-[140px]'}
+            style={{ borderRadius: 6, overflow: 'hidden', cursor: 'pointer' }}
           >
             <img
               src={img.imageUrl}

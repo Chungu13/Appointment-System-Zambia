@@ -181,7 +181,7 @@ export default function Signup() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: `1px solid ${BORDER}` }}>
+        <div className="bg-white rounded-2xl p-5 sm:p-8 shadow-sm" style={{ border: `1px solid ${BORDER}` }}>
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Business info */}
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PRIMARY }}>
@@ -196,7 +196,7 @@ export default function Signup() {
               />
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Business type" error={fieldErrors.businessType}>
                 <Select value={form.businessType} onChange={set('businessType')}>
                   {BUSINESS_TYPES.map((t) => (
@@ -262,7 +262,7 @@ export default function Signup() {
               />
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Phone" error={fieldErrors.phone}>
                 <Input
                   value={form.phone}

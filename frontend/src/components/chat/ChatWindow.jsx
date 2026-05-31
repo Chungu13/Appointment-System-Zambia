@@ -208,7 +208,7 @@ function ChatInputBar({ onSend, loading }) {
       <button
         type="submit"
         disabled={!value.trim() || loading}
-        style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: PRIMARY, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: (!value.trim() || loading) ? 0.4 : 1 }}
+        style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: (!value.trim() || loading) ? 0.4 : 1 }}
       >
         {loading
           ? <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
@@ -243,8 +243,8 @@ export default function ChatWindow({ customerPhone, onClose, salonName, initialM
 
   return (
     <div
-      className="animate-chat-slide-up fixed bottom-4 right-4 z-50 flex flex-col overflow-hidden"
-      style={{ width: 380, maxHeight: 600, borderRadius: 20, backgroundColor: DARK, boxShadow: '0 8px 40px rgba(0,0,0,0.5)', border: '0.5px solid rgba(255,255,255,0.08)' }}
+      className="animate-chat-slide-up fixed bottom-4 z-50 flex flex-col overflow-hidden"
+      style={{ width: 'min(380px, calc(100vw - 16px))', right: 8, maxHeight: 600, borderRadius: 20, backgroundColor: DARK, boxShadow: '0 8px 40px rgba(0,0,0,0.5)', border: '0.5px solid rgba(255,255,255,0.08)' }}
     >
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -261,7 +261,7 @@ export default function ChatWindow({ customerPhone, onClose, salonName, initialM
           </div>
         </div>
         {onClose && (
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', padding: 10, display: 'flex', alignItems: 'center' }}>
             <X size={16} />
           </button>
         )}

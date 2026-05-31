@@ -245,7 +245,7 @@ function ServicesStep({ businessType, services, setServices }) {
       </div>
 
       <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: MINT, border: '1px solid #e8f0e8' }}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
             placeholder="Service name"
             value={form.name}
