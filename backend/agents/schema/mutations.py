@@ -34,12 +34,17 @@ class AgentsMutation:
         customer_phone: str,
         session_id: str,
     ) -> AgentChatResult:
+        import os
         import redis
-        from django.conf import settings
 
         from agents.booking_agent import BookingAgent
 
-        r = redis.from_url(settings.CELERY_BROKER_URL, decode_responses=True)
+        redis_url = (
+            os.environ.get("REDIS_URL")
+            or os.environ.get("CELERY_BROKER_URL")
+            or "redis://localhost:6379/0"
+        )
+        r = redis.from_url(redis_url, decode_responses=True)
         redis_key = f"booking_agent:{session_id}"
 
         raw = r.get(redis_key)
