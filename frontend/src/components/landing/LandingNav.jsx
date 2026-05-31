@@ -17,19 +17,8 @@ export default function LandingNav({ variant = 'public' }) {
 
   return (
     <nav style={{ backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}`, position: 'sticky', top: 0, zIndex: 50 }}>
-      {/* Desktop bar */}
-      <div
-        style={{
-          maxWidth: 1200,
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          position: 'relative',
-        }}
-        className="max-sm:hidden"
-      >
+      {/* Desktop bar — hidden on mobile; lg:flex owns the display value */}
+      <div className="hidden lg:flex" style={{ maxWidth: 1200, margin: '0 auto', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', position: 'relative' }}>
         {/* Section 1 — Left: logo + wordmark */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 32 }} />
@@ -92,8 +81,8 @@ export default function LandingNav({ variant = 'public' }) {
         </div>
       </div>
 
-      {/* Mobile bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }} className="sm:hidden">
+      {/* Mobile bar — hidden on desktop; flex owns the display value via Tailwind */}
+      <div className="flex lg:hidden" style={{ alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 28 }} />
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: '#1a1a1a' }}>Kimawa</span>
