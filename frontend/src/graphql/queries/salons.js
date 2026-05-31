@@ -10,7 +10,6 @@ export const SALON_PROFILE = gql`
       area
       address
       coverImageUrl
-      portfolioPreviewUrl
       staffCount
       staff {
         id
