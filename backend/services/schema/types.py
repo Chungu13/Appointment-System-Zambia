@@ -11,6 +11,10 @@ class CategoryEnum(Enum):
     BRAIDS = "braids"
     COLOUR = "colour"
     LASHES = "lashes"
+    MASSAGE = "massage"
+    BARBER = "barber"
+    FACIAL = "facial"
+    GENERAL = "general"
     OTHER = "other"
 
 
@@ -36,10 +40,14 @@ class StaffServiceType:
 
 
 def service_to_type(s) -> ServiceType:
+    try:
+        category = CategoryEnum(s.category)
+    except ValueError:
+        category = CategoryEnum("other")
     return ServiceType(
         id=s.pk,
         name=s.name,
-        category=CategoryEnum(s.category),
+        category=category,
         description=s.description,
         duration_minutes=s.duration_minutes,
         price_zmw=float(s.price_zmw),
