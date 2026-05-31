@@ -1015,8 +1015,9 @@ export default function Onboarding() {
     if (dataUrl) {
       try {
         await updateProfile({ variables: { coverImageUrl: dataUrl } })
-      } catch {
-        // Non-blocking — photo failure shouldn't stop onboarding
+      } catch (e) {
+        console.error('[onboarding] cover photo upload failed:', e)
+        setError('Photo upload failed. Your other progress is saved — you can add a photo later in Settings.')
       }
     }
   }

@@ -34,6 +34,7 @@ const DEFAULT_BANNERS = {
 
 function bannerFor(profile) {
   if (profile.coverImageUrl) return profile.coverImageUrl
+  if (profile.portfolioPreviewUrl) return profile.portfolioPreviewUrl
   return DEFAULT_BANNERS[profile.businessType] ?? DEFAULT_BANNERS._fallback
 }
 
