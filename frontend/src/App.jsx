@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client/react'
 import { AuthProvider } from './context/AuthContext'
 import { tenantClient } from './lib/apollo'
@@ -16,7 +16,6 @@ import SalonDirectory from './pages/public/SalonDirectory'
 import SalonLanding from './pages/public/SalonLanding'
 import SalonBooking from './pages/public/SalonBooking'
 import HowItWorks from './pages/public/HowItWorks'
-import Pricing from './pages/public/Pricing'
 import ForBusinesses from './pages/public/ForBusinesses'
 import Signup from './pages/public/Signup'
 import Onboarding from './pages/public/Onboarding'
@@ -74,7 +73,7 @@ export default function App() {
             {/* Marketing + public pages */}
             <Route path="/discover" element={<Directory />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/pricing" element={<Navigate to="/" replace />} />
             <Route path="/for-businesses" element={<ForBusinesses />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/onboarding" element={<Onboarding />} />

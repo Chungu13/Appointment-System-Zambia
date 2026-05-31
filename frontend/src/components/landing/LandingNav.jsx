@@ -7,7 +7,6 @@ const BORDER  = '#f0ece8'
 
 const NAV_LINKS = [
   { label: 'How it Works', to: '/how-it-works' },
-  { label: 'Pricing',      to: '/pricing' },
   { label: 'For Businesses', to: '/for-businesses' },
 ]
 
