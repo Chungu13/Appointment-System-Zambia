@@ -5,10 +5,10 @@ const BORDER  = '#f0ece8'
 
 export default function LandingFooter() {
   return (
-    <footer style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', padding: '24px 64px' }}>
+    <footer style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff', paddingTop: 24, paddingBottom: 24 }} className="px-16 max-sm:px-5">
       <div
         style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}
-        className="max-sm:px-5 max-sm:flex-col max-sm:items-start max-sm:gap-4"
+        className="max-sm:flex-col max-sm:items-start max-sm:gap-4"
       >
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none' }}>

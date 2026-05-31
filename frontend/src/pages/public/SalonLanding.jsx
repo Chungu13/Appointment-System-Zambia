@@ -127,7 +127,7 @@ function Hero({ profile, onChatOpen }) {
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 160, background: 'linear-gradient(to top, rgba(10,3,5,0.9), transparent)', pointerEvents: 'none' }} />
 
       {/* Content */}
-      <div style={{ position: 'relative', zIndex: 10, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 64px 40px', maxWidth: 1200, margin: '0 auto' }} className="max-sm:px-5 max-sm:pb-8">
+      <div style={{ position: 'relative', zIndex: 10, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 40, maxWidth: 1200, margin: '0 auto' }} className="px-16 max-sm:px-5 max-sm:pb-8">
         {/* Business type badge */}
         <span style={{ display: 'inline-block', alignSelf: 'flex-start', fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', color: '#fff', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', padding: '5px 12px', borderRadius: 3, marginBottom: 12 }}>
           {TYPE_LABELS[profile.businessType] ?? profile.businessType}
@@ -180,7 +180,7 @@ function AIBar({ salonName, onOpen, onChipClick }) {
   }
 
   return (
-    <section style={{ backgroundColor: DARK, padding: '28px 64px' }} className="max-sm:px-5">
+    <section style={{ backgroundColor: DARK, paddingTop: 28, paddingBottom: 28 }} className="px-16 max-sm:px-5">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Label */}
         <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.8)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -238,7 +238,7 @@ function StatsBar({ profile, onBook }) {
   ]
 
   return (
-    <section style={{ backgroundColor: '#faf8f6', borderBottom: `0.5px solid ${BORDER}`, padding: '18px 64px' }} className="max-sm:px-5">
+    <section style={{ backgroundColor: '#faf8f6', borderBottom: `0.5px solid ${BORDER}`, paddingTop: 18, paddingBottom: 18 }} className="px-16 max-sm:px-5">
       <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', gap: 0 }}>
           {stats.map(({ label, value }, i) => (
@@ -511,7 +511,7 @@ export default function SalonLanding() {
       <StatsBar profile={profile} />
 
       {/* Main content + sidebar */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 64px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 56, alignItems: 'start' }} className="max-sm:grid-cols-1 max-sm:px-5 max-sm:py-10">
+      <div style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 56, paddingBottom: 56, display: 'grid', gridTemplateColumns: '1fr 300px', gap: 56, alignItems: 'start' }} className="px-16 max-sm:grid-cols-1 max-sm:px-5 max-sm:py-10">
         {/* Main column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
           <ServicesSection services={profile.services.filter((s) => s.isActive)} onBook={openChat} />
@@ -527,7 +527,7 @@ export default function SalonLanding() {
       </div>
 
       {/* Footer */}
-      <footer style={{ borderTop: `0.5px solid ${BORDER}`, padding: '20px 64px', textAlign: 'center' }} className="max-sm:px-5">
+      <footer style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: 20, paddingBottom: 20, textAlign: 'center' }} className="px-16 max-sm:px-5">
         <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', margin: 0 }}>
           {profile.businessName} &middot; Powered by{' '}
           <a href={import.meta.env.VITE_TENANT_APP_DOMAIN ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}` : '/'} style={{ color: PRIMARY, textDecoration: 'none' }}>Kimawa</a>

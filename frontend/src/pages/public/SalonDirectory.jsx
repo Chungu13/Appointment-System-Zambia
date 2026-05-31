@@ -25,7 +25,7 @@ function Eyebrow({ children }) {
 // ── Hero ──────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section style={{ padding: '96px 64px 72px', backgroundColor: '#fff' }} className="max-sm:px-5 max-sm:pt-14 max-sm:pb-12">
+    <section style={{ paddingTop: 96, paddingBottom: 72, backgroundColor: '#fff' }} className="px-16 max-sm:px-5 max-sm:pt-14 max-sm:pb-12">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <Eyebrow>Beauty marketplace · Zambia</Eyebrow>
 
@@ -107,7 +107,7 @@ function SalonsSection() {
   const placeholders = Math.max(0, 2 - salons.length)
 
   return (
-    <section style={{ padding: '72px 64px', backgroundColor: '#fff' }} className="max-sm:px-5">
+    <section style={{ paddingTop: 72, paddingBottom: 72, backgroundColor: '#fff' }} className="px-16 max-sm:px-5">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
@@ -187,8 +187,8 @@ function BottomCTA() {
     'No monthly fees — we take a small % per booking only when you earn.',
   ]
   return (
-    <section style={{ borderTop: `0.5px solid ${BORDER}`, padding: '80px 64px', backgroundColor: '#fff' }} className="max-sm:px-5 max-sm:py-14">
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }} className="max-sm:grid-cols-1 max-sm:gap-10">
+    <section style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: 80, paddingBottom: 80, backgroundColor: '#fff' }} className="px-16 max-sm:px-5 max-sm:py-14">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-20 items-center" style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Left */}
         <div>
           <Eyebrow>Ready to grow</Eyebrow>

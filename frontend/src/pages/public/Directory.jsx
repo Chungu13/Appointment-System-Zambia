@@ -65,7 +65,7 @@ export default function Directory() {
       <LandingNav />
 
       {/* Search hero */}
-      <section style={{ padding: '64px 64px 48px', borderBottom: `0.5px solid ${BORDER}` }} className="max-sm:px-5 max-sm:pt-10 max-sm:pb-8">
+      <section style={{ paddingTop: 64, paddingBottom: 48, borderBottom: `0.5px solid ${BORDER}` }} className="px-16 max-sm:px-5 max-sm:pt-10 max-sm:pb-8">
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>
             Beauty marketplace · Zambia
@@ -131,7 +131,7 @@ export default function Directory() {
       </section>
 
       {/* Filters bar */}
-      <section style={{ padding: '16px 64px', borderBottom: `0.5px solid ${BORDER}` }} className="max-sm:px-5">
+      <section style={{ paddingTop: 16, paddingBottom: 16, borderBottom: `0.5px solid ${BORDER}` }} className="px-16 max-sm:px-5">
         <div className="flex-wrap max-sm:flex-nowrap max-sm:overflow-x-auto" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* City selector */}
           <select
@@ -173,7 +173,7 @@ export default function Directory() {
       </section>
 
       {/* Results */}
-      <section style={{ padding: '40px 64px 80px', backgroundColor: '#fff' }} className="max-sm:px-5">
+      <section style={{ paddingTop: 40, paddingBottom: 80, backgroundColor: '#fff' }} className="px-16 max-sm:px-5">
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {!loading && salons.length > 0 && (
             <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', margin: '0 0 24px' }}>
