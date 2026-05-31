@@ -50,8 +50,10 @@ export default function DatePicker({ selected, onChange, minDate }) {
 
   function isSelected(day) {
     if (!selected || !day) return false
-    const d = new Date(viewYear, viewMonth, day)
-    return toDateInputValue(d) === selected
+    const yyyy = viewYear
+    const mm = String(viewMonth + 1).padStart(2, '0')
+    const dd = String(day).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}` === selected
   }
 
   function isPast(day) {

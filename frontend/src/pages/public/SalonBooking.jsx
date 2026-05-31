@@ -129,7 +129,7 @@ function Step2DateTime() {
       )}
 
       <div className="grid sm:grid-cols-2 gap-5">
-        <DatePicker selected={date} onChange={setDate} minDate={toDateInputValue()} />
+        <DatePicker selected={date} onChange={setDate} minDate={(() => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}` })()} />
         <div>
           <p className="text-sm font-medium text-on-surface mb-3">Available slots</p>
           {loading && <PageSpinner />}
