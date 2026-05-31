@@ -10,28 +10,67 @@ const sans    = 'Inter, sans-serif'
 
 // ── Parsing helpers ───────────────────────────────────────────────────────────
 
+function to12h(time24) {
+  const [h, m] = time24.split(':').map(Number)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`
+}
+
 function parseTimeSlots(text) {
-  const timeRe = /\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b/gi
-  const matches = [...text.matchAll(timeRe)]
-  if (matches.length < 2) return null
-  const firstIdx = text.search(/\d{1,2}:\d{2}\s*(?:AM|PM)/i)
-  const header = text
-    .slice(0, firstIdx)
-    .replace(/\*\*/g, '')
-    .replace(/[:\-]+\s*$/, '')
-    .trim()
-  return {
-    header: header || 'Available times',
-    slots: [...new Set(matches.map((m) => m[1].replace(/\s+/, ' ')))],
+  // Primary: 24-hour format lines — "- 08:00" or "- 08:00 with Alice" or "08:00"
+  const lines = text.split('\n')
+  const time24Re = /^\s*-?\s*(\d{1,2}:\d{2})(?:\s.*)?$/
+  const timeLines = lines.filter((l) => time24Re.test(l) && l.trim().length > 0)
+  if (timeLines.length >= 2) {
+    const slots = [...new Set(timeLines.map((l) => to12h(l.match(/(\d{1,2}:\d{2})/)[1])))]
+    const firstTimeIdx = lines.findIndex((l) => time24Re.test(l))
+    const header = lines
+      .slice(0, firstTimeIdx)
+      .join(' ')
+      .replace(/\*\*/g, '')
+      .replace(/[:\-]+\s*$/, '')
+      .trim()
+    return { header: header || 'Available times', slots }
   }
+
+  // Fallback: 12-hour format — "9:00 AM", "11:30 PM"
+  const time12Re = /\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b/gi
+  const matches12 = [...text.matchAll(time12Re)]
+  if (matches12.length >= 2) {
+    const firstIdx = text.search(/\d{1,2}:\d{2}\s*(?:AM|PM)/i)
+    const header = text.slice(0, firstIdx).replace(/\*\*/g, '').replace(/[:\-]+\s*$/, '').trim()
+    return {
+      header: header || 'Available times',
+      slots: [...new Set(matches12.map((m) => m[1].replace(/\s+/, ' ')))],
+    }
+  }
+
+  return null
 }
 
 function parseServiceCard(text) {
+  // Primary: structured format from system prompt
+  // SERVICE: Box Braids | DURATION: 240 min | PRICE: ZMW 200 | DEPOSIT: ZMW 100 | STAFF: Alice
+  const structured = text.match(
+    /SERVICE:\s*(.+?)\s*\|\s*DURATION:\s*(\d+)\s*min\s*\|\s*PRICE:\s*ZMW\s*([\d,]+(?:\.\d+)?)(?:\s*\|\s*DEPOSIT:\s*ZMW\s*([\d,]+(?:\.\d+)?))?(?:\s*\|\s*STAFF:\s*(.+?))?(?:\n|$)/i
+  )
+  if (structured) {
+    return {
+      name:     structured[1].trim(),
+      duration: structured[2],
+      price:    structured[3],
+      deposit:  structured[4] || null,
+      staff:    structured[5]?.trim() || null,
+    }
+  }
+
+  // Fallback: heuristic detection (ZMW price + N min on short first line)
   const priceMatch    = text.match(/ZMW\s*([\d,]+(?:\.\d+)?)/i)
   const durationMatch = text.match(/(\d+)\s*min/i)
   if (!priceMatch || !durationMatch) return null
   const lines = text.trim().split('\n').map((l) => l.replace(/\*\*/g, '').trim()).filter(Boolean)
-  if (!lines[0] || lines[0].length > 60) return null        // skip if first line looks like prose
+  if (!lines[0] || lines[0].length > 60) return null
   const staffMatch   = text.match(/with\s+([A-Za-z]+)/i)
   const depositMatch = text.match(/ZMW\s*([\d,]+(?:\.\d+)?)\s*deposit|deposit.*?ZMW\s*([\d,]+(?:\.\d+)?)/i)
   return {
