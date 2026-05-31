@@ -40,6 +40,14 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+.chat-dark-input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .animate-chat-slide-up {
   animation: chat-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

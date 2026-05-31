@@ -510,23 +510,28 @@ export default function SalonLanding() {
       </footer>
 
       {/* Chat FAB */}
-      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
-        {!chatOpen && (
-          <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', backgroundColor: '#fff', padding: '8px 14px', borderRadius: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
-            Ask or Book
-          </span>
-        )}
-        <div style={{ position: 'relative' }}>
-          {!chatOpen && (
-            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: PRIMARY, opacity: 0.5, animation: 'ping 1.5s ease-in-out infinite' }} />
-          )}
-          <button
-            onClick={() => { chatOpen ? setChatOpen(false) : openChat('') }}
-            style={{ position: 'relative', width: 60, height: 60, borderRadius: '50%', backgroundColor: DARK, color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
-          >
-            {chatOpen ? <X size={20} /> : <Sparkles size={20} />}
-          </button>
-        </div>
+      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 40 }}>
+        <button
+          onClick={() => { chatOpen ? setChatOpen(false) : openChat('') }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: chatOpen ? '11px 18px' : '11px 22px',
+            backgroundColor: DARK,
+            border: '0.5px solid rgba(255,255,255,0.14)',
+            borderRadius: 40,
+            color: '#fff',
+            cursor: 'pointer',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+            fontFamily: sans, fontSize: 13, fontWeight: 500,
+            letterSpacing: '0.02em',
+            transition: 'padding 0.15s',
+          }}
+        >
+          {chatOpen
+            ? <><X size={15} style={{ opacity: 0.7 }} /><span>Close</span></>
+            : <><Sparkles size={14} style={{ color: PRIMARY }} /><span>Ask or Book</span></>
+          }
+        </button>
       </div>
 
       {chatOpen && (
