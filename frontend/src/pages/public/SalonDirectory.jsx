@@ -29,19 +29,19 @@ function Hero() {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <Eyebrow>Beauty marketplace · Zambia</Eyebrow>
 
-        <h1 style={{ fontFamily: serif, fontSize: 68, fontWeight: 300, letterSpacing: '-1.5px', lineHeight: 1.05, color: '#1a1a1a', margin: '0 0 24px', maxWidth: 680 }} className="max-sm:text-4xl">
+        <h1 style={{ fontFamily: serif, fontSize: 68, fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.05, color: '#1a1a1a', margin: '0 0 24px', maxWidth: 680 }} className="max-sm:text-4xl">
           Grow Your Beauty Business{' '}
           <em style={{ color: PRIMARY, fontStyle: 'italic' }}>with AI.</em>
         </h1>
 
-        <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: '#666', lineHeight: 1.7, maxWidth: 480, margin: '0 0 28px' }}>
+        <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: '#333', lineHeight: 1.7, maxWidth: 480, margin: '0 0 28px' }}>
           The all-in-one booking platform for beauty and wellness professionals across Zambia. Automate your bookings, delight your customers.
         </p>
 
         {/* Category tags */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 40 }}>
           {['Hair', 'Nails', 'Barbers', 'Spa & Facial', '+ more'].map((tag) => (
-            <span key={tag} style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#888', border: `0.5px solid #ddd`, borderRadius: 3, padding: '5px 12px' }}>
+            <span key={tag} style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, padding: '5px 12px' }}>
               {tag}
             </span>
           ))}
@@ -57,13 +57,13 @@ function Hero() {
           </Link>
           <Link
             to="/how-it-works"
-            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#888', border: `0.5px solid #ddd`, padding: '14px 32px', borderRadius: 3, textDecoration: 'none' }}
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#333', border: `0.5px solid #ddd`, padding: '14px 32px', borderRadius: 3, textDecoration: 'none' }}
           >
             &#9654; See How it Works
           </Link>
         </div>
 
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#666' }}>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#333' }}>
           No credit card needed · Free to get started
         </p>
       </div>
@@ -90,10 +90,10 @@ function StatsBar() {
               borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none',
             }}
           >
-            <p style={{ fontFamily: serif, fontSize: 38, fontWeight: 300, color: PRIMARY, margin: '0 0 6px', letterSpacing: '-1px' }}>
+            <p style={{ fontFamily: serif, fontSize: 38, fontWeight: 400, color: PRIMARY, margin: '0 0 6px', letterSpacing: '-1px' }}>
               {value}
             </p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', margin: 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', margin: 0 }}>
               {label}
             </p>
           </div>
@@ -115,10 +115,10 @@ function SalonsSection() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h2 style={{ fontFamily: serif, fontSize: 30, fontWeight: 300, letterSpacing: '-0.5px', color: '#1a1a1a', margin: '0 0 8px' }}>
+            <h2 style={{ fontFamily: serif, fontSize: 30, fontWeight: 400, letterSpacing: '-0.5px', color: '#1a1a1a', margin: '0 0 8px' }}>
               Businesses already on Kimawa
             </h2>
-            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#666', margin: 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#333', margin: 0 }}>
               Join beauty professionals across Zambia growing their business with AI.
             </p>
           </div>
@@ -173,7 +173,7 @@ function Features() {
             }}
           >
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 12px' }}>{title}</p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', lineHeight: 1.9, margin: 0 }}>{body}</p>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', lineHeight: 1.9, margin: 0 }}>{body}</p>
           </div>
         ))}
       </div>
@@ -195,10 +195,10 @@ function BottomCTA() {
         {/* Left */}
         <div>
           <Eyebrow>Ready to grow</Eyebrow>
-          <h2 style={{ fontFamily: serif, fontSize: 40, fontWeight: 300, letterSpacing: '-1px', color: '#1a1a1a', margin: '0 0 16px', lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: serif, fontSize: 40, fontWeight: 400, letterSpacing: '-1px', color: '#1a1a1a', margin: '0 0 16px', lineHeight: 1.1 }}>
             Precision Tools for Beauty Professionals
           </h2>
-          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#666', lineHeight: 1.7, margin: '0 0 32px' }}>
+          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#333', lineHeight: 1.7, margin: '0 0 32px' }}>
             Automate your bookings, delight your customers.
           </p>
           <Link
@@ -207,7 +207,7 @@ function BottomCTA() {
           >
             List Your Business Free
           </Link>
-          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#666', marginTop: 12 }}>
+          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#333', marginTop: 12 }}>
             No credit card needed · Free to get started
           </p>
         </div>
@@ -217,7 +217,7 @@ function BottomCTA() {
           {bullets.map((b) => (
             <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: PRIMARY, flexShrink: 0, marginTop: 7 }} />
-              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#888', lineHeight: 1.6 }}>{b}</span>
+              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#333', lineHeight: 1.6 }}>{b}</span>
             </li>
           ))}
         </ul>

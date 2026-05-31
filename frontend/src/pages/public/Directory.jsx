@@ -70,11 +70,11 @@ export default function Directory() {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>
             Beauty marketplace · Zambia
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 52, fontWeight: 300, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="max-sm:text-3xl">
+          <h1 style={{ fontFamily: serif, fontSize: 52, fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="max-sm:text-3xl">
             Find Your Perfect{' '}
             <em style={{ color: PRIMARY, fontStyle: 'italic' }}>Beauty Professional</em>
           </h1>
-          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#666', margin: '0 0 36px', maxWidth: 520 }}>
+          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#333', margin: '0 0 36px', maxWidth: 520 }}>
             Discover and book salons, barbershops, nail techs, spas and more across Zambia.
           </p>
 
@@ -82,7 +82,7 @@ export default function Directory() {
           <div style={{ display: 'flex', gap: 12, maxWidth: 720 }} className="max-sm:flex-col">
             {/* Name/type */}
             <div style={{ flex: 1, position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#666', pointerEvents: 'none' }} />
+              <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#333', pointerEvents: 'none' }} />
               <input
                 type="text"
                 value={search}
@@ -99,12 +99,12 @@ export default function Directory() {
 
             {/* Area */}
             <div style={{ flex: 1, position: 'relative' }}>
-              <MapPin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#666', pointerEvents: 'none' }} />
+              <MapPin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#333', pointerEvents: 'none' }} />
               {city === 'Lusaka' ? (
                 <select
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: area ? '#1a1a1a' : '#666', border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff', appearance: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: area ? '#1a1a1a' : '#333', border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff', appearance: 'none' }}
                 >
                   <option value="">All Lusaka areas…</option>
                   {LUSAKA_AREAS.filter((a) => a !== 'Other').map((a) => <option key={a} value={a}>{a}</option>)}
@@ -137,7 +137,7 @@ export default function Directory() {
           <select
             value={city}
             onChange={(e) => { setCity(e.target.value); setArea('') }}
-            style={{ fontFamily: sans, fontSize: 12, color: '#888', border: `0.5px solid #ddd`, borderRadius: 3, padding: '6px 12px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer' }}
+            style={{ fontFamily: sans, fontSize: 12, color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, padding: '6px 12px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer' }}
           >
             {FILTER_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -151,7 +151,7 @@ export default function Directory() {
                 onClick={() => setCategory(value)}
                 style={{
                   fontFamily: sans, fontSize: 12, fontWeight: active ? 500 : 400,
-                  color: active ? '#fff' : '#888',
+                  color: active ? '#fff' : '#333',
                   backgroundColor: active ? PRIMARY : 'transparent',
                   border: `0.5px solid ${active ? PRIMARY : '#ddd'}`,
                   borderRadius: 3, padding: '6px 14px', cursor: 'pointer',
@@ -165,7 +165,7 @@ export default function Directory() {
 
           {/* Results count */}
           {!loading && (
-            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666' }}>
+            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333' }}>
               {salons.length} {salons.length === 1 ? 'result' : 'results'}
             </span>
           )}
@@ -176,7 +176,7 @@ export default function Directory() {
       <section style={{ padding: '40px 64px 80px', backgroundColor: '#fff' }} className="max-sm:px-5">
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {!loading && salons.length > 0 && (
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', margin: '0 0 24px' }}>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', margin: '0 0 24px' }}>
               Showing {salons.length} {salons.length === 1 ? 'business' : 'businesses'}{city !== 'All Cities' ? ` in ${city}` : ' in Zambia'}
             </p>
           )}
@@ -189,7 +189,7 @@ export default function Directory() {
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
               <Search size={32} style={{ color: '#ddd', margin: '0 auto 16px' }} />
               <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#1a1a1a', margin: '0 0 6px' }}>No results found</p>
-              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#666', margin: '0 0 24px' }}>
+              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#333', margin: '0 0 24px' }}>
                 Try a different city or category, or{' '}
                 <a href="/signup" style={{ color: PRIMARY, textDecoration: 'underline' }}>list your business</a>.
               </p>
