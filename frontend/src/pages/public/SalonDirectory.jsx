@@ -48,7 +48,7 @@ function Hero() {
         </div>
 
         {/* Buttons */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+        <div className="justify-start max-sm:justify-center" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
           <Link
             to="/signup"
             style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 32px', borderRadius: 3, textDecoration: 'none' }}
@@ -63,7 +63,7 @@ function Hero() {
           </Link>
         </div>
 
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#333' }}>
+        <p className="max-sm:text-center" style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#333' }}>
           No credit card needed · Free to get started
         </p>
       </div>
@@ -160,14 +160,28 @@ function Features() {
   ]
   return (
     <section style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }} className="max-sm:grid-cols-1">
+      {/* Mobile: horizontally scrollable strip */}
+      <div
+        className="flex sm:hidden overflow-x-auto gap-4 pb-3 px-5"
+        style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+      >
+        {features.map(({ title, body }) => (
+          <div
+            key={title}
+            style={{ minWidth: 260, flexShrink: 0, scrollSnapAlign: 'start', padding: '28px 24px', border: `0.5px solid ${BORDER}`, borderRadius: 8 }}
+          >
+            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 12px' }}>{title}</p>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', lineHeight: 1.9, margin: 0 }}>{body}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: 3-col grid */}
+      <div className="hidden sm:grid sm:grid-cols-3" style={{ maxWidth: 1200, margin: '0 auto' }}>
         {features.map(({ title, body }, i) => (
           <div
             key={title}
-            style={{
-              padding: '48px 40px',
-              borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none',
-            }}
+            style={{ padding: '48px 40px', borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}
           >
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 12px' }}>{title}</p>
             <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', lineHeight: 1.9, margin: 0 }}>{body}</p>
