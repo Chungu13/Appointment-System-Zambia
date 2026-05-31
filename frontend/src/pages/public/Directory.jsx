@@ -74,7 +74,7 @@ export default function Directory() {
             Find Your Perfect{' '}
             <em style={{ color: PRIMARY, fontStyle: 'italic' }}>Beauty Professional</em>
           </h1>
-          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#666', margin: '0 0 36px', maxWidth: 520 }}>
+          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#666', margin: '0 0 36px', maxWidth: 520 }}>
             Discover and book salons, barbershops, nail techs, spas and more across Zambia.
           </p>
 
@@ -104,7 +104,7 @@ export default function Directory() {
                 <select
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: area ? '#1a1a1a' : '#bbb', border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff', appearance: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: area ? '#1a1a1a' : '#666', border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff', appearance: 'none' }}
                 >
                   <option value="">All Lusaka areas…</option>
                   {LUSAKA_AREAS.filter((a) => a !== 'Other').map((a) => <option key={a} value={a}>{a}</option>)}
@@ -165,7 +165,7 @@ export default function Directory() {
 
           {/* Results count */}
           {!loading && (
-            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666' }}>
+            <span style={{ marginLeft: 'auto', fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666' }}>
               {salons.length} {salons.length === 1 ? 'result' : 'results'}
             </span>
           )}
@@ -176,7 +176,7 @@ export default function Directory() {
       <section style={{ padding: '40px 64px 80px', backgroundColor: '#fff' }} className="max-sm:px-5">
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {!loading && salons.length > 0 && (
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666', margin: '0 0 24px' }}>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', margin: '0 0 24px' }}>
               Showing {salons.length} {salons.length === 1 ? 'business' : 'businesses'}{city !== 'All Cities' ? ` in ${city}` : ' in Zambia'}
             </p>
           )}
@@ -189,7 +189,7 @@ export default function Directory() {
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
               <Search size={32} style={{ color: '#ddd', margin: '0 auto 16px' }} />
               <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#1a1a1a', margin: '0 0 6px' }}>No results found</p>
-              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#666', margin: '0 0 24px' }}>
+              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#666', margin: '0 0 24px' }}>
                 Try a different city or category, or{' '}
                 <a href="/signup" style={{ color: PRIMARY, textDecoration: 'underline' }}>list your business</a>.
               </p>

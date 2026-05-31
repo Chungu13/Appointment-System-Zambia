@@ -34,7 +34,7 @@ function Hero() {
           <em style={{ color: PRIMARY, fontStyle: 'italic' }}>with AI.</em>
         </h1>
 
-        <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 300, color: '#666', lineHeight: 1.7, maxWidth: 480, margin: '0 0 28px' }}>
+        <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: '#666', lineHeight: 1.7, maxWidth: 480, margin: '0 0 28px' }}>
           The all-in-one booking platform for beauty and wellness professionals across Zambia. Automate your bookings, delight your customers.
         </p>
 
@@ -63,7 +63,7 @@ function Hero() {
           </Link>
         </div>
 
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666' }}>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#666' }}>
           No credit card needed · Free to get started
         </p>
       </div>
@@ -93,7 +93,7 @@ function StatsBar() {
             <p style={{ fontFamily: serif, fontSize: 38, fontWeight: 300, color: PRIMARY, margin: '0 0 6px', letterSpacing: '-1px' }}>
               {value}
             </p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666', margin: 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', margin: 0 }}>
               {label}
             </p>
           </div>
@@ -118,7 +118,7 @@ function SalonsSection() {
             <h2 style={{ fontFamily: serif, fontSize: 30, fontWeight: 300, letterSpacing: '-0.5px', color: '#1a1a1a', margin: '0 0 8px' }}>
               Businesses already on Kimawa
             </h2>
-            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#666', margin: 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#666', margin: 0 }}>
               Join beauty professionals across Zambia growing their business with AI.
             </p>
           </div>
@@ -173,7 +173,7 @@ function Features() {
             }}
           >
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 12px' }}>{title}</p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#666', lineHeight: 1.9, margin: 0 }}>{body}</p>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', lineHeight: 1.9, margin: 0 }}>{body}</p>
           </div>
         ))}
       </div>
@@ -198,7 +198,7 @@ function BottomCTA() {
           <h2 style={{ fontFamily: serif, fontSize: 40, fontWeight: 300, letterSpacing: '-1px', color: '#1a1a1a', margin: '0 0 16px', lineHeight: 1.1 }}>
             Precision Tools for Beauty Professionals
           </h2>
-          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: '#666', lineHeight: 1.7, margin: '0 0 32px' }}>
+          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#666', lineHeight: 1.7, margin: '0 0 32px' }}>
             Automate your bookings, delight your customers.
           </p>
           <Link
@@ -207,7 +207,7 @@ function BottomCTA() {
           >
             List Your Business Free
           </Link>
-          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', marginTop: 12 }}>
+          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#666', marginTop: 12 }}>
             No credit card needed · Free to get started
           </p>
         </div>
@@ -217,7 +217,7 @@ function BottomCTA() {
           {bullets.map((b) => (
             <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: PRIMARY, flexShrink: 0, marginTop: 7 }} />
-              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#888', lineHeight: 1.6 }}>{b}</span>
+              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#888', lineHeight: 1.6 }}>{b}</span>
             </li>
           ))}
         </ul>
