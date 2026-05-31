@@ -40,6 +40,7 @@ class SalonProfileType:
     area: str
     address: str
     cover_image_url: str
+    portfolio_preview_url: str
     services: List[ServiceType]
     opening_hours: List[OpeningHoursType]
     staff: List[BookableStaffType]
@@ -148,6 +149,7 @@ class ServicesQuery:
             area=tenant.area or "",
             address=tenant.address,
             cover_image_url=tenant.cover_image_url or "",
+            portfolio_preview_url=tenant.portfolio_preview_url or "",
             services=services,
             opening_hours=opening_hours,
             staff=staff_list,
