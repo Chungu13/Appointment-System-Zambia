@@ -89,8 +89,6 @@ function Step2DateTime() {
   const staffList = profileData?.salonProfile?.staff ?? []
   const staffCount = profileData?.salonProfile?.staffCount ?? 0
 
-  const noSlots = !loading && !error && slots.length === 0
-
   return (
     <div>
       <h2 className="font-display text-xl font-semibold text-on-surface mb-4">Pick a date & time</h2>
@@ -141,11 +139,7 @@ function Step2DateTime() {
               showStaffName={staffCount > 1 && !selectedStaffId}
             />
           )}
-          {noSlots && (
-            <p className="text-sm text-on-surface-variant text-center py-6">
-              No availability on this date. Please try another date.
-            </p>
-          )}
+
         </div>
       </div>
       <div className="flex gap-3 mt-6">
