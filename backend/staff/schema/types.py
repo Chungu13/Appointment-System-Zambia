@@ -55,13 +55,17 @@ class StaffDetailType:
 
 
 def user_to_type(u) -> UserType:
+    try:
+        role = RoleEnum(u.role)
+    except (ValueError, KeyError, TypeError):
+        role = RoleEnum("staff")
     return UserType(
         id=u.pk,
         username=u.username,
         full_name=u.full_name,
         email=u.email,
         phone=u.phone,
-        role=RoleEnum(u.role),
+        role=role,
         avatar_url=u.avatar_url or "",
         bio=getattr(u, "bio", "") or "",
         display_on_public_page=getattr(u, "display_on_public_page", False),
@@ -89,13 +93,17 @@ def staff_detail_to_type(u) -> StaffDetailType:
     service_ids = list(
         StaffService.objects.filter(staff=u).values_list("service_id", flat=True)
     )
+    try:
+        role = RoleEnum(u.role)
+    except (ValueError, KeyError, TypeError):
+        role = RoleEnum("staff")
     return StaffDetailType(
         id=u.pk,
         username=u.username,
         full_name=u.full_name,
         email=u.email,
         phone=u.phone,
-        role=RoleEnum(u.role),
+        role=role,
         avatar_url=u.avatar_url or "",
         bio=getattr(u, "bio", "") or "",
         display_on_public_page=getattr(u, "display_on_public_page", False),

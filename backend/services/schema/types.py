@@ -42,7 +42,7 @@ class StaffServiceType:
 def service_to_type(s) -> ServiceType:
     try:
         category = CategoryEnum(s.category)
-    except ValueError:
+    except (ValueError, KeyError, TypeError):
         category = CategoryEnum("other")
     return ServiceType(
         id=s.pk,

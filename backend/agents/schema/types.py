@@ -29,10 +29,18 @@ class AgentLogType:
 
 
 def agent_log_to_type(log) -> AgentLogType:
+    try:
+        agent_type = AgentTypeEnum(log.agent_type)
+    except (ValueError, KeyError, TypeError):
+        agent_type = AgentTypeEnum("booking")
+    try:
+        outcome = OutcomeEnum(log.outcome)
+    except (ValueError, KeyError, TypeError):
+        outcome = OutcomeEnum("pending_human")
     return AgentLogType(
         id=log.pk,
-        agent_type=AgentTypeEnum(log.agent_type),
+        agent_type=agent_type,
         action=log.action,
-        outcome=OutcomeEnum(log.outcome),
+        outcome=outcome,
         created_at=log.created_at,
     )
