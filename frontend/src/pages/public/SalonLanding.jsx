@@ -119,7 +119,7 @@ function Hero({ profile, onChatOpen }) {
   })
 
   return (
-    <header style={{ position: 'relative', height: 400, overflow: 'hidden' }}>
+    <header className="salon-hero" style={{ position: 'relative', overflow: 'hidden' }}>
       {/* Background */}
       <img src={bannerUrl} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }} />
       <div style={{ position: 'absolute', inset: 0, backgroundColor: DARK }} />
@@ -133,7 +133,7 @@ function Hero({ profile, onChatOpen }) {
           {TYPE_LABELS[profile.businessType] ?? profile.businessType}
         </span>
 
-        <h1 style={{ fontFamily: serif, fontSize: 52, fontWeight: 300, letterSpacing: '-1px', color: '#fff', margin: '0 0 14px', lineHeight: 1.05 }} className="max-sm:text-3xl">
+        <h1 className="salon-hero-name" style={{ fontFamily: serif, fontWeight: 300, letterSpacing: '-1px', color: '#fff', margin: '0 0 14px', lineHeight: 1.05 }}>
           {profile.businessName}
         </h1>
 
@@ -180,8 +180,8 @@ function AIBar({ salonName, onOpen, onChipClick }) {
   }
 
   return (
-    <section style={{ backgroundColor: DARK, paddingTop: 28, paddingBottom: 28 }} className="px-16 max-sm:px-5">
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+    <section style={{ backgroundColor: DARK }}>
+      <div className="salon-ai-bar" style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Label */}
         <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.8)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: PRIMARY, display: 'inline-block' }} />
@@ -189,7 +189,7 @@ function AIBar({ salonName, onOpen, onChipClick }) {
         </p>
 
         {/* Input row */}
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row" style={{ gap: 10, marginBottom: 14 }}>
+        <form onSubmit={handleSubmit} className="salon-ai-input-row">
           <div style={{ flex: 1, position: 'relative' }}>
             <Sparkles size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: PRIMARY, pointerEvents: 'none' }} />
             <input
@@ -238,8 +238,8 @@ function StatsBar({ profile, onBook }) {
   ]
 
   return (
-    <section style={{ backgroundColor: '#faf8f6', borderBottom: `0.5px solid ${BORDER}`, paddingTop: 18, paddingBottom: 18 }} className="px-16 max-sm:px-5">
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+    <section style={{ backgroundColor: '#faf8f6', borderBottom: `0.5px solid ${BORDER}` }}>
+      <div className="salon-stats-bar" style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: 0 }}>
           {stats.map(({ label, value }, i) => (
             <div key={label} style={{ paddingRight: 28, paddingLeft: i > 0 ? 28 : 0, borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}>
@@ -284,7 +284,8 @@ function ServicesSection({ services, onBook }) {
             {items.map((svc, i) => (
               <div
                 key={svc.id}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderTop: i > 0 ? `0.5px solid ${BORDER}` : 'none', gap: 16 }}
+                className="service-item"
+                style={{ borderTop: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#1a1a1a', margin: '0 0 3px' }}>{svc.name}</p>
@@ -293,7 +294,7 @@ function ServicesSection({ services, onBook }) {
                     {svc.depositZmw > 0 && ` · ${formatZMW(svc.depositZmw)} deposit`}
                   </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+                <div className="service-item-right">
                   <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
                   <button
                     onClick={() => onBook(`I want to book ${svc.name}`)}
@@ -366,7 +367,7 @@ function PortfolioSection({ images }) {
     <section>
       <Eyebrow>Portfolio</Eyebrow>
       {/* 2-col on mobile, 3-col on desktop; first image spans 2 rows on desktop only */}
-      <div className="grid grid-cols-2 sm:grid-cols-3" style={{ gap: 8 }}>
+      <div className="salon-portfolio-grid">
         {images.slice(0, 7).map((img, i) => (
           <div
             key={img.id}
@@ -399,7 +400,7 @@ function TeamSection({ staff }) {
   return (
     <section>
       <Eyebrow>Meet the team</Eyebrow>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="max-sm:grid-cols-1">
+      <div className="salon-team-grid">
         {publicStaff.map((member) => (
           <div key={member.id} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: 18, textAlign: 'center' }}>
             {member.avatarUrl ? (
@@ -505,13 +506,37 @@ export default function SalonLanding() {
 
   return (
     <div style={{ backgroundColor: '#fff' }}>
+      <style>{`
+        .salon-hero { height: 400px; }
+        .salon-hero-name { font-size: 52px; }
+        .salon-ai-bar { padding: 28px 64px; }
+        .salon-ai-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .salon-stats-bar { padding: 18px 64px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .salon-content-grid { display: grid; grid-template-columns: 1fr 300px; gap: 56px; padding: 56px 64px; }
+        .salon-portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .salon-team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .service-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; gap: 16px; }
+        .service-item-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+        @media (max-width: 640px) {
+          .salon-hero { height: 260px !important; }
+          .salon-hero-name { font-size: 28px !important; }
+          .salon-ai-bar { padding: 16px !important; }
+          .salon-ai-input-row { flex-direction: column !important; }
+          .salon-stats-bar { padding: 12px 16px !important; }
+          .salon-content-grid { grid-template-columns: 1fr !important; gap: 24px !important; padding: 16px !important; }
+          .salon-portfolio-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+          .salon-team-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .service-item { flex-wrap: wrap; gap: 8px !important; }
+          .service-item-right { width: 100%; justify-content: space-between; }
+        }
+      `}</style>
       <SalonNav />
       <Hero profile={profile} onChatOpen={openChat} />
       <AIBar salonName={profile.businessName} onOpen={openChat} onChipClick={openChat} />
       <StatsBar profile={profile} />
 
       {/* Main content + sidebar */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 56, paddingBottom: 56, display: 'grid', gridTemplateColumns: '1fr 300px', gap: 56, alignItems: 'start' }} className="px-16 max-sm:grid-cols-1 max-sm:px-5 max-sm:py-10">
+      <div className="salon-content-grid" style={{ maxWidth: 1200, margin: '0 auto', alignItems: 'start' }}>
         {/* Main column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
           <ServicesSection services={profile.services.filter((s) => s.isActive)} onBook={openChat} />
