@@ -12,11 +12,9 @@ import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { formatZMW } from '../../lib/utils'
 import { Clock } from 'lucide-react'
 
-const CATEGORIES = ['hair', 'nails', 'braids', 'colour', 'lashes', 'other']
-
 const EMPTY_FORM = {
   name: '',
-  category: 'hair',
+  category: '',
   description: '',
   durationMinutes: 60,
   priceZmw: '',
@@ -24,7 +22,7 @@ const EMPTY_FORM = {
   bufferMinutes: 0,
 }
 
-function ServiceModal({ service, onClose, onSaved }) {
+function ServiceModal({ service, existingCategories, onClose, onSaved }) {
   const isNew = !service
   const [form, setForm] = useState(
     isNew
@@ -95,16 +93,25 @@ function ServiceModal({ service, onClose, onSaved }) {
           />
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-on-surface-variant">Category</label>
-            <select
+            <label className="text-sm font-medium text-on-surface-variant">
+              Category
+              <span className="ml-1 font-normal text-on-surface-variant/60">(free text)</span>
+            </label>
+            <input
+              list="category-suggestions"
               value={form.category}
               onChange={(e) => set('category', e.target.value)}
+              placeholder="e.g. Box Braids, Gel Nails, Facials…"
               className="w-full rounded-xl border border-outline-variant px-3 py-2.5 text-sm text-on-surface bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+            />
+            <datalist id="category-suggestions">
+              {existingCategories.map((c) => (
+                <option key={c} value={c} />
               ))}
-            </select>
+            </datalist>
+            <p className="text-xs text-on-surface-variant">
+              Type anything. Suggestions are from your existing categories.
+            </p>
           </div>
 
           <Textarea
@@ -179,6 +186,10 @@ export default function Services() {
   const { data, loading, error } = useQuery(SERVICES, { variables: { activeOnly: false } })
   const [modal, setModal] = useState(null) // null | 'new' | service object
 
+  const existingCategories = [...new Set(
+    (data?.services ?? []).map((s) => s.category).filter(Boolean)
+  )].sort()
+
   const [toggleService, { loading: toggling }] = useMutation(TOGGLE_SERVICE, {
     refetchQueries: [{ query: SERVICES, variables: { activeOnly: false } }],
   })
@@ -244,6 +255,7 @@ export default function Services() {
       {modal && (
         <ServiceModal
           service={modal === 'new' ? null : modal}
+          existingCategories={existingCategories}
           onClose={() => setModal(null)}
           onSaved={() => {}}
         />

@@ -1,28 +1,13 @@
 from typing import Optional
 
 import strawberry
-from enum import Enum
-
-
-@strawberry.enum
-class CategoryEnum(Enum):
-    HAIR = "hair"
-    NAILS = "nails"
-    BRAIDS = "braids"
-    COLOUR = "colour"
-    LASHES = "lashes"
-    MASSAGE = "massage"
-    BARBER = "barber"
-    FACIAL = "facial"
-    GENERAL = "general"
-    OTHER = "other"
 
 
 @strawberry.type
 class ServiceType:
     id: int
     name: str
-    category: CategoryEnum
+    category: str
     description: str
     duration_minutes: int
     price_zmw: float
@@ -40,14 +25,10 @@ class StaffServiceType:
 
 
 def service_to_type(s) -> ServiceType:
-    try:
-        category = CategoryEnum(s.category)
-    except (ValueError, KeyError, TypeError):
-        category = CategoryEnum("other")
     return ServiceType(
         id=s.pk,
         name=s.name,
-        category=category,
+        category=s.category or "",
         description=s.description,
         duration_minutes=s.duration_minutes,
         price_zmw=float(s.price_zmw),

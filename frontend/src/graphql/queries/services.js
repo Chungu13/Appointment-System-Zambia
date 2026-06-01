@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client'
 
 export const SERVICES = gql`
-  query Services($category: CategoryEnum, $activeOnly: Boolean) {
+  query Services($category: String, $activeOnly: Boolean) {
     services(category: $category, activeOnly: $activeOnly) {
       id
       name

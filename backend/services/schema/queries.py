@@ -7,7 +7,7 @@ from strawberry.types import Info
 from services.models import Service
 from tenants.schema import BusinessPoliciesType, _policies_from_db
 
-from .types import CategoryEnum, ServiceType, service_to_type, PortfolioImageType, portfolio_image_to_type
+from .types import ServiceType, service_to_type, PortfolioImageType, portfolio_image_to_type
 
 _DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -56,14 +56,14 @@ class ServicesQuery:
     def services(
         self,
         info: Info,
-        category: Optional[CategoryEnum] = None,
+        category: Optional[str] = None,
         active_only: bool = True,
     ) -> List[ServiceType]:
         qs = Service.objects.all()
         if active_only:
             qs = qs.filter(is_active=True)
         if category is not None:
-            qs = qs.filter(category=category.value)
+            qs = qs.filter(category=category)
         return [service_to_type(s) for s in qs]
 
     @strawberry.field

@@ -6,17 +6,8 @@ from django.db.models import F, Q
 
 
 class Service(models.Model):
-    CATEGORY_CHOICES = [
-        ("hair", "Hair"),
-        ("nails", "Nails"),
-        ("braids", "Braids"),
-        ("colour", "Colour"),
-        ("lashes", "Lashes"),
-        ("other", "Other"),
-    ]
-
     name = models.CharField(max_length=150)
-    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=100, blank=True, default="")
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(default=60)
     price_zmw = models.DecimalField(max_digits=10, decimal_places=2)
