@@ -21,10 +21,7 @@ There is no 9am-5pm fallback.
 """
 
 import datetime
-import logging
 from typing import Optional
-
-logger = logging.getLogger(__name__)
 
 
 def build_availability_slots(
@@ -72,9 +69,6 @@ def build_availability_slots(
             (row["starts_at"], row["ends_at"])
         )
 
-    for staff_id, wh in wh_by_staff.items():
-        logger.warning(f"[slots] staff={staff_id} day={day_of_week} start={wh.start_time} end={wh.end_time} is_day_off={wh.is_day_off}")
-
     now   = datetime.datetime.now(tz=tz)   # current time in Africa/Lusaka
     today = now.date()                      # today's date in CAT, not UTC server time
     earliest = (now + datetime.timedelta(minutes=30)) if date == today else None
@@ -101,7 +95,6 @@ def build_availability_slots(
             if earliest is not None and cursor < earliest:
                 cursor += step
                 continue
-            logger.warning(f"[slots] generating slot at {cursor.strftime('%H:%M')} earliest={earliest}")
             if not any(
                 not (slot_end <= b_start or cursor >= b_end)
                 for b_start, b_end in booked

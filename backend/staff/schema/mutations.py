@@ -149,6 +149,19 @@ class StaffMutation:
         # Normal flow — create a separate staff account
         if not full_name or not phone or not username:
             raise ValueError("fullName, phone, and username are required.")
+
+        # Idempotent: if a staff member with this full_name already exists, update and return them
+        existing = User.objects.filter(full_name=full_name).first()
+        if existing:
+            update_fields = ["phone", "email", "updated_at"]
+            existing.phone = phone
+            existing.email = email
+            if pin:
+                existing.pin_hash = make_password(pin)
+                update_fields.append("pin_hash")
+            existing.save(update_fields=update_fields)
+            return user_to_type(existing)
+
         if User.objects.filter(username=username).exists():
             raise ValueError("Username already taken.")
 

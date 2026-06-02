@@ -9,7 +9,7 @@ class User(AbstractUser):
         ("staff", "Staff"),
     ]
 
-    full_name = models.CharField(max_length=150)
+    full_name = models.CharField(max_length=150, unique=True)
     phone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="staff")
     avatar_url = models.TextField(blank=True)
