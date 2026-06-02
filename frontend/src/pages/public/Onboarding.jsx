@@ -1132,11 +1132,17 @@ export default function Onboarding() {
     }
   }
 
+  function toTimeStr(val) {
+    if (!val) return null
+    const p = val.split(':')
+    return `${p[0].padStart(2,'0')}:${(p[1]||'00').padStart(2,'0')}:${(p[2]||'00').padStart(2,'0')}`
+  }
+
   async function applyHours(staffId, hours) {
     for (let day = 0; day < 7; day++) {
       const isDayOff = !hours.days.includes(day)
       await setWorkingHours({
-        variables: { staffId, dayOfWeek: day, isDayOff, startTime: isDayOff ? null : hours.start, endTime: isDayOff ? null : hours.end },
+        variables: { staffId, dayOfWeek: day, isDayOff, startTime: isDayOff ? null : toTimeStr(hours.start), endTime: isDayOff ? null : toTimeStr(hours.end) },
       })
     }
   }

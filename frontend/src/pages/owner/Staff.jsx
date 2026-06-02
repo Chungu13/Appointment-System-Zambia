@@ -140,14 +140,21 @@ function HoursRow({ staffId, day, wh }) {
     onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
   })
 
+  // Ensure HH:MM:SS format — time inputs return "HH:MM", Strawberry needs seconds
+  function toTimeStr(val) {
+    if (!val) return null
+    const p = val.split(':')
+    return `${p[0].padStart(2,'0')}:${(p[1]||'00').padStart(2,'0')}:${(p[2]||'00').padStart(2,'0')}`
+  }
+
   function save() {
     setHours({
       variables: {
         staffId,
         dayOfWeek: day,
         isDayOff,
-        startTime: isDayOff ? null : start || null,
-        endTime: isDayOff ? null : end || null,
+        startTime: isDayOff ? null : toTimeStr(start),
+        endTime: isDayOff ? null : toTimeStr(end),
       },
     })
   }

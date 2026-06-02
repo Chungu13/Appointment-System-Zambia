@@ -80,8 +80,9 @@ def build_availability_slots(
         if not wh or wh.is_day_off or not wh.start_time or not wh.end_time:
             continue  # No working-hours configured — skip, no fallback
 
-        day_start = datetime.datetime.combine(date, wh.start_time).replace(tzinfo=tz)
-        day_end = datetime.datetime.combine(date, wh.end_time).replace(tzinfo=tz)
+        # replace(tzinfo=None) strips any unexpected tzinfo before stamping CAT
+        day_start = datetime.datetime.combine(date, wh.start_time.replace(tzinfo=None), tzinfo=tz)
+        day_end   = datetime.datetime.combine(date, wh.end_time.replace(tzinfo=None), tzinfo=tz)
 
         if earliest is not None and earliest >= day_end:
             continue  # All of today's slots have passed for this staff member
