@@ -183,6 +183,12 @@ class BookingAgent:
             "- Put a blank line between sections so the message is easy to read on a phone.\n"
             "- Never write one long paragraph — use short lines with line breaks.\n"
             "- End each message with a short question to keep the conversation moving.\n\n"
+            "Payment confirmation format — CRITICAL:\n"
+            "When a booking is confirmed and payment is required, append this line EXACTLY at the "
+            "end of your response, after a blank line. Do not modify the format:\n"
+            "BOOKING_CONFIRMED | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
+            "payment_ref: [ref] | amount: ZMW [X] | staff: [staff name]\n"
+            "Replace each [placeholder] with the real value. Use 24-hour HH:MM for time.\n\n"
             "Guidelines:\n"
             "- Be concise and friendly.\n"
             "- Prices are in Zambian Kwacha (ZMW). Mention the deposit when relevant.\n"
@@ -371,6 +377,23 @@ class BookingAgent:
             payment.dpo_token = result.payment_url
             payment.save(update_fields=["dpo_transaction_id", "dpo_token", "updated_at"])
 
+            from urllib.parse import quote as _quote
+            from django.conf import settings as _s
+            _app_domain = getattr(_s, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
+            _slug = self.tenant.subdomain
+            _base = (
+                f"http://localhost:{getattr(_s, 'VITE_DEV_PORT', 3000)}"
+                if _s.DEBUG else f"https://{_app_domain}"
+            )
+            frontend_pay_url = (
+                f"{_base}/pay"
+                f"?ref={_quote(result.transaction_ref)}"
+                f"&amount={float(amount):.0f}"
+                f"&service={_quote(appt.service.name)}"
+                f"&salon={_quote(self.tenant.business_name)}"
+                f"&slug={_slug}"
+            )
+
             AgentLog.objects.create(
                 agent_type="payment",
                 action=f"Agent initiated payment of ZMW {amount} for {appt.customer.full_name} ({appt.customer.phone})",
@@ -386,9 +409,12 @@ class BookingAgent:
 
             return {
                 "payment_id": payment.pk,
-                "payment_url": result.payment_url,
+                "payment_url": frontend_pay_url,
                 "transaction_ref": result.transaction_ref,
                 "amount_zmw": str(amount),
+                "service_name": appt.service.name,
+                "staff_name": appt.staff.full_name,
+                "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
             }
 
         return {"error": f"Unknown tool: {name}"}

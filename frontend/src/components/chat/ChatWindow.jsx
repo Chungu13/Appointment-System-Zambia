@@ -82,7 +82,74 @@ function parseServiceCard(text) {
   }
 }
 
+// ── Booking confirmed parser ──────────────────────────────────────────────────
+
+function parseBookingConfirmed(text) {
+  const match = text.match(
+    /BOOKING_CONFIRMED\s*\|\s*service:\s*(.+?)\s*\|\s*date:\s*(\d{4}-\d{2}-\d{2})\s*\|\s*time:\s*(\d{2}:\d{2})\s*\|\s*payment_ref:\s*(\S+?)\s*\|\s*amount:\s*ZMW\s*([\d.]+)\s*\|\s*staff:\s*(.+?)(?:\n|$)/i,
+  )
+  if (!match) return null
+  return {
+    service: match[1].trim(),
+    date:    match[2],
+    time:    match[3],
+    ref:     match[4].trim(),
+    amount:  match[5],
+    staff:   match[6].trim(),
+  }
+}
+
 // ── Rich components ───────────────────────────────────────────────────────────
+
+function PaymentCard({ data, salonName }) {
+  const slug = window.location.hostname.split('.')[0]
+  const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+  const port = window.location.port || '3000'
+  const payBase = appDomain ? `https://${appDomain}` : `http://localhost:${port}`
+  const payUrl = (
+    `${payBase}/pay` +
+    `?ref=${encodeURIComponent(data.ref)}` +
+    `&amount=${data.amount}` +
+    `&service=${encodeURIComponent(data.service)}` +
+    `&salon=${encodeURIComponent(salonName || '')}` +
+    `&slug=${slug}`
+  )
+
+  const dateLabel = (() => {
+    try {
+      return new Date(`${data.date}T${data.time}`).toLocaleDateString('en-GB', {
+        weekday: 'long', month: 'long', day: 'numeric',
+      })
+    } catch { return data.date }
+  })()
+
+  return (
+    <div style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, marginTop: 4 }}>
+      <p style={{ fontFamily: serif, fontSize: 16, fontWeight: 400, color: '#fff', margin: '0 0 4px', lineHeight: 1.2 }}>
+        {data.service}
+      </p>
+      <p style={{ fontFamily: sans, fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '0 0 2px' }}>
+        {dateLabel} at {to12h(data.time)}
+      </p>
+      <p style={{ fontFamily: sans, fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '0 0 12px' }}>
+        with {data.staff}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
+        <span style={{ fontFamily: sans, fontSize: 20, fontWeight: 500, color: '#fff' }}>ZMW {data.amount}</span>
+        <span style={{ fontFamily: sans, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>deposit to confirm</span>
+      </div>
+      <a
+        href={payUrl}
+        style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '10px 0', backgroundColor: PRIMARY, color: '#fff', border: 'none', borderRadius: 6, fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.04em', cursor: 'pointer', textAlign: 'center', textDecoration: 'none' }}
+      >
+        Pay ZMW {data.amount} to confirm
+      </a>
+      <p style={{ fontFamily: sans, fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '8px 0 0', textAlign: 'center' }}>
+        Slot held for 30 minutes
+      </p>
+    </div>
+  )
+}
 
 function ServiceCard({ data, onSend }) {
   return (
@@ -152,7 +219,20 @@ function SlotGrid({ data, onSend }) {
   )
 }
 
-function renderMessage(text, onSend) {
+function renderMessage(text, onSend, salonName) {
+  const bookingIdx = text.search(/BOOKING_CONFIRMED\s*\|/i)
+  if (bookingIdx !== -1) {
+    const humanText = text.slice(0, bookingIdx).trim()
+    const booking = parseBookingConfirmed(text.slice(bookingIdx))
+    if (booking) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {humanText && <span style={{ whiteSpace: 'pre-wrap' }}>{humanText}</span>}
+          <PaymentCard data={booking} salonName={salonName} />
+        </div>
+      )
+    }
+  }
   const slots = parseTimeSlots(text)
   if (slots) return <SlotGrid data={slots} onSend={onSend} />
   const service = parseServiceCard(text)
@@ -162,7 +242,7 @@ function renderMessage(text, onSend) {
 
 // ── Message bubbles ───────────────────────────────────────────────────────────
 
-function MessageBubble({ message, onSend }) {
+function MessageBubble({ message, onSend, salonName }) {
   const isUser = message.role === 'user'
   if (isUser) {
     return (
@@ -176,7 +256,7 @@ function MessageBubble({ message, onSend }) {
   return (
     <div className="animate-chat-fade-in" style={{ display: 'flex', justifyContent: 'flex-start' }}>
       <div style={{ maxWidth: '88%', padding: '10px 14px', backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '12px 12px 12px 2px', fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.85)', lineHeight: 1.7 }}>
-        {renderMessage(message.content, onSend)}
+        {renderMessage(message.content, onSend, salonName)}
       </div>
     </div>
   )
@@ -270,7 +350,7 @@ export default function ChatWindow({ customerPhone, onClose, salonName, initialM
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} onSend={sendMessage} />
+          <MessageBubble key={i} message={msg} onSend={sendMessage} salonName={salonName} />
         ))}
 
         {loading && (

@@ -91,6 +91,17 @@ export const CUSTOMERS = gql`
   }
 `
 
+export const CHECK_PAYMENT_STATUS = gql`
+  query CheckPaymentStatus($ref: String!) {
+    checkPaymentStatus(ref: $ref) {
+      status
+      appointmentId
+      serviceName
+      startsAt
+    }
+  }
+`
+
 export const CUSTOMER_APPOINTMENTS = gql`
   query CustomerAppointments($phone: String!) {
     customerAppointments(phone: $phone) {

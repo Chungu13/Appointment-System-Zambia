@@ -20,6 +20,7 @@ import ForBusinesses from './pages/public/ForBusinesses'
 import Signup from './pages/public/Signup'
 import Onboarding from './pages/public/Onboarding'
 import Directory from './pages/public/Directory'
+import DummyPayment from './pages/public/DummyPayment'
 
 // Auth
 import Login from './pages/auth/Login'
@@ -77,6 +78,7 @@ export default function App() {
             <Route path="/for-businesses" element={<ForBusinesses />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/pay" element={<DummyPayment />} />
 
             <Route path="/login" element={<Login />} />
 

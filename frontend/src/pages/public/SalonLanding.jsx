@@ -416,6 +416,23 @@ export default function SalonLanding() {
   const [chatInitMsg,   setChatInitMsg]   = useState('')
   const { data, loading, error } = useQuery(SALON_PROFILE)
 
+  // Detect return from payment page and auto-open chat with confirmation
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const successRef = params.get('payment_success')
+    const service    = params.get('service')
+    if (!successRef) return
+    window.history.replaceState({}, '', window.location.pathname)
+    const msg = service
+      ? `Your payment is confirmed! Your appointment for ${decodeURIComponent(service)} is booked. You'll receive a reminder before your appointment.`
+      : `Your payment is confirmed! Your appointment is booked. You'll receive a reminder before your appointment.`
+    setTimeout(() => {
+      setChatInitMsg(msg)
+      playPopSound()
+      setChatOpen(true)
+    }, 400)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (loading) return <PageSpinner />
   if (error)   return <ErrorMessage message={error.message} />
 

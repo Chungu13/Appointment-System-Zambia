@@ -45,6 +45,23 @@ class InitiatePaymentResult:
     transaction_ref: str
 
 
+@strawberry.type
+class ConfirmPaymentResult:
+    success: bool
+    appointment_id: int
+    service_name: str
+    starts_at: str
+    staff_name: str
+
+
+@strawberry.type
+class PaymentStatusResult:
+    status: str
+    appointment_id: int
+    service_name: str
+    starts_at: str
+
+
 def payment_to_type(p) -> PaymentType:
     return PaymentType(
         id=p.pk,

@@ -1,7 +1,7 @@
 import strawberry
 from strawberry.types import Info
 
-from .types import InitiatePaymentResult, PaymentMethodEnum, PaymentTypeEnum
+from .types import ConfirmPaymentResult, InitiatePaymentResult, PaymentMethodEnum, PaymentTypeEnum
 
 
 @strawberry.type
@@ -76,4 +76,36 @@ class PaymentsMutation:
             payment_id=payment.pk,
             payment_url=result.payment_url,
             transaction_ref=result.transaction_ref,
+        )
+
+    @strawberry.mutation
+    def confirm_dummy_payment(self, info: Info, payment_ref: str) -> ConfirmPaymentResult:
+        from django.utils import timezone
+        from bookings.models import Appointment
+        from payments.models import Payment
+
+        payment = (
+            Payment.objects
+            .select_related("appointment__service", "appointment__staff")
+            .filter(dpo_transaction_id=payment_ref)
+            .first()
+        )
+        if not payment:
+            raise ValueError("Payment not found.")
+
+        appt = payment.appointment
+
+        if payment.status != "completed":
+            payment.status = "completed"
+            payment.paid_at = timezone.now()
+            payment.save(update_fields=["status", "paid_at", "updated_at"])
+            appt.status = "confirmed"
+            appt.save(update_fields=["status", "updated_at"])
+
+        return ConfirmPaymentResult(
+            success=True,
+            appointment_id=appt.pk,
+            service_name=appt.service.name,
+            starts_at=appt.starts_at.isoformat(),
+            staff_name=appt.staff.full_name,
         )
