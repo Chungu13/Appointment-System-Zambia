@@ -69,11 +69,7 @@ class BookingsMutation:
             defaults={"full_name": customer_name},
         )
 
-        deposit_required = (
-            float(service.price_zmw)
-            if customer.no_show_count >= 2
-            else float(service.deposit_zmw)
-        )
+        deposit_required = float(service.deposit_zmw)
 
         # ── Path A: zero deposit → CONFIRMED immediately ─────────────────────
         if deposit_required <= 0:

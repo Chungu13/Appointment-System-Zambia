@@ -341,12 +341,8 @@ class BookingAgent:
                 return {"error": "Cannot pay for a cancelled appointment."}
 
             deposit = appt.service.deposit_zmw
-            amount = (
-                appt.service.price_zmw
-                if (not deposit or appt.customer.no_show_count >= 2)
-                else deposit
-            )
-            payment_type = "deposit" if deposit and appt.customer.no_show_count < 2 else "balance"
+            amount = deposit if deposit else appt.service.price_zmw
+            payment_type = "deposit" if deposit else "balance"
 
             payment = Payment.objects.create(
                 appointment=appt,
