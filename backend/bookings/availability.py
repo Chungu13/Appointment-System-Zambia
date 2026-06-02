@@ -84,7 +84,7 @@ def build_availability_slots(
         day_end = datetime.datetime.combine(date, wh.end_time).replace(tzinfo=tz)
 
         if earliest is not None and earliest >= day_end:
-            continue
+            continue  # All of today's slots have passed for this staff member
 
         booked = booked_by_staff.get(ss.staff_id, [])
         cursor = day_start

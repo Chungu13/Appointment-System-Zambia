@@ -126,8 +126,25 @@ class BookingAgent:
         self.tenant = tenant
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
+    @staticmethod
+    def _fmt_date(d) -> str:
+        day = d.day
+        suffix = "th" if 11 <= day % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+        return f"{day}{suffix} {d.strftime('%B %Y')}"
+
     def _system_prompt(self, customer_phone: str) -> str:
-        today = timezone.localdate()
+        import datetime as _dt
+        import zoneinfo as _zi
+        _cat = _zi.ZoneInfo("Africa/Lusaka")
+        _now = timezone.now().astimezone(_cat)
+        today = _now.date()
+        today_day = _now.strftime("%A")
+        today_str = self._fmt_date(today)
+        current_time_str = _now.strftime("%I:%M %p").lstrip("0")
+        tomorrow = today + _dt.timedelta(days=1)
+        tomorrow_day = tomorrow.strftime("%A")
+        tomorrow_str = self._fmt_date(tomorrow)
+
         policies = self.tenant.business_policies or {}
         policies_lines = []
         if policies.get("cancellationPolicy"):
@@ -161,41 +178,57 @@ class BookingAgent:
             "a beauty salon in Zambia.\n\n"
             "Your job:\n"
             "- When a customer names a service they want to book, IMMEDIATELY call check_availability "
-            "for today's date and show the available time slots. Do not ask what date or time they want "
-            "first — just show today's slots. Format times as a simple bullet list:\n"
-            "  - HH:MM\n"
-            "  - HH:MM\n"
-            "After the list, add on a new line: Want a different day? Just tell me.\n"
-            "If no slots are available today, automatically check tomorrow and show those slots instead.\n"
+            f"for today ({today.isoformat()}) and check whether any slots come back.\n"
             "- Be concise — no filler, no unnecessary questions. When a customer asks about a service, "
             "give them the price, duration and available times immediately.\n"
             "- Confirm service, stylist, date, and time before calling create_booking.\n"
-            "- After booking, offer to initiate payment and ask which method they prefer "
+            "- After booking, offer payment — deposit only. Ask which payment method they prefer "
             "(Airtel Money, MTN MoMo, card, or cash).\n\n"
+            "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
+            f"- The current time in Zambia is {current_time_str} (CAT, UTC+2). "
+            f"Today is {today_day}, {today_str}.\n"
+            "- After calling check_availability for today:\n"
+            "  → If slots are returned: say 'Here are the available times for today, "
+            f"{today_day} {today_str}:' then list the times as a bullet list.\n"
+            "  → If the result is empty (salon closed or all today's slots are in the past):\n"
+            "     Do NOT mention today at all.\n"
+            f"     Automatically call check_availability for tomorrow ({tomorrow.isoformat()}).\n"
+            f"     Say: 'Here are the available times for tomorrow, {tomorrow_day} {tomorrow_str}:'"
+            " then list the times.\n"
+            "- After every slot list, add on a new line: Would you like a different day?\n"
+            "- NEVER show past time slots. NEVER show slots for a closed day.\n"
+            "- NEVER write dates as '2026-06-03' — always write '3rd June 2026' or "
+            "'tomorrow, Wednesday 3rd June'. Use ordinal suffixes (1st, 2nd, 3rd, 4th...).\n\n"
             "Formatting rules — VERY IMPORTANT:\n"
             "- Never use markdown. No **bold**, no *italic*, no asterisks of any kind.\n"
             "- When a customer asks about a specific service, reply with ONLY this on one line:\n"
             "  SERVICE: [name] | DURATION: [X min] | PRICE: ZMW [X] | DEPOSIT: ZMW [X] | STAFF: [name]\n"
             "  Then on a new line ask if they want to see available times. No other text before the SERVICE line.\n"
-            "- When listing available time slots, format them as a simple bullet list in 24-hour time:\n"
-            "  - 08:00\n"
-            "  - 09:00\n"
-            "  - 10:00\n"
+            "- When listing available time slots, show them in 12-hour AM/PM format:\n"
+            "  - 9:00 AM\n"
+            "  - 10:30 AM\n"
+            "  - 2:00 PM\n"
             "  Do not add any explanation or other text around the times list.\n"
             "- Put a blank line between sections so the message is easy to read on a phone.\n"
             "- Never write one long paragraph — use short lines with line breaks.\n"
             "- End each message with a short question to keep the conversation moving.\n\n"
+            "Payment — IMPORTANT:\n"
+            "- Collect the deposit only — never the full price upfront.\n"
+            "- Tell the customer: 'To confirm your booking, a deposit of ZMW [deposit amount] is required. "
+            "The remaining ZMW [balance] is paid in person after your service.'\n"
+            "- NEVER charge the full service price upfront.\n\n"
             "Payment confirmation format — CRITICAL:\n"
             "When a booking is confirmed and payment is required, append this line EXACTLY at the "
             "end of your response, after a blank line. Do not modify the format:\n"
             "BOOKING_CONFIRMED | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
             "payment_ref: [ref] | amount: ZMW [X] | staff: [staff name]\n"
-            "Replace each [placeholder] with the real value. Use 24-hour HH:MM for time.\n\n"
+            "Replace each [placeholder] with the real value. Use 24-hour HH:MM for time in this line only.\n\n"
             "Guidelines:\n"
-            "- Be concise and friendly.\n"
-            "- Prices are in Zambian Kwacha (ZMW). Mention the deposit when relevant.\n"
+            "- Use simple, friendly English. Write dates as '3rd June 2026' or 'tomorrow, Wednesday 3rd June'. "
+            "Write times as '9:00 AM' or '2:30 PM' — never '09:00' or '14:30'. Keep responses short and clear.\n"
+            "- Prices are in Zambian Kwacha (ZMW). Always mention the deposit amount.\n"
             "- If asked something outside your tools, suggest calling the salon directly.\n"
-            f"- Today's date is {today}.\n"
+            f"- Today is {today_day}, {today_str}. Current time in Zambia: {current_time_str}.\n"
             f"- The customer's phone number is {customer_phone}. "
             "You already have this information — never ask the customer for their phone number.\n"
             + policies_section
@@ -353,9 +386,8 @@ class BookingAgent:
             if appt.status == "cancelled":
                 return {"error": "Cannot pay for a cancelled appointment."}
 
-            deposit = appt.service.deposit_zmw
-            amount = deposit if deposit else appt.service.price_zmw
-            payment_type = "deposit" if deposit else "balance"
+            amount = appt.service.deposit_zmw
+            payment_type = "deposit"
 
             payment = Payment.objects.create(
                 appointment=appt,
