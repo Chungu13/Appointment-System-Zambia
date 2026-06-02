@@ -80,14 +80,21 @@ class PaymentsMutation:
 
     @strawberry.mutation
     def confirm_dummy_payment(self, info: Info, payment_ref: str) -> ConfirmPaymentResult:
+        from django.db.models import Q
         from django.utils import timezone
         from bookings.models import Appointment
         from payments.models import Payment
 
+        q = Q(dpo_transaction_id=payment_ref)
+        try:
+            q |= Q(pk=int(payment_ref))
+        except (ValueError, TypeError):
+            pass
+
         payment = (
             Payment.objects
             .select_related("appointment__service", "appointment__staff")
-            .filter(dpo_transaction_id=payment_ref)
+            .filter(q)
             .first()
         )
         if not payment:
