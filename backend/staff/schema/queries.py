@@ -19,25 +19,6 @@ from .types import (
 @strawberry.type
 class StaffQuery:
     @strawberry.field
-    def debug_working_hours(self, info: Info) -> str:
-        from staff.models import WorkingHours
-        import json
-        rows = WorkingHours.objects.all().values(
-            'staff_id', 'staff__full_name', 'day_of_week',
-            'start_time', 'end_time', 'is_day_off'
-        )
-        return json.dumps([
-            {
-                'staff': r['staff__full_name'],
-                'day': r['day_of_week'],
-                'start': str(r['start_time']),
-                'end': str(r['end_time']),
-                'off': r['is_day_off']
-            }
-            for r in rows
-        ], indent=2)
-
-    @strawberry.field
     def my_profile(self, info: Info) -> UserType:
         user = require_auth(info)
         return user_to_type(user)
