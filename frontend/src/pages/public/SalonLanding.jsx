@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
-import { MapPin, Phone, Calendar, Menu, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { MapPin, Phone, Calendar, Menu, X, ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
 import { SALON_PROFILE } from '../../graphql/queries/salons'
 import ChatWindow from '../../components/chat/ChatWindow'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
@@ -164,7 +164,7 @@ function Hero({ profile, onChatOpen }) {
 }
 
 // ── Stats bar ─────────────────────────────────────────────────────────────────
-function StatsBar({ profile, onBook }) {
+function StatsBar({ profile, onOpenChat }) {
   const minPrice = profile.services.length
     ? Math.min(...profile.services.filter((s) => s.priceZmw > 0).map((s) => s.priceZmw))
     : null
@@ -186,12 +186,12 @@ function StatsBar({ profile, onBook }) {
             </div>
           ))}
         </div>
-        <Link
-          to="/book"
-          style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#888', border: `0.5px solid #ddd`, padding: '9px 20px', borderRadius: 3, textDecoration: 'none', letterSpacing: '0.04em', minHeight: 44, display: 'flex', alignItems: 'center' }}
+        <button
+          onClick={() => onOpenChat('')}
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#888', border: `0.5px solid #ddd`, padding: '9px 20px', borderRadius: 3, background: 'none', cursor: 'pointer', letterSpacing: '0.04em', minHeight: 44, display: 'flex', alignItems: 'center' }}
         >
-          Browse &amp; Book →
-        </Link>
+          Ask or Book
+        </button>
       </div>
     </section>
   )
@@ -206,45 +206,78 @@ function ServicesSection({ services, onBook }) {
     return acc
   }, {})
 
+  const [openCategories, setOpenCategories] = useState(() => {
+    const cats = Object.keys(grouped)
+    return new Set(cats.slice(0, 1))
+  })
+
+  function toggleCategory(cat) {
+    setOpenCategories((prev) => {
+      const next = new Set(prev)
+      if (next.has(cat)) next.delete(cat)
+      else next.add(cat)
+      return next
+    })
+  }
+
   if (services.length === 0) return null
 
   return (
     <section>
       <Eyebrow>Services</Eyebrow>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-        {Object.entries(grouped).map(([cat, items]) => (
-          <div key={cat} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
-            {/* Category header */}
-            <div style={{ padding: '10px 16px', borderBottom: `0.5px solid ${BORDER}`, backgroundColor: '#faf8f6' }}>
-              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#444', margin: 0 }}>{cat}</p>
-            </div>
-            {/* Service rows */}
-            {items.map((svc, i) => (
-              <div
-                key={svc.id}
-                className="service-item"
-                style={{ borderTop: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}
+      <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+        {Object.entries(grouped).map(([cat, items], groupIdx) => {
+          const isOpen = openCategories.has(cat)
+          return (
+            <div key={cat} style={{ borderTop: groupIdx > 0 ? `0.5px solid ${BORDER}` : 'none' }}>
+              {/* Collapsible category header */}
+              <button
+                type="button"
+                onClick={() => toggleCategory(cat)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 20px', background: '#faf8f6',
+                  borderBottom: isOpen ? `0.5px solid ${BORDER}` : 'none',
+                  border: 'none', cursor: 'pointer',
+                }}
               >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#1a1a1a', margin: '0 0 3px' }}>{svc.name}</p>
-                  <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', margin: 0 }}>
-                    {svc.durationMinutes} min
-                    {svc.depositZmw > 0 && ` · ${formatZMW(svc.depositZmw)} deposit`}
-                  </p>
+                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#333' }}>
+                  {cat}
+                </span>
+                <ChevronDown
+                  size={14}
+                  style={{ color: '#999', transition: 'transform 0.18s', transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', flexShrink: 0 }}
+                />
+              </button>
+
+              {/* Service rows — shown when open */}
+              {isOpen && items.map((svc, i) => (
+                <div
+                  key={svc.id}
+                  className="service-item"
+                  style={{ borderTop: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#1a1a1a', margin: '0 0 3px' }}>{svc.name}</p>
+                    <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#666', margin: 0 }}>
+                      {svc.durationMinutes} min
+                      {svc.depositZmw > 0 && ` · ${formatZMW(svc.depositZmw)} deposit`}
+                    </p>
+                  </div>
+                  <div className="service-item-right">
+                    <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
+                    <button
+                      onClick={() => onBook(`I want to book ${svc.name}`)}
+                      style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', letterSpacing: '0.04em' }}
+                    >
+                      Book →
+                    </button>
+                  </div>
                 </div>
-                <div className="service-item-right">
-                  <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
-                  <button
-                    onClick={() => onBook(`I want to book ${svc.name}`)}
-                    style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', letterSpacing: '0.04em' }}
-                  >
-                    Book →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
+              ))}
+            </div>
+          )
+        })}
       </div>
     </section>
   )
@@ -483,7 +516,7 @@ export default function SalonLanding() {
       `}</style>
       <SalonNav />
       <Hero profile={profile} onChatOpen={openChat} />
-      <StatsBar profile={profile} />
+      <StatsBar profile={profile} onOpenChat={openChat} />
 
       {/* Main content + sidebar */}
       <div className="salon-content-grid" style={{ maxWidth: 1200, margin: '0 auto', alignItems: 'start' }}>
