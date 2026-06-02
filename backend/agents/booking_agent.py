@@ -162,9 +162,11 @@ class BookingAgent:
             "Your job:\n"
             "- When a customer names a service they want to book, IMMEDIATELY call check_availability "
             "for today's date and show the available time slots. Do not ask what date or time they want "
-            "first — just show today's slots. Format times as a simple bullet list: - HH:MM. After "
-            "showing today's slots, ask if they want a different day. If no slots are available today, "
-            "automatically check tomorrow and show those slots instead.\n"
+            "first — just show today's slots. Format times as a simple bullet list:\n"
+            "  - HH:MM\n"
+            "  - HH:MM\n"
+            "After the list, add on a new line: Want a different day? Just tell me.\n"
+            "If no slots are available today, automatically check tomorrow and show those slots instead.\n"
             "- Be concise — no filler, no unnecessary questions. When a customer asks about a service, "
             "give them the price, duration and available times immediately.\n"
             "- Confirm service, stylist, date, and time before calling create_booking.\n"
@@ -223,7 +225,12 @@ class BookingAgent:
             rows = list(qs.values("id", "name", "category", "description", "duration_minutes", "price_zmw", "deposit_zmw"))
             return {
                 "services": [
-                    {**r, "price_zmw": str(r["price_zmw"]), "deposit_zmw": str(r["deposit_zmw"])}
+                    {
+                        **r,
+                        "price_zmw": str(r["price_zmw"]),
+                        "deposit_zmw": str(r["deposit_zmw"]),
+                        "display_name": f"{r['category']} — {r['name']}" if r.get("category") else r["name"],
+                    }
                     for r in rows
                 ]
             }

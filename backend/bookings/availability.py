@@ -69,8 +69,8 @@ def build_availability_slots(
             (row["starts_at"], row["ends_at"])
         )
 
-    today = datetime.date.today()
-    now = datetime.datetime.now(tz=tz)
+    now   = datetime.datetime.now(tz=tz)   # current time in Africa/Lusaka
+    today = now.date()                      # today's date in CAT, not UTC server time
     earliest = (now + datetime.timedelta(minutes=30)) if date == today else None
 
     slots: list[dict] = []
