@@ -1,264 +1,353 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { X, Pencil, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
 import { CREATE_SERVICE, UPDATE_SERVICE, TOGGLE_SERVICE } from '../../graphql/mutations/services'
+import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
-import Card from '../../components/ui/Card'
-import Badge from '../../components/ui/Badge'
-import Button from '../../components/ui/Button'
-import Input, { Textarea } from '../../components/ui/Input'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
-import { formatZMW } from '../../lib/utils'
-import { Clock } from 'lucide-react'
+import { CATEGORY_CHIPS, DURATIONS } from '../../lib/services'
 
-const EMPTY_FORM = {
-  name: '',
-  category: '',
-  description: '',
-  durationMinutes: 60,
-  priceZmw: '',
-  depositZmw: '',
-  bufferMinutes: 0,
+const PRIMARY = '#6B2737'
+const MUTED   = '#8B4A5A'
+const BORDER  = '#D4B0B8'
+
+function chipStyle(active) {
+  return {
+    border: `1px solid ${PRIMARY}`,
+    borderRadius: 999,
+    padding: '5px 14px',
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'all 0.12s',
+    backgroundColor: active ? PRIMARY : 'transparent',
+    color: active ? '#fff' : PRIMARY,
+    whiteSpace: 'nowrap',
+    background: active ? PRIMARY : 'transparent',
+  }
 }
 
-function ServiceModal({ service, existingCategories, onClose, onSaved }) {
-  const isNew = !service
-  const [form, setForm] = useState(
-    isNew
-      ? EMPTY_FORM
-      : {
-          name: service.name,
-          category: service.category,
-          description: service.description || '',
-          durationMinutes: service.durationMinutes,
-          priceZmw: service.priceZmw,
-          depositZmw: service.depositZmw,
-          bufferMinutes: service.bufferMinutes || 0,
-        },
-  )
+// ── Service row — inline editable ─────────────────────────────────────────────
+function ServiceRow({ service, onSave, onToggle, toggling }) {
+  const [name, setName] = useState(service.name)
+  const [duration, setDuration] = useState(service.durationMinutes)
+  const [price, setPrice] = useState(Number(service.priceZmw).toString())
 
-  const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, {
-    refetchQueries: [{ query: SERVICES, variables: { activeOnly: false } }],
-    onCompleted: () => { onSaved(); onClose() },
-  })
-  const [updateService, { loading: updating }] = useMutation(UPDATE_SERVICE, {
-    refetchQueries: [{ query: SERVICES, variables: { activeOnly: false } }],
-    onCompleted: () => { onSaved(); onClose() },
-  })
-
-  const loading = creating || updating
-
-  function set(key, value) {
-    setForm((f) => ({ ...f, [key]: value }))
+  function save(overrides = {}) {
+    onSave({
+      id: service.id,
+      name: (overrides.name ?? name).trim() || service.name,
+      durationMinutes: overrides.duration ?? duration,
+      priceZmw: parseFloat(overrides.price ?? price) || 0,
+      depositZmw: service.depositZmw,
+    })
   }
 
-  function submit(e) {
-    e.preventDefault()
-    const vars = {
-      name: form.name,
-      category: form.category,
-      description: form.description,
-      durationMinutes: Number(form.durationMinutes),
-      priceZmw: Number(form.priceZmw),
-      depositZmw: Number(form.depositZmw) || 0,
-      bufferMinutes: Number(form.bufferMinutes) || 0,
-    }
-    if (isNew) {
-      createService({ variables: vars })
-    } else {
-      updateService({ variables: { id: service.id, ...vars } })
-    }
+  const inputBase = {
+    border: 'none',
+    borderBottom: '1px solid transparent',
+    padding: '2px 4px',
+    fontSize: 13,
+    outline: 'none',
+    background: 'transparent',
+    color: '#1a1a1a',
+    transition: 'border-color 0.1s',
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant">
-          <h2 className="font-display text-lg font-semibold text-on-surface">
-            {isNew ? 'New service' : 'Edit service'}
-          </h2>
-          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface">
-            <X size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={submit} className="p-5 space-y-4">
-          <Input
-            label="Service name"
-            value={form.name}
-            onChange={(e) => set('name', e.target.value)}
-            placeholder="e.g. Box Braids"
-            required
-          />
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-on-surface-variant">
-              Category
-              <span className="ml-1 font-normal text-on-surface-variant/60">(free text)</span>
-            </label>
-            <input
-              list="category-suggestions"
-              value={form.category}
-              onChange={(e) => set('category', e.target.value)}
-              placeholder="e.g. Box Braids, Gel Nails, Facials…"
-              className="w-full rounded-xl border border-outline-variant px-3 py-2.5 text-sm text-on-surface bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            />
-            <datalist id="category-suggestions">
-              {existingCategories.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
-            <p className="text-xs text-on-surface-variant">
-              Type anything. Suggestions are from your existing categories.
-            </p>
-          </div>
-
-          <Textarea
-            label="Description (optional)"
-            value={form.description}
-            onChange={(e) => set('description', e.target.value)}
-            placeholder="Brief description…"
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Duration (min)"
-              type="number"
-              min={5}
-              step={5}
-              value={form.durationMinutes}
-              onChange={(e) => set('durationMinutes', e.target.value)}
-              required
-            />
-            <Input
-              label="Buffer (min)"
-              type="number"
-              min={0}
-              step={5}
-              value={form.bufferMinutes}
-              onChange={(e) => set('bufferMinutes', e.target.value)}
-            />
-            <Input
-              label="Price (ZMW)"
-              type="number"
-              min={0}
-              step={0.01}
-              value={form.priceZmw}
-              onChange={(e) => set('priceZmw', e.target.value)}
-              required
-            />
-            <div className="flex flex-col gap-1">
-              <Input
-                label="Deposit (ZMW)"
-                type="number"
-                min={0}
-                step={0.01}
-                value={form.depositZmw}
-                onChange={(e) => set('depositZmw', e.target.value)}
-              />
-              <p className="text-xs text-on-surface-variant">
-                Set to 0 for pay-at-salon. Customers book instantly with no upfront payment.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              loading={loading}
-              disabled={!form.name || !form.priceZmw}
-              className="flex-1"
-            >
-              {isNew ? 'Create' : 'Save changes'}
-            </Button>
-          </div>
-        </form>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px',
+      borderBottom: `0.5px solid ${BORDER}44`,
+      opacity: service.isActive ? 1 : 0.45,
+    }}>
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+        onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ name: e.target.value }) }}
+        style={{ ...inputBase, flex: 1, minWidth: 80 }}
+      />
+      <select
+        value={duration}
+        onChange={e => { const v = Number(e.target.value); setDuration(v); save({ duration: v }) }}
+        style={{ ...inputBase, fontSize: 12, color: MUTED, cursor: 'pointer' }}
+      >
+        {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+      </select>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        <span style={{ fontSize: 11, color: MUTED }}>ZMW</span>
+        <input
+          type="number"
+          min="0"
+          value={price}
+          onChange={e => setPrice(e.target.value)}
+          onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+          onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ price: e.target.value }) }}
+          style={{ ...inputBase, width: 60, textAlign: 'right' }}
+        />
       </div>
+      <button
+        type="button"
+        title={service.isActive ? 'Deactivate' : 'Restore'}
+        onClick={() => onToggle(service.id)}
+        disabled={toggling}
+        style={{
+          fontSize: 14, lineHeight: 1, padding: '2px 6px', border: 'none',
+          background: 'none', cursor: 'pointer', borderRadius: 4, flexShrink: 0,
+          color: service.isActive ? '#dc2626' : '#16a34a',
+        }}
+      >
+        {service.isActive ? '×' : '↺'}
+      </button>
     </div>
   )
 }
 
+// ── Category section ──────────────────────────────────────────────────────────
+function CategorySection({ category, services, onSave, onToggle, toggling, onCreate, creating }) {
+  const [showDraft, setShowDraft] = useState(false)
+  const blank = { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '' }
+  const [draft, setDraft] = useState(blank)
+
+  function setD(k, v) { setDraft(d => ({ ...d, [k]: v })) }
+
+  function submitDraft() {
+    if (!draft.name.trim() || !draft.priceZmw) return
+    onCreate(
+      {
+        name: draft.name.trim(),
+        category,
+        durationMinutes: Number(draft.durationMinutes),
+        priceZmw: parseFloat(draft.priceZmw),
+        depositZmw: parseFloat(draft.depositZmw) || 0,
+        description: '',
+        bufferMinutes: 0,
+      },
+      () => { setDraft(blank); setShowDraft(false) },
+    )
+  }
+
+  return (
+    <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', backgroundColor: '#FDF5F6', borderBottom: `0.5px solid ${BORDER}` }}>
+        <p style={{ fontWeight: 500, fontSize: 14, color: PRIMARY, margin: 0 }}>
+          {category || 'Uncategorised'}
+        </p>
+        <span style={{ fontSize: 11, color: MUTED }}>
+          {services.length} service{services.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Existing rows */}
+      {services.map(svc => (
+        <ServiceRow key={svc.id} service={svc} onSave={onSave} onToggle={onToggle} toggling={toggling} />
+      ))}
+
+      {/* Draft / add-service row */}
+      {showDraft ? (
+        <div style={{ padding: '12px 16px', borderTop: `0.5px solid ${BORDER}44`, backgroundColor: '#fdf5f688' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+            <input
+              autoFocus
+              placeholder="Service name"
+              value={draft.name}
+              onChange={e => setD('name', e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && submitDraft()}
+              style={{ flex: 1, minWidth: 130, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none' }}
+            />
+            <select
+              value={draft.durationMinutes}
+              onChange={e => setD('durationMinutes', Number(e.target.value))}
+              style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none', background: '#fff' }}
+            >
+              {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+            </select>
+            <input
+              placeholder="Price ZMW"
+              type="number"
+              min="0"
+              value={draft.priceZmw}
+              onChange={e => setD('priceZmw', e.target.value)}
+              style={{ width: 90, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none' }}
+            />
+            <input
+              placeholder="Deposit"
+              type="number"
+              min="0"
+              value={draft.depositZmw}
+              onChange={e => setD('depositZmw', e.target.value)}
+              style={{ width: 80, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={submitDraft}
+              disabled={creating || !draft.name || !draft.priceZmw}
+              style={{
+                fontSize: 12, fontWeight: 500, color: '#fff', backgroundColor: PRIMARY,
+                border: 'none', borderRadius: 6, padding: '5px 16px', cursor: 'pointer',
+                opacity: (!draft.name || !draft.priceZmw) ? 0.5 : 1,
+              }}
+            >
+              {creating ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setDraft(blank); setShowDraft(false) }}
+              style={{ fontSize: 12, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowDraft(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+            padding: '9px 16px', background: 'none', border: 'none',
+            borderTop: `0.5px solid ${BORDER}44`,
+            fontSize: 12, color: PRIMARY, cursor: 'pointer', fontWeight: 500,
+          }}
+        >
+          <Plus size={12} /> Add service
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function Services() {
   const { data, loading, error } = useQuery(SERVICES, { variables: { activeOnly: false } })
-  const [modal, setModal] = useState(null) // null | 'new' | service object
+  const { data: settingsData } = useQuery(SALON_SETTINGS)
+  const businessType = settingsData?.salonSettings?.businessType ?? 'other'
+  const chips = CATEGORY_CHIPS[businessType] ?? CATEGORY_CHIPS.other
 
-  const existingCategories = [...new Set(
-    (data?.services ?? []).map((s) => s.category).filter(Boolean)
-  )].sort()
+  // Categories: from server data + any user-added ones not yet backed by services
+  const serverCategories = useMemo(() =>
+    [...new Set((data?.services ?? []).map(s => s.category).filter(Boolean))].sort(),
+    [data],
+  )
+  const [addedCategories, setAddedCategories] = useState([])
+  const categories = useMemo(() => {
+    const extra = addedCategories.filter(c => !serverCategories.includes(c))
+    return [...serverCategories, ...extra]
+  }, [serverCategories, addedCategories])
 
-  const [toggleService, { loading: toggling }] = useMutation(TOGGLE_SERVICE, {
-    refetchQueries: [{ query: SERVICES, variables: { activeOnly: false } }],
-  })
+  const [showCustom, setShowCustom] = useState(false)
+  const [customInput, setCustomInput] = useState('')
+
+  function addCategory(name) {
+    const trimmed = name.trim()
+    if (!trimmed || categories.includes(trimmed)) return
+    setAddedCategories(p => [...p, trimmed])
+    setShowCustom(false)
+    setCustomInput('')
+  }
+
+  const refetchOpts = [{ query: SERVICES, variables: { activeOnly: false } }]
+
+  const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, { refetchQueries: refetchOpts })
+  const [updateService] = useMutation(UPDATE_SERVICE, { refetchQueries: refetchOpts })
+  const [toggleService, { loading: toggling }] = useMutation(TOGGLE_SERVICE, { refetchQueries: refetchOpts })
+
+  function handleSave(vars) { updateService({ variables: vars }) }
+  function handleToggle(id) { toggleService({ variables: { id } }) }
+  function handleCreate(vars, onDone) { createService({ variables: vars, onCompleted: onDone }) }
+
+  const allServices = data?.services ?? []
+  const uncategorised = allServices.filter(s => !s.category)
 
   return (
     <PageWrapper>
-      <PageHeader
-        title="Services"
-        subtitle="Manage your service menu"
-        action={
-          <Button size="sm" onClick={() => setModal('new')}>
-            <Plus size={16} />
-            New service
-          </Button>
-        }
-      />
+      <PageHeader title="Services" subtitle="Manage your service menu" />
 
       {loading && <PageSpinner />}
       {error && <ErrorMessage message={error.message} />}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {data?.services?.map((service) => (
-          <Card key={service.id} className="flex items-start gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium text-on-surface text-sm">{service.name}</span>
-                <Badge color={service.isActive ? 'green' : 'gray'}>
-                  {service.isActive ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-              {service.description && (
-                <p className="text-xs text-on-surface-variant mb-2 line-clamp-2">{service.description}</p>
-              )}
-              <div className="flex items-center gap-4 text-xs text-on-surface-variant mb-3">
-                <span className="flex items-center gap-1"><Clock size={11} />{service.durationMinutes} min</span>
-                <span className="font-semibold text-on-surface">{formatZMW(service.priceZmw)}</span>
-                <span>Deposit: {formatZMW(service.depositZmw)}</span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setModal(service)}
-                  className="flex items-center gap-1"
-                >
-                  <Pencil size={13} /> Edit
-                </Button>
-                <Button
-                  variant={service.isActive ? 'outline' : 'secondary'}
-                  size="sm"
-                  loading={toggling}
-                  onClick={() => toggleService({ variables: { id: service.id } })}
-                >
-                  {service.isActive ? 'Deactivate' : 'Activate'}
-                </Button>
-              </div>
+      {/* Category chip row */}
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ fontSize: 12, fontWeight: 500, color: MUTED, marginBottom: 10 }}>
+          Add a category to get started:
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {chips.map(chip => (
+            <button key={chip} type="button" onClick={() => addCategory(chip)} style={chipStyle(categories.includes(chip))}>
+              {chip}
+            </button>
+          ))}
+
+          {showCustom ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input
+                autoFocus
+                type="text"
+                value={customInput}
+                onChange={e => setCustomInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') addCategory(customInput)
+                  if (e.key === 'Escape') { setShowCustom(false); setCustomInput('') }
+                }}
+                placeholder="Category name…"
+                style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '5px 12px', fontSize: 12, outline: 'none', width: 140 }}
+              />
+              <button onClick={() => addCategory(customInput)} type="button" style={{ fontSize: 12, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer' }}>
+                Add
+              </button>
+              <button onClick={() => { setShowCustom(false); setCustomInput('') }} type="button" style={{ fontSize: 12, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}>
+                ×
+              </button>
             </div>
-            <Badge color="primary">{service.category}</Badge>
-          </Card>
-        ))}
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowCustom(true)}
+              style={{ ...chipStyle(false), border: `1px dashed ${PRIMARY}` }}
+            >
+              + Add your own
+            </button>
+          )}
+        </div>
       </div>
 
-      {modal && (
-        <ServiceModal
-          service={modal === 'new' ? null : modal}
-          existingCategories={existingCategories}
-          onClose={() => setModal(null)}
-          onSaved={() => {}}
-        />
+      {/* Category sections */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {categories.map(cat => (
+          <CategorySection
+            key={cat}
+            category={cat}
+            services={allServices.filter(s => s.category === cat)}
+            onSave={handleSave}
+            onToggle={handleToggle}
+            toggling={toggling}
+            onCreate={handleCreate}
+            creating={creating}
+          />
+        ))}
+
+        {uncategorised.length > 0 && (
+          <CategorySection
+            key="__uncategorised"
+            category=""
+            services={uncategorised}
+            onSave={handleSave}
+            onToggle={handleToggle}
+            toggling={toggling}
+            onCreate={handleCreate}
+            creating={creating}
+          />
+        )}
+      </div>
+
+      {!loading && categories.length === 0 && uncategorised.length === 0 && (
+        <p style={{ textAlign: 'center', color: MUTED, fontSize: 14, padding: '32px 0' }}>
+          Select a category above to start adding services.
+        </p>
       )}
     </PageWrapper>
   )

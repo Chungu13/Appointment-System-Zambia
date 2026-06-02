@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@apollo/client/react'
 import { ApolloClient, InMemoryCache, ApolloLink, createHttpLink } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
-import { Check, Plus, Trash2, ChevronLeft, ChevronRight, Camera, X } from 'lucide-react'
+import { Check, Plus, ChevronLeft, ChevronRight, Camera, X } from 'lucide-react'
+import { CATEGORY_CHIPS, DURATIONS } from '../../lib/services'
 import { useAuth } from '../../context/AuthContext'
 import { setTokens, saveRole, getToken, getRefreshToken } from '../../lib/auth'
 import { CREATE_SERVICE } from '../../graphql/mutations/services'
@@ -19,35 +20,6 @@ const MINT_CHIP = '#d4ecd4'
 
 const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-const SERVICE_SUGGESTIONS = {
-  salon:       ['Box Braids', 'Weave Install', 'Relaxer', 'Hair Colour', 'Blow Dry'],
-  barbershop:  ['Fade Haircut', 'Shape Up', 'Beard Trim', 'Full Shave', 'Hair Wash'],
-  nail_tech:   ['Gel Full Set', 'Acrylic Set', 'Manicure', 'Pedicure', 'Nail Art'],
-  spa:         ['Deep Tissue Massage', 'Swedish Massage', 'Facial', 'Body Scrub', 'Hot Stone'],
-  lash_studio: ['Classic Lash Extensions', 'Volume Lashes', 'Lash Lift', 'Brow Lamination', 'Brow Tint'],
-  other:       ['Consultation', 'Treatment', 'Package Deal', 'Express Service'],
-}
-
-const SERVICE_CATEGORIES = [
-  { value: 'braids',  label: 'Braids' },
-  { value: 'hair',    label: 'Hair' },
-  { value: 'nails',   label: 'Nails' },
-  { value: 'massage', label: 'Massage' },
-  { value: 'lashes',  label: 'Lashes & Brows' },
-  { value: 'facial',  label: 'Facial & Skin' },
-  { value: 'barber',  label: 'Barber' },
-  { value: 'general', label: 'Other' },
-]
-
-const DURATIONS = [
-  { label: '30 min', value: 30 },
-  { label: '45 min', value: 45 },
-  { label: '1 hour', value: 60 },
-  { label: '1.5 hrs', value: 90 },
-  { label: '2 hours', value: 120 },
-  { label: '3 hours', value: 180 },
-  { label: '4 hours', value: 240 },
-]
 
 const STEP_LABELS = ['Business Hours', 'Your Services', 'Your Team', 'AI Policies', "You're Ready!"]
 
@@ -199,106 +171,239 @@ function ScheduleStep({ scheduleType, setScheduleType, sameHours, setSameHours }
   )
 }
 
-// ── Step 2 — Services ─────────────────────────────────────────────────────────
-function ServicesStep({ businessType, services, setServices }) {
-  const blank = { name: '', category: 'general', durationMinutes: 60, priceZmw: '', depositZmw: '' }
-  const [form, setForm] = useState(blank)
-  const [formErr, setFormErr] = useState('')
-  const suggestions = SERVICE_SUGGESTIONS[businessType] ?? SERVICE_SUGGESTIONS.other
+// ── Shared chip style ─────────────────────────────────────────────────────────
+function chipStyle(active) {
+  return {
+    border: `1px solid ${PRIMARY}`,
+    borderRadius: 999,
+    padding: '5px 14px',
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'all 0.12s',
+    backgroundColor: active ? PRIMARY : 'transparent',
+    color: active ? '#fff' : PRIMARY,
+    whiteSpace: 'nowrap',
+  }
+}
+
+// ── Category section (onboarding) ─────────────────────────────────────────────
+function OnboardingCategorySection({ category, services, drafts, setDrafts, onAddService, onRemoveService, onRemoveCategory }) {
+  const catServices = services.filter((s) => s.category === category)
+  const draft = { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '', ...(drafts[category] || {}) }
+
+  function setD(k, v) {
+    setDrafts((d) => ({ ...d, [category]: { ...draft, [k]: v } }))
+  }
 
   function addService() {
-    if (!form.name.trim()) { setFormErr('Service name is required.'); return }
-    if (!form.priceZmw || isNaN(Number(form.priceZmw))) { setFormErr('Enter a valid price.'); return }
-    setFormErr('')
-    setServices((s) => [...s, {
-      name: form.name.trim(),
-      category: form.category,
-      durationMinutes: Number(form.durationMinutes),
-      priceZmw: parseFloat(form.priceZmw),
-      depositZmw: parseFloat(form.depositZmw) || 0,
-    }])
-    setForm(blank)
+    if (!draft.name.trim() || !draft.priceZmw || isNaN(Number(draft.priceZmw))) return
+    onAddService({
+      name: draft.name.trim(),
+      category,
+      durationMinutes: Number(draft.durationMinutes) || 60,
+      priceZmw: parseFloat(draft.priceZmw),
+      depositZmw: parseFloat(draft.depositZmw) || 0,
+    })
+    setDrafts((d) => ({ ...d, [category]: { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '' } }))
+  }
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #e8f0e8' }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2.5" style={{ backgroundColor: MINT, borderBottom: '0.5px solid #e8f0e8' }}>
+        <p className="font-medium text-sm" style={{ color: TEXT }}>{category}</p>
+        <button type="button" onClick={() => onRemoveCategory(category)} className="hover:opacity-60 transition-opacity">
+          <X size={14} style={{ color: MUTED }} />
+        </button>
+      </div>
+
+      {/* Saved services */}
+      {catServices.length > 0 && (
+        <div style={{ borderBottom: '0.5px solid #e8f0e8' }}>
+          {catServices.map((svc, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ borderTop: i > 0 ? '0.5px solid #f0f0f0' : 'none' }}>
+              <p className="flex-1 text-sm font-medium truncate" style={{ color: TEXT }}>{svc.name}</p>
+              <p className="text-xs shrink-0" style={{ color: MUTED }}>
+                ZMW {svc.priceZmw.toFixed(0)} · {DURATIONS.find((d) => d.value === svc.durationMinutes)?.label ?? `${svc.durationMinutes}min`}
+              </p>
+              <button type="button" onClick={() => onRemoveService(svc)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add service form */}
+      <div className="p-3 space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input
+            placeholder="Service name"
+            value={draft.name}
+            onChange={(e) => setD('name', e.target.value)}
+            className="col-span-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+            style={{ color: TEXT }}
+          />
+          <select
+            value={draft.durationMinutes}
+            onChange={(e) => setD('durationMinutes', Number(e.target.value))}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+            style={{ color: TEXT }}
+          >
+            {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+          </select>
+          <input
+            placeholder="Price (ZMW)"
+            type="number"
+            min="0"
+            value={draft.priceZmw}
+            onChange={(e) => setD('priceZmw', e.target.value)}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+            style={{ color: TEXT }}
+          />
+          <input
+            placeholder="Deposit (ZMW, optional)"
+            type="number"
+            min="0"
+            value={draft.depositZmw}
+            onChange={(e) => setD('depositZmw', e.target.value)}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+            style={{ color: TEXT }}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={addService}
+          className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
+          style={{ color: PRIMARY }}
+        >
+          <Plus size={13} /> Add service
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Step 2 — Services ─────────────────────────────────────────────────────────
+function ServicesStep({ businessType, services, setServices }) {
+  const chips = CATEGORY_CHIPS[businessType] ?? CATEGORY_CHIPS.other
+  const [categories, setCategories] = useState([])
+  const [drafts, setDrafts] = useState({})
+  const [showCustom, setShowCustom] = useState(false)
+  const [customInput, setCustomInput] = useState('')
+
+  function addCategory(name) {
+    const trimmed = name.trim()
+    if (!trimmed || categories.includes(trimmed)) return
+    setCategories((c) => [...c, trimmed])
+    setShowCustom(false)
+    setCustomInput('')
+  }
+
+  function removeCategory(cat) {
+    setCategories((c) => c.filter((x) => x !== cat))
+    setServices((sv) => sv.filter((s) => s.category !== cat))
+    setDrafts((d) => { const n = { ...d }; delete n[cat]; return n })
+  }
+
+  function addService(svc) { setServices((sv) => [...sv, svc]) }
+
+  function removeService(svc) {
+    setServices((sv) => {
+      const idx = sv.indexOf(svc)
+      return idx !== -1 ? sv.filter((_, i) => i !== idx) : sv.filter((s) => !(s.name === svc.name && s.category === svc.category))
+    })
   }
 
   return (
     <div className="space-y-5">
       <div>
         <h2 className="font-display text-2xl font-bold mb-1" style={{ color: TEXT }}>Add your services</h2>
-        <p className="text-sm" style={{ color: MUTED }}>Add at least one service to continue. You can add more later.</p>
+        <p className="text-sm" style={{ color: MUTED }}>Select a category, then add services under it.</p>
       </div>
 
+      {/* Category chips */}
       <div>
-        <p className="text-xs font-medium mb-2" style={{ color: MUTED }}>Quick-add suggestions:</p>
+        <p className="text-xs font-medium mb-2" style={{ color: MUTED }}>Select categories:</p>
         <div className="flex flex-wrap gap-2">
-          {suggestions.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, name: s }))}
-              className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80"
-              style={{ backgroundColor: MINT_CHIP, color: PRIMARY }}
-            >
-              + {s}
+          {chips.map((chip) => (
+            <button key={chip} type="button" onClick={() => addCategory(chip)} style={chipStyle(categories.includes(chip))}>
+              {chip}
             </button>
           ))}
-        </div>
-      </div>
 
-      <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: MINT, border: '1px solid #e8f0e8' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input
-            placeholder="Service name"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="col-span-2 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white outline-none"
-            style={{ color: TEXT }}
-          />
-          <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-            className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm bg-white outline-none" style={{ color: TEXT }}>
-            {SERVICE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-          <select value={form.durationMinutes} onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))}
-            className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm bg-white outline-none" style={{ color: TEXT }}>
-            {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-          </select>
-          <input placeholder="Price (ZMW)" value={form.priceZmw}
-            onChange={(e) => setForm((f) => ({ ...f, priceZmw: e.target.value }))}
-            type="number" min="0"
-            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white outline-none" style={{ color: TEXT }} />
-          <input placeholder="Deposit (ZMW, optional)" value={form.depositZmw}
-            onChange={(e) => setForm((f) => ({ ...f, depositZmw: e.target.value }))}
-            type="number" min="0"
-            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white outline-none" style={{ color: TEXT }} />
-        </div>
-        {formErr && <p className="text-xs text-red-600">{formErr}</p>}
-        <button
-          type="button"
-          onClick={addService}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: PRIMARY }}
-        >
-          <Plus size={14} /> Add service
-        </button>
-      </div>
-
-      {services.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium" style={{ color: MUTED }}>Added services:</p>
-          {services.map((s, i) => (
-            <div key={i} className="flex items-center justify-between rounded-xl px-4 py-3 bg-white" style={{ border: '1px solid #e8f0e8' }}>
-              <div>
-                <p className="font-semibold text-sm" style={{ color: TEXT }}>{s.name}</p>
-                <p className="text-xs" style={{ color: MUTED }}>
-                  ZMW {s.priceZmw.toFixed(0)} · {DURATIONS.find((d) => d.value === s.durationMinutes)?.label ?? `${s.durationMinutes} min`}
-                </p>
-              </div>
-              <button type="button" onClick={() => setServices((sv) => sv.filter((_, j) => j !== i))}
-                className="text-red-400 hover:text-red-600 transition-colors ml-3">
-                <Trash2 size={15} />
+          {showCustom ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                autoFocus
+                type="text"
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); addCategory(customInput) }
+                  if (e.key === 'Escape') { setShowCustom(false); setCustomInput('') }
+                }}
+                placeholder="Category name…"
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none"
+                style={{ color: TEXT, width: 150 }}
+              />
+              <button type="button" onClick={() => addCategory(customInput)} style={{ color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <Check size={14} />
+              </button>
+              <button type="button" onClick={() => { setShowCustom(false); setCustomInput('') }} style={{ color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={14} />
               </button>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowCustom(true)}
+              style={{ ...chipStyle(false), border: `1px dashed ${PRIMARY}` }}
+            >
+              + Add your own
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category sections */}
+      {categories.length > 0 && (
+        <div className="space-y-4">
+          {categories.map((cat) => (
+            <OnboardingCategorySection
+              key={cat}
+              category={cat}
+              services={services}
+              drafts={drafts}
+              setDrafts={setDrafts}
+              onAddService={addService}
+              onRemoveService={removeService}
+              onRemoveCategory={removeCategory}
+            />
           ))}
         </div>
+      )}
+
+      {categories.length === 0 && (
+        <p className="text-sm text-center py-6" style={{ color: MUTED }}>
+          Select a category above to start adding services.
+        </p>
+      )}
+
+      {categories.length > 0 && !showCustom && (
+        <button
+          type="button"
+          onClick={() => setShowCustom(true)}
+          className="text-sm font-medium transition-opacity hover:opacity-70"
+          style={{ color: PRIMARY }}
+        >
+          + Add another category
+        </button>
+      )}
+
+      {categories.length > 0 && services.length === 0 && (
+        <p className="text-xs" style={{ color: '#b45309' }}>Add at least one service to continue.</p>
       )}
     </div>
   )
