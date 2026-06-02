@@ -2,6 +2,7 @@ import datetime
 from typing import List, Optional
 
 import strawberry
+from django.db.models import Q
 from strawberry.types import Info
 
 from agents.schema.types import AgentLogType, agent_log_to_type
@@ -13,8 +14,10 @@ from .types import (
     AppointmentHistoryType,
     AppointmentType,
     AvailabilitySlotType,
+    CustomerType,
     DashboardStatsType,
     appointment_to_type,
+    customer_to_type,
 )
 
 
@@ -37,6 +40,20 @@ def _build_availability_slots(
 
 @strawberry.type
 class BookingsQuery:
+    @strawberry.field
+    def customers(
+        self,
+        info: Info,
+        search: Optional[str] = None,
+    ) -> List[CustomerType]:
+        require_owner(info)
+        qs = Customer.objects.all().order_by("-last_visit_at", "full_name")
+        if search:
+            qs = qs.filter(
+                Q(full_name__icontains=search) | Q(phone__icontains=search)
+            )
+        return [customer_to_type(c) for c in qs]
+
     @strawberry.field
     def availability(
         self,

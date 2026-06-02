@@ -77,6 +77,20 @@ export const MY_STAFF_APPOINTMENTS = gql`
   }
 `
 
+export const CUSTOMERS = gql`
+  query Customers($search: String) {
+    customers(search: $search) {
+      id
+      fullName
+      phone
+      visitCount
+      noShowCount
+      lastVisitAt
+      createdAt
+    }
+  }
+`
+
 export const CUSTOMER_APPOINTMENTS = gql`
   query CustomerAppointments($phone: String!) {
     customerAppointments(phone: $phone) {
