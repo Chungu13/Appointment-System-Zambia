@@ -60,7 +60,7 @@ class Query:
 
         qs = (
             Tenant.objects
-            .filter(is_active=True)
+            .filter(is_active=True, onboarding_completed=True)
             .exclude(schema_name="public")
             .prefetch_related("domains")
         )
