@@ -268,9 +268,8 @@ function ServicesSection({ services, onBook }) {
                     <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
                     <button
                       onClick={() => {
-                        const today = new Date().toLocaleDateString('en-CA')
-                        const label = svc.category ? `${svc.category} — ${svc.name}` : svc.name
-                        onBook(`I want to book ${label} on ${today}`)
+                        const label = svc.category ? `${svc.category} (${svc.name})` : svc.name
+                        onBook(`I want to book ${label}`)
                       }}
                       style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', letterSpacing: '0.04em' }}
                     >
