@@ -19,6 +19,7 @@ const inputStyle = {
   outline: 'none',
   backgroundColor: '#fff',
   fontFamily: sans,
+  WebkitBoxShadow: '0 0 0 1000px #fff inset',
 }
 
 export default function Login() {
@@ -59,11 +60,11 @@ export default function Login() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fff', fontFamily: sans }}>
+    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'stretch', backgroundColor: '#fff', fontFamily: sans }}>
       {/* Left dark panel */}
       <div
         className="hidden lg:flex"
-        style={{ width: 320, minWidth: 320, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'space-between' }}
+        style={{ width: 280, minWidth: 280, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'space-between' }}
       >
         <span style={{ color: '#fff', fontSize: 20, fontWeight: 500 }}>Kimawa</span>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 300, lineHeight: 1.7, margin: 0 }}>
@@ -75,9 +76,9 @@ export default function Login() {
       {/* Right form panel */}
       <div
         className="max-sm:px-6 max-sm:py-14"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '48px 56px' }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 56px' }}
       >
-        <div style={{ maxWidth: 380 }}>
+        <div style={{ width: '100%', maxWidth: 380 }}>
           <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6B2737', marginBottom: 12 }}>
             Owner portal
           </p>
