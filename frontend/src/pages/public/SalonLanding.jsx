@@ -163,68 +163,6 @@ function Hero({ profile, onChatOpen }) {
   )
 }
 
-// ── AI Bar ────────────────────────────────────────────────────────────────────
-const SUGGESTION_CHIPS = [
-  'What services do you offer?',
-  'Book a service this Saturday',
-  'How much are your services?',
-  'What times are available?',
-]
-
-function AIBar({ salonName, onOpen, onChipClick }) {
-  const [input, setInput] = useState('')
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    if (input.trim()) { onOpen(input.trim()); setInput('') }
-  }
-
-  return (
-    <section style={{ backgroundColor: DARK }}>
-      <div className="salon-ai-bar" style={{ maxWidth: 1200, margin: '0 auto' }}>
-        {/* Label */}
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.8)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: PRIMARY, display: 'inline-block' }} />
-          AI BOOKING ASSISTANT — ONLINE NOW
-        </p>
-
-        {/* Input row */}
-        <form onSubmit={handleSubmit} className="salon-ai-input-row">
-          <div style={{ flex: 1, position: 'relative' }}>
-            <Sparkles size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: PRIMARY, pointerEvents: 'none' }} />
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="What would you like today? e.g. I want gel nails this Saturday"
-              style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, fontWeight: 300, color: '#fff', backgroundColor: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '13px 16px 13px 40px', outline: 'none' }}
-            />
-          </div>
-          <button
-            type="submit"
-            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '13px 24px', borderRadius: 6, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
-          >
-            Ask or Book
-          </button>
-        </form>
-
-        {/* Suggestion chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {SUGGESTION_CHIPS.map((chip) => (
-            <button
-              key={chip}
-              onClick={() => onChipClick(chip)}
-              style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.8)', backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 3, padding: '6px 12px', cursor: 'pointer' }}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // ── Stats bar ─────────────────────────────────────────────────────────────────
 function StatsBar({ profile, onBook }) {
   const minPrice = profile.services.length
@@ -509,8 +447,6 @@ export default function SalonLanding() {
       <style>{`
         .salon-hero { height: 400px; }
         .salon-hero-name { font-size: 52px; }
-        .salon-ai-bar { padding: 28px 64px; }
-        .salon-ai-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
         .salon-stats-bar { padding: 18px 64px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
         .salon-content-grid { display: grid; grid-template-columns: 1fr 300px; gap: 56px; padding: 56px 64px; }
         .salon-portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -520,8 +456,6 @@ export default function SalonLanding() {
         @media (max-width: 640px) {
           .salon-hero { height: 260px !important; }
           .salon-hero-name { font-size: 28px !important; }
-          .salon-ai-bar { padding: 16px !important; }
-          .salon-ai-input-row { flex-direction: column !important; }
           .salon-stats-bar { padding: 12px 16px !important; }
           .salon-content-grid { grid-template-columns: 1fr !important; gap: 24px !important; padding: 16px !important; }
           .salon-portfolio-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
@@ -532,7 +466,6 @@ export default function SalonLanding() {
       `}</style>
       <SalonNav />
       <Hero profile={profile} onChatOpen={openChat} />
-      <AIBar salonName={profile.businessName} onOpen={openChat} onChipClick={openChat} />
       <StatsBar profile={profile} />
 
       {/* Main content + sidebar */}
