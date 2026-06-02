@@ -44,7 +44,7 @@ function copyToClipboard(text, onSuccess) {
 // ── Progress bar ──────────────────────────────────────────────────────────────
 function ProgressBar({ step }) {
   return (
-    <div className="flex items-center justify-center gap-1 mb-8">
+    <div className="flex items-center justify-center gap-1 mb-10">
       {STEP_LABELS.map((label, i) => {
         const n = i + 1
         const done   = n < step
@@ -53,22 +53,27 @@ function ProgressBar({ step }) {
           <div key={n} className="flex items-center gap-1">
             <div className="flex flex-col items-center">
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-                style={{ backgroundColor: done || active ? PRIMARY : '#e5e7eb', color: done || active ? '#fff' : MUTED }}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-colors"
+                style={{
+                  backgroundColor: done || active ? PRIMARY : 'transparent',
+                  color: done || active ? '#fff' : '#666',
+                  border: done || active ? 'none' : '0.5px solid #e0dbd6',
+                  fontWeight: done || active ? 500 : 400,
+                }}
               >
-                {done ? <Check size={14} /> : n}
+                {done ? <Check size={13} /> : n}
               </div>
               <span
-                className="hidden sm:block text-xs mt-1 whitespace-nowrap"
-                style={{ color: active ? PRIMARY : MUTED, fontWeight: active ? 600 : 400 }}
+                className="hidden sm:block mt-1 whitespace-nowrap"
+                style={{ fontSize: 11, color: active ? PRIMARY : '#666', fontWeight: active ? 500 : 400 }}
               >
                 {label}
               </span>
             </div>
             {i < STEP_LABELS.length - 1 && (
               <div
-                className="w-10 sm:w-16 h-0.5 mx-1 mt-0 sm:-mt-5 transition-colors"
-                style={{ backgroundColor: done ? PRIMARY : '#e5e7eb' }}
+                className="w-10 sm:w-16 h-px mx-1 mt-0 sm:-mt-5 transition-colors"
+                style={{ backgroundColor: done ? PRIMARY : '#e0dbd6' }}
               />
             )}
           </div>
@@ -1252,11 +1257,11 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: MINT, fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
-      <header className="bg-white border-b" style={{ borderColor: '#e8f0e8' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#fff', fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
+      <header style={{ backgroundColor: '#fff', borderBottom: '0.5px solid #e0dbd6' }}>
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="font-display text-lg font-bold" style={{ color: PRIMARY }}>Kimawa</span>
-          <span className="text-sm" style={{ color: MUTED }}>
+          <span style={{ fontSize: 18, fontWeight: 500, color: '#1a1a1a' }}>Kimawa</span>
+          <span style={{ fontSize: 11, color: '#666' }}>
             Step {Math.min(step, STEP_LABELS.length)} of {STEP_LABELS.length}: {STEP_LABELS[step - 1] ?? STEP_LABELS[STEP_LABELS.length - 1]}
           </span>
         </div>
@@ -1265,7 +1270,7 @@ export default function Onboarding() {
       <div className="max-w-2xl mx-auto px-4 py-10">
         <ProgressBar step={step} />
 
-        <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: '1px solid #e8f0e8' }}>
+        <div>
           {step === 1 && (
             <ScheduleStep scheduleType={scheduleType} setScheduleType={setScheduleType}
               sameHours={sameHours} setSameHours={setSameHours} />
@@ -1285,37 +1290,37 @@ export default function Onboarding() {
           {step === 5 && <ReadyStep subdomain={slug} staffKey={staffKey} onComplete={handleComplete} />}
 
           {error && (
-            <div className="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            <div style={{ marginTop: 16, border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626' }}>
               {error}
             </div>
           )}
 
           {step < 5 && (
-            <div className="flex items-center justify-between mt-8 pt-6 border-t" style={{ borderColor: '#e8f0e8' }}>
+            <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '0.5px solid #e0dbd6' }}>
               <button
                 onClick={() => setStep((s) => Math.max(s - 1, 1))}
                 disabled={step === 1}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-30"
-                style={{ color: MUTED }}
+                className="flex items-center gap-2"
+                style={{ padding: '10px 20px', border: '0.5px solid #e0dbd6', borderRadius: 5, background: 'transparent', color: step === 1 ? '#ccc' : '#666', fontSize: 13, cursor: step === 1 ? 'default' : 'pointer' }}
               >
-                <ChevronLeft size={16} /> Back
+                <ChevronLeft size={15} /> Back
               </button>
               <button
                 onClick={handleNext}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: PRIMARY }}
+                className="flex items-center gap-2"
+                style={{ padding: '10px 24px', backgroundColor: PRIMARY, color: '#fff', border: 'none', borderRadius: 5, fontSize: 13, fontWeight: 500, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}
               >
                 {saving ? 'Saving…' : step === 4 ? 'Finish setup' : 'Next'}
-                {!saving && <ChevronRight size={16} />}
+                {!saving && <ChevronRight size={15} />}
               </button>
             </div>
           )}
         </div>
 
         {(step === 1 || step === 3 || step === 4) && (
-          <p className="text-center mt-4 text-sm" style={{ color: MUTED }}>
-            <button onClick={() => setStep((s) => Math.min(s + 1, 5))} className="hover:underline" style={{ color: MUTED }}>
+          <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13 }}>
+            <button onClick={() => setStep((s) => Math.min(s + 1, 5))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13 }}>
               Skip this step. Set it up later.
             </button>
           </p>

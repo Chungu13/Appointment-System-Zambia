@@ -9,7 +9,9 @@
       "Bash(git push *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(python -c \"from services.schema import ServicesQuery, ServicesMutation; print\\('OK'\\)\")",
+      "Bash(python -c \"import django; import os; os.environ.setdefault\\('DJANGO_SETTINGS_MODULE', 'beautybook.settings'\\); django.setup\\(\\); from beautybook.schema_tenant import schema; print\\('schema OK'\\)\")"
     ]
   }
 }
