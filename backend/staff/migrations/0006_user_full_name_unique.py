@@ -21,6 +21,8 @@ def reverse_dedup(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False  # ← THIS is the fix
+
     dependencies = [
         ("staff", "0005_user_bio_display_on_public_page_alter_avatar_url"),
     ]
