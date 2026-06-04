@@ -132,7 +132,7 @@ class BookingAgent:
         suffix = "th" if 11 <= day % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
         return f"{day}{suffix} {d.strftime('%B %Y')}"
 
-    def _system_prompt(self, customer_phone: str) -> str:
+    def _system_prompt(self, customer_phone: str, customer_name: str = "") -> str:
         import datetime as _dt
         import zoneinfo as _zi
         _cat = _zi.ZoneInfo("Africa/Lusaka")
@@ -231,8 +231,8 @@ class BookingAgent:
             "- Prices are in Zambian Kwacha (ZMW). Always mention the deposit amount.\n"
             "- If asked something outside your tools, suggest calling the salon directly.\n"
             f"- Today is {today_day}, {today_str}. Current time in Zambia: {current_time_str}.\n"
-            f"- The customer's phone number is {customer_phone}. "
-            "You already have this information — never ask the customer for their phone number.\n"
+            f"- The customer's name is {customer_name or 'not provided'} and their phone number is {customer_phone}. "
+            "You already have this information — never ask for their name or phone number.\n"
             + policies_section
         )
 
@@ -435,6 +435,10 @@ class BookingAgent:
                 f"&service={_quote(appt.service.name)}"
                 f"&salon={_quote(self.tenant.business_name)}"
                 f"&slug={_slug}"
+                f"&date={appt.starts_at.strftime('%Y-%m-%d')}"
+                f"&time={appt.starts_at.strftime('%H:%M')}"
+                f"&staff={_quote(appt.staff.full_name)}"
+                f"&customer={_quote(appt.customer.full_name)}"
             )
 
             AgentLog.objects.create(
@@ -472,6 +476,7 @@ class BookingAgent:
         customer_phone: str,
         conversation_history: list,
         site_url: str = "",
+        customer_name: str = "",
     ) -> tuple[str, list, list]:
         """
         Run one customer turn through the agentic loop.
@@ -486,7 +491,7 @@ class BookingAgent:
         while True:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[{"role": "system", "content": self._system_prompt(customer_phone)}] + messages,
+                messages=[{"role": "system", "content": self._system_prompt(customer_phone, customer_name)}] + messages,
                 tools=_TOOLS,
                 tool_choice="auto",
             )

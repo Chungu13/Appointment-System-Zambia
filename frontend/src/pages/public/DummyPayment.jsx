@@ -20,11 +20,15 @@ const CONFIRM_DUMMY_PAYMENT = gql`
 function usePayParams() {
   const p = new URLSearchParams(window.location.search)
   return {
-    ref:     p.get('ref')     || '',
-    amount:  p.get('amount')  || '',
-    service: p.get('service') || '',
-    salon:   p.get('salon')   || '',
-    slug:    p.get('slug')    || '',
+    ref:      p.get('ref')      || '',
+    amount:   p.get('amount')   || '',
+    service:  p.get('service')  || '',
+    salon:    p.get('salon')    || '',
+    slug:     p.get('slug')     || '',
+    date:     p.get('date')     || '',
+    time:     p.get('time')     || '',
+    staff:    p.get('staff')    || '',
+    customer: p.get('customer') || '',
   }
 }
 
@@ -46,7 +50,7 @@ function useTenantClient(slug) {
 }
 
 export default function DummyPayment() {
-  const { ref, amount, service, salon, slug } = usePayParams()
+  const { ref, amount, service, salon, slug, date, time, staff, customer } = usePayParams()
   const tenantClient = useTenantClient(slug)
   const [status, setStatus] = useState('idle') // 'idle' | 'loading' | 'error'
   const [errorMsg, setErrorMsg] = useState('')
@@ -68,6 +72,11 @@ export default function DummyPayment() {
         const dest = new URL(tenantBase)
         dest.searchParams.set('payment_success', ref)
         dest.searchParams.set('service', service)
+        dest.searchParams.set('amount', amount)
+        if (date)     dest.searchParams.set('appt_date', date)
+        if (time)     dest.searchParams.set('appt_time', time)
+        if (staff)    dest.searchParams.set('appt_staff', staff)
+        if (customer) dest.searchParams.set('appt_customer', customer)
         window.location.href = dest.toString()
       }
     } catch (err) {

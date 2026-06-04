@@ -33,6 +33,7 @@ class AgentsMutation:
         message: str,
         customer_phone: str,
         session_id: str,
+        customer_name: str = "",
     ) -> AgentChatResult:
         import os
         import redis
@@ -61,6 +62,7 @@ class AgentsMutation:
             customer_phone=customer_phone,
             conversation_history=history,
             site_url=site_url,
+            customer_name=customer_name,
         )
 
         # Persist for 24 hours

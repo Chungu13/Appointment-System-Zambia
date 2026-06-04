@@ -448,9 +448,9 @@ function LocationCard({ profile }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function SalonLanding() {
-  const [chatOpen,        setChatOpen]        = useState(false)
-  const [chatInitMsg,     setChatInitMsg]     = useState('')
-  const [chatConfirmedMsg, setChatConfirmedMsg] = useState('')
+  const [chatOpen,          setChatOpen]          = useState(false)
+  const [chatInitMsg,       setChatInitMsg]       = useState('')
+  const [chatConfirmedBooking, setChatConfirmedBooking] = useState(null)
   const { data, loading, error } = useQuery(SALON_PROFILE)
 
   // Detect return from payment page and auto-open chat with confirmation
@@ -460,11 +460,17 @@ export default function SalonLanding() {
     const service    = params.get('service')
     if (!successRef) return
     window.history.replaceState({}, '', window.location.pathname)
-    const msg = service
-      ? `Your payment is confirmed! ✓\n\nYour appointment for ${decodeURIComponent(service)} is booked. You'll receive a reminder before your appointment.\n\nIs there anything else I can help you with?`
-      : `Your payment is confirmed! ✓\n\nYour appointment is booked. You'll receive a reminder before your appointment.\n\nIs there anything else I can help you with?`
+    const booking = {
+      ref:      successRef,
+      service:  params.get('service')      ? decodeURIComponent(params.get('service'))      : '',
+      amount:   params.get('amount')       || '',
+      date:     params.get('appt_date')    || '',
+      time:     params.get('appt_time')    || '',
+      staff:    params.get('appt_staff')   ? decodeURIComponent(params.get('appt_staff'))   : '',
+      customer: params.get('appt_customer')? decodeURIComponent(params.get('appt_customer')): '',
+    }
     setTimeout(() => {
-      setChatConfirmedMsg(msg)
+      setChatConfirmedBooking(booking)
       setChatInitMsg('')
       playPopSound()
       setChatOpen(true)
@@ -574,10 +580,9 @@ export default function SalonLanding() {
 
       {chatOpen && (
         <ChatWindow
-          customerPhone="+260000000000"
           salonName={profile.businessName}
           initialMessage={chatInitMsg}
-          confirmedMessage={chatConfirmedMsg}
+          confirmedBooking={chatConfirmedBooking}
           onClose={() => setChatOpen(false)}
         />
       )}
