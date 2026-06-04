@@ -84,7 +84,7 @@ _TOOLS = [
         "type": "function",
         "function": {
             "name": "initiate_payment",
-            "description": "Start a payment for an appointment.",
+            "description": "Start a payment for an appointment. Call this immediately after create_booking when the customer confirms.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -92,9 +92,10 @@ _TOOLS = [
                     "payment_method": {
                         "type": "string",
                         "enum": ["airtel_money", "mtn_momo", "card", "cash"],
+                        "description": "Optional. Defaults to card.",
                     },
                 },
-                "required": ["appointment_id", "payment_method"],
+                "required": ["appointment_id"],
             },
         },
     },
@@ -188,10 +189,19 @@ class BookingAgent:
             "  → If the customer says 'anyone', 'no preference', 'you choose', or similar: "
             "pick the staff member with the earliest available time slot automatically.\n"
             "- When calling create_booking, use the staff_id from the available_staff list "
-            "returned by check_availability. Never guess or invent a staff_id.\n"
-            "- Confirm service, stylist, date, and time before calling create_booking.\n"
-            "- After booking, offer payment — deposit only. Ask which payment method they prefer "
-            "(Airtel Money, MTN MoMo, card, or cash).\n\n"
+            "returned by check_availability. Never guess or invent a staff_id.\n\n"
+            "BOOKING CONFIRMATION FLOW — FOLLOW THIS EXACTLY, EVERY TIME:\n"
+            "Step 1 — When the customer picks a time, send a short summary and ask to confirm:\n"
+            "  [Service name]\n"
+            "  [Day, Date] at [Time]\n"
+            "  With [Staff name]\n\n"
+            "  Deposit: ZMW [X] — ZMW [Y] balance paid in person.\n\n"
+            "  Shall I confirm this booking?\n"
+            "  Nothing else. No questions about payment method.\n"
+            "Step 2 — When the customer says yes/confirm/ok:\n"
+            "  Call create_booking immediately.\n"
+            "  Then call initiate_payment immediately.\n"
+            "  Do NOT ask about payment method — it is handled by the payment button.\n\n"
             "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
             f"- The current time in Zambia is {current_time_str} (CAT, UTC+2). "
             f"Today is {today_day}, {today_str}.\n"
@@ -219,7 +229,7 @@ class BookingAgent:
             "  Do not add any explanation or other text around the times list.\n"
             "- Put a blank line between sections so the message is easy to read on a phone.\n"
             "- Never write one long paragraph — use short lines with line breaks.\n"
-            "- End each message with a short question to keep the conversation moving.\n\n"
+            "- Only ask a follow-up question when you genuinely need information to proceed.\n\n"
             "Payment — IMPORTANT:\n"
             "- Collect the deposit only — never the full price upfront.\n"
             "- Tell the customer: 'To confirm your booking, a deposit of ZMW [deposit amount] is required. "
@@ -429,7 +439,7 @@ class BookingAgent:
                 appointment=appt,
                 amount_zmw=amount,
                 payment_type=payment_type,
-                method=inputs["payment_method"],
+                method=inputs.get("payment_method", "card"),
                 status="pending",
             )
 
