@@ -1,13 +1,11 @@
-import { classNames } from '../../lib/utils'
-
 const colors = {
-  green:  'bg-secondary-container text-on-secondary-container',
-  yellow: 'bg-yellow-100 text-yellow-800',
-  red:    'bg-red-100 text-red-700',
-  blue:   'bg-blue-100 text-blue-800',
-  gray:   'bg-surface-container text-on-surface-variant',
-  purple: 'bg-purple-100 text-purple-800',
-  primary: 'bg-primary-container text-on-primary-container',
+  green:   { backgroundColor: '#D1FAE5', color: '#065F46' },
+  yellow:  { backgroundColor: '#FEF3C7', color: '#92400E' },
+  red:     { backgroundColor: '#FEE2E2', color: '#991B1B' },
+  blue:    { backgroundColor: '#DBEAFE', color: '#1E40AF' },
+  gray:    { backgroundColor: '#F3F4F6', color: '#6B7280' },
+  purple:  { backgroundColor: '#FDF0F2', color: '#6B2737' },
+  primary: { backgroundColor: '#FDF0F2', color: '#6B2737' },
 }
 
 const statusMap = {
@@ -22,14 +20,20 @@ const statusMap = {
 }
 
 export default function Badge({ color, status, className = '', children }) {
-  const resolvedColor = color ?? statusMap[status] ?? 'gray'
+  const key = color ?? statusMap[status] ?? 'gray'
+  const style = colors[key] ?? colors.gray
   return (
     <span
-      className={classNames(
-        'inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full',
-        colors[resolvedColor],
-        className
-      )}
+      className={className}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontSize: 11,
+        fontWeight: 500,
+        padding: '2px 8px',
+        borderRadius: 999,
+        ...style,
+      }}
     >
       {children ?? status}
     </span>

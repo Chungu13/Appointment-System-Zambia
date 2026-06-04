@@ -22,7 +22,10 @@ export default function AppointmentDetail() {
 
   if (loading) return <PageSpinner />
   if (error) return <ErrorMessage message={error.message} />
-  if (!appt) return <p className="text-center py-16 text-on-surface-variant">Appointment not found.</p>
+  if (!appt) return <p style={{ textAlign: 'center', padding: '64px 0', color: '#6B4A50', fontSize: 14 }}>Appointment not found.</p>
+
+  const lbl = { fontSize: 11, color: '#6B4A50', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }
+  const val = { fontSize: 13, fontWeight: 500, color: '#1A0A0D', margin: 0 }
 
   return (
     <PageWrapper maxWidth="2xl">
@@ -32,14 +35,14 @@ export default function AppointmentDetail() {
         action={<Button variant="ghost" size="sm" onClick={() => navigate(-1)}>← Back</Button>}
       />
 
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Card>
-          <div className="flex items-center gap-4 mb-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
             <Avatar name={appt.customer.fullName} size="lg" />
             <div>
-              <p className="font-semibold text-on-surface">{appt.customer.fullName}</p>
-              <p className="text-sm text-on-surface-variant">{appt.customer.phone}</p>
-              <div className="flex gap-2 mt-1">
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#1A0A0D', margin: '0 0 2px' }}>{appt.customer.fullName}</p>
+              <p style={{ fontSize: 13, color: '#6B4A50', margin: '0 0 6px' }}>{appt.customer.phone}</p>
+              <div style={{ display: 'flex', gap: 6 }}>
                 {appt.customer.noShowCount > 0 && (
                   <Badge color="yellow">{appt.customer.noShowCount} no-shows</Badge>
                 )}
@@ -47,37 +50,27 @@ export default function AppointmentDetail() {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-on-surface-variant">Service</p><p className="font-medium text-on-surface">{appt.service.name}</p></div>
-            <div><p className="text-on-surface-variant">Duration</p><p className="font-medium text-on-surface">{appt.service.durationMinutes} min</p></div>
-            <div><p className="text-on-surface-variant">Price</p><p className="font-medium text-on-surface">{formatZMW(appt.service.priceZmw)}</p></div>
-            <div><p className="text-on-surface-variant">Status</p><Badge status={appt.status} /></div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div><p style={lbl}>Service</p><p style={val}>{appt.service.name}</p></div>
+            <div><p style={lbl}>Duration</p><p style={val}>{appt.service.durationMinutes} min</p></div>
+            <div><p style={lbl}>Price</p><p style={val}>{formatZMW(appt.service.priceZmw)}</p></div>
+            <div><p style={lbl}>Status</p><Badge status={appt.status} /></div>
           </div>
         </Card>
 
-        <div className="flex flex-wrap gap-3">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {appt.status === 'confirmed' && (
-            <Button
-              loading={updatingStatus}
-              onClick={() => updateStatus({ variables: { appointmentId: appt.id, status: 'IN_PROGRESS' } })}
-            >
+            <Button loading={updatingStatus} onClick={() => updateStatus({ variables: { appointmentId: appt.id, status: 'IN_PROGRESS' } })}>
               Start appointment
             </Button>
           )}
           {appt.status === 'in_progress' && (
-            <Button
-              loading={updatingStatus}
-              onClick={() => updateStatus({ variables: { appointmentId: appt.id, status: 'COMPLETED' } })}
-            >
+            <Button loading={updatingStatus} onClick={() => updateStatus({ variables: { appointmentId: appt.id, status: 'COMPLETED' } })}>
               Mark complete
             </Button>
           )}
           {!['completed', 'cancelled', 'no_show'].includes(appt.status) && (
-            <Button
-              variant="danger"
-              loading={cancelling}
-              onClick={() => cancelBooking({ variables: { appointmentId: appt.id, cancelledBy: 'staff' } })}
-            >
+            <Button variant="danger" loading={cancelling} onClick={() => cancelBooking({ variables: { appointmentId: appt.id, cancelledBy: 'staff' } })}>
               Cancel
             </Button>
           )}

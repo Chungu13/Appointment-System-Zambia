@@ -1,13 +1,15 @@
-import { classNames } from '../../lib/utils'
-
-export default function Card({ className = '', children, padding = true, ...props }) {
+export default function Card({ className = '', children, padding = true, style = {}, ...props }) {
   return (
     <div
-      className={classNames(
-        'bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm',
-        padding && 'p-5',
-        className
-      )}
+      className={className}
+      style={{
+        backgroundColor: '#fff',
+        border: '1px solid #E8D8DC',
+        borderRadius: 14,
+        boxShadow: '0 1px 4px rgba(107,39,55,0.04)',
+        ...(padding ? { padding: 20 } : {}),
+        ...style,
+      }}
       {...props}
     >
       {children}
@@ -17,7 +19,7 @@ export default function Card({ className = '', children, padding = true, ...prop
 
 export function CardHeader({ className = '', children }) {
   return (
-    <div className={classNames('flex items-center justify-between mb-4', className)}>
+    <div className={`flex items-center justify-between mb-4 ${className}`}>
       {children}
     </div>
   )
@@ -25,6 +27,8 @@ export function CardHeader({ className = '', children }) {
 
 export function CardTitle({ className = '', children }) {
   return (
-    <h2 className={classNames('font-semibold text-on-surface', className)}>{children}</h2>
+    <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 400, color: '#1A0A0D', margin: 0 }} className={className}>
+      {children}
+    </h2>
   )
 }

@@ -51,18 +51,22 @@ export default function WalkInForm({ onSuccess }) {
     )
   }
 
+  const selectStyle = {
+    width: '100%', boxSizing: 'border-box', padding: '10px 12px',
+    border: '1px solid #D4B0B8', borderRadius: 10, fontSize: 13,
+    color: '#1A0A0D', backgroundColor: '#fff', outline: 'none',
+  }
+
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {error && <ErrorMessage message={error.message} />}
       <Input label="Customer name" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} required />
       <Input label="Phone number" value={form.customerPhone} onChange={(e) => set('customerPhone', e.target.value)} placeholder="+260..." required />
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-on-surface-variant">Service</label>
-        <select
-          value={form.serviceId}
-          onChange={(e) => set('serviceId', e.target.value)}
-          required
-          className="w-full rounded-xl border border-outline-variant px-3 py-2.5 text-sm bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <label style={{ fontSize: 12, fontWeight: 500, color: '#6B4A50' }}>Service</label>
+        <select value={form.serviceId} onChange={(e) => set('serviceId', e.target.value)} required style={selectStyle}
+          onFocus={(e) => (e.target.style.borderColor = '#6B2737')}
+          onBlur={(e) => (e.target.style.borderColor = '#D4B0B8')}
         >
           <option value="">Select a service…</option>
           {servicesData?.services?.map((s) => (
@@ -70,13 +74,11 @@ export default function WalkInForm({ onSuccess }) {
           ))}
         </select>
       </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-on-surface-variant">Staff</label>
-        <select
-          value={form.staffId}
-          onChange={(e) => set('staffId', e.target.value)}
-          required
-          className="w-full rounded-xl border border-outline-variant px-3 py-2.5 text-sm bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <label style={{ fontSize: 12, fontWeight: 500, color: '#6B4A50' }}>Staff</label>
+        <select value={form.staffId} onChange={(e) => set('staffId', e.target.value)} required style={selectStyle}
+          onFocus={(e) => (e.target.style.borderColor = '#6B2737')}
+          onBlur={(e) => (e.target.style.borderColor = '#D4B0B8')}
         >
           <option value="">Select staff…</option>
           {staffData?.staffList?.map((s) => (
