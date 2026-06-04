@@ -9,9 +9,9 @@ import { toDateInputValue, addDays, formatTime } from '../../lib/utils'
 import { LogOut } from 'lucide-react'
 
 const STATUS_COLOR = {
-  confirmed: 'text-blue-700 bg-blue-50',
-  pending: 'text-yellow-700 bg-yellow-50',
-  in_progress: 'text-purple-700 bg-purple-50',
+  confirmed:   'text-emerald-800 bg-emerald-50',
+  pending:     'text-amber-800 bg-amber-50',
+  in_progress: 'text-primary bg-primary-container',
 }
 const STATUS_LABEL = { confirmed: 'Confirmed', pending: 'Waiting', in_progress: 'In progress' }
 
@@ -20,7 +20,7 @@ function AppointmentBlock({ appt, onDone, loading }) {
   const inProgress = appt.status === 'in_progress'
 
   return (
-    <div className={`rounded-2xl border-2 p-5 ${done ? 'border-outline-variant bg-surface-container opacity-60' : 'border-primary bg-surface-container-lowest'}`}>
+    <div className={`rounded-2xl p-5 ${done ? 'opacity-60' : ''}`} style={{ backgroundColor: '#fff', border: done ? '1px solid #E8D8DC' : '1.5px solid #6B2737' }}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <p className="text-2xl font-bold text-primary font-display">{formatTime(appt.startsAt)}</p>
@@ -40,7 +40,8 @@ function AppointmentBlock({ appt, onDone, loading }) {
         <button
           disabled={loading}
           onClick={() => onDone(appt.id, inProgress ? 'COMPLETED' : 'IN_PROGRESS')}
-          className="w-full py-3 rounded-xl font-semibold text-base bg-primary text-on-primary hover:bg-primary/90 active:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          disabled={loading}
+          style={{ width: '100%', padding: '12px 0', borderRadius: 10, fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, backgroundColor: '#1A0A0D', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, transition: 'opacity 0.15s' }}
         >
           {loading ? '…' : inProgress ? 'Mark as done ✓' : 'Start appointment →'}
         </button>
@@ -101,16 +102,16 @@ export default function StaffHome() {
   const allDone = !loading && active.length === 0 && doneToday.length > 0
 
   return (
-    <div className="min-h-screen bg-background pb-16">
+    <div className="min-h-screen pb-16" style={{ backgroundColor: '#FAF8F6' }}>
       {/* Header */}
-      <header className="bg-primary text-on-primary px-5 pt-10 pb-8 flex items-start justify-between">
+      <header className="px-5 pt-10 pb-8 flex items-start justify-between" style={{ backgroundColor: '#1A0A0D', color: '#fff' }}>
         <div>
-          <p className="text-on-primary/70 text-sm mb-1">Today</p>
+          <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Today</p>
           <h1 className="font-display text-2xl font-bold">
             {new Date().toLocaleDateString('en-ZM', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </h1>
         </div>
-        <button onClick={logout} className="p-2 rounded-xl hover:bg-on-primary/10 transition-colors" title="Sign out">
+        <button onClick={logout} className="p-2 rounded-xl transition-colors" style={{ color: 'rgba(255,255,255,0.6)' }} title="Sign out">
           <LogOut size={20} />
         </button>
       </header>

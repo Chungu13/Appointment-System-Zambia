@@ -58,9 +58,9 @@ function BusinessProfileCard({ currentImageUrl }) {
   }
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-5">
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div>
-        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Camera size={18} className="text-primary" />
           Business profile photo
         </h2>
@@ -151,9 +151,9 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
   }
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-5">
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div>
-        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <MapPin size={18} className="text-primary" />
           Location
         </h2>
@@ -267,9 +267,9 @@ function StaffKeyCard({ currentKey }) {
   }
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-5">
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div>
-        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <KeyRound size={18} className="text-primary" />
           Staff access key
         </h2>
@@ -473,9 +473,9 @@ function BusinessPoliciesCard({ current }) {
   const isContOther  = form.contactPreference === 'other'
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-6">
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div>
-        <h2 className="font-semibold text-on-surface flex items-center gap-2">
+        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Bot size={18} className="text-primary" />
           AI assistant policies
         </h2>
@@ -614,7 +614,7 @@ export default function Settings() {
       {error && <ErrorMessage message={error.message} />}
 
       {data && (
-        <div className="max-w-lg space-y-6">
+        <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 24 }}>
           <BusinessProfileCard currentImageUrl={data.salonSettings.coverImageUrl} />
           <LocationCard
             currentCity={data.salonSettings.city}

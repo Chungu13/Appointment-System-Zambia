@@ -54,9 +54,9 @@ function UploadModal({ services, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-2xl w-full max-w-md">
+      <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.12)', width: '100%', maxWidth: 440 }}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
-          <h2 className="font-semibold text-on-surface">Add portfolio photo</h2>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0 }}>Add portfolio photo</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-container transition-colors">
             <X size={18} className="text-on-surface-variant" />
           </button>
@@ -249,12 +249,12 @@ export default function Portfolio() {
       {error && <ErrorMessage message={error.message} />}
 
       {!loading && images.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-surface-container rounded-2xl flex items-center justify-center mb-4">
-            <Images size={28} className="text-on-surface-variant" />
+        <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: '64px 32px', textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#FDF0F2', border: '1px solid #E8D8DC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <Images size={22} color="#6B2737" />
           </div>
-          <h3 className="font-semibold text-on-surface mb-2">No photos yet</h3>
-          <p className="text-sm text-on-surface-variant mb-6 max-w-xs">
+          <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 400, color: '#1A0A0D', margin: '0 0 10px' }}>No photos yet</h3>
+          <p style={{ fontSize: 13, color: '#6B4A50', maxWidth: 300, margin: '0 auto 24px', lineHeight: 1.6 }}>
             Upload photos of your best work. Customers will see these on your public page before booking.
           </p>
           <Button onClick={() => setShowModal(true)}>

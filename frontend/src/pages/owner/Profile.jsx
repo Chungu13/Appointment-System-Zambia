@@ -60,9 +60,9 @@ function PersonalDetailsCard({ profile }) {
   }
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-6">
-      <h2 className="font-semibold text-on-surface flex items-center gap-2">
-        <User size={18} className="text-primary" />
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <User size={17} color="#6B2737" />
         Personal details
       </h2>
 
@@ -76,8 +76,8 @@ function PersonalDetailsCard({ profile }) {
               className="w-16 h-16 rounded-full object-cover border-2 border-outline-variant"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-primary font-bold text-xl select-none">
-              {getInitials(profile.fullName)}
+            <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: '#E8C4CC', display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none' }}>
+              <span style={{ fontSize: 20, fontWeight: 600, color: '#6B2737' }}>{getInitials(profile.fullName)}</span>
             </div>
           )}
           <button
@@ -208,9 +208,9 @@ function ChangePasswordCard() {
   }
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 space-y-5">
-      <h2 className="font-semibold text-on-surface flex items-center gap-2">
-        <Lock size={18} className="text-primary" />
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Lock size={17} color="#6B2737" />
         Change password
       </h2>
 
@@ -275,9 +275,9 @@ function DangerZoneCard() {
   }
 
   return (
-    <div className="rounded-2xl border border-red-200 p-6 space-y-4 bg-red-50">
-      <h2 className="font-semibold text-red-700 flex items-center gap-2">
-        <AlertTriangle size={18} />
+    <div style={{ backgroundColor: '#FFF8F8', border: '1px solid #F0C8C8', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#8B1A1A', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <AlertTriangle size={17} />
         Danger zone
       </h2>
       <p className="text-sm text-red-600">
@@ -342,7 +342,7 @@ export default function Profile() {
       {error && <ErrorMessage message={error.message} />}
 
       {data?.myProfile && (
-        <div className="max-w-lg space-y-6">
+        <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 24 }}>
           <PersonalDetailsCard profile={data.myProfile} />
           <ChangePasswordCard />
           <DangerZoneCard />

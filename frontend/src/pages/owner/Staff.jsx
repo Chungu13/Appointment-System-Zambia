@@ -18,7 +18,12 @@ import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
-import { classNames } from '../../lib/utils'
+
+const PRIMARY = '#6B2737'
+const MUTED   = '#6B4A50'
+const BORDER  = '#E8D8DC'
+const NEAR_BLACK = '#1A0A0D'
+const serif = "'Cormorant Garamond', Georgia, serif"
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -59,36 +64,35 @@ function CreateStaffModal({ onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant">
-          <h2 className="font-semibold text-on-surface">Add staff member</h2>
-          <button onClick={onClose}><X size={20} className="text-on-surface-variant" /></button>
+      <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.12)', width: '100%', maxWidth: 400 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
+          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: NEAR_BLACK, margin: 0 }}>Add staff member</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}><X size={18} /></button>
         </div>
-        <form onSubmit={submit} className="p-5 space-y-4">
+        <form onSubmit={submit} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Error'} />}
 
           {/* "This is me" toggle */}
-          <label className="flex items-start gap-3 p-3 rounded-xl border border-primary/30 bg-primary-container/30 cursor-pointer">
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, borderRadius: 10, border: `1px solid ${BORDER}`, backgroundColor: '#FDF0F2', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={isMe}
               onChange={(e) => toggleIsMe(e.target.checked)}
-              className="mt-0.5 accent-primary"
+              style={{ marginTop: 2, accentColor: PRIMARY }}
             />
             <div>
-              <p className="text-sm font-semibold text-on-surface">This is me (I also do the work)</p>
-              <p className="text-xs text-on-surface-variant mt-0.5">
+              <p style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 2px' }}>This is me (I also do the work)</p>
+              <p style={{ fontSize: 12, color: MUTED, margin: 0, lineHeight: 1.5 }}>
                 Tick this if you're the sole operator. Your appointments will show on the dashboard.
               </p>
             </div>
           </label>
 
           {isMe ? (
-            /* Solo-operator mode: just set a PIN */
-            <div className="space-y-3">
-              <div className="rounded-xl bg-surface-container p-3 text-sm text-on-surface-variant">
-                <p className="font-medium text-on-surface">{profile?.fullName}</p>
-                <p>{profile?.phone}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ borderRadius: 10, border: `1px solid ${BORDER}`, padding: 12, fontSize: 13, color: MUTED }}>
+                <p style={{ fontWeight: 600, color: NEAR_BLACK, margin: '0 0 2px' }}>{profile?.fullName}</p>
+                <p style={{ margin: 0 }}>{profile?.phone}</p>
               </div>
               <Input
                 label="Your PIN (4 digits, for quick sign-in)"
@@ -100,7 +104,6 @@ function CreateStaffModal({ onClose, onCreated }) {
               />
             </div>
           ) : (
-            /* Normal mode: create a separate staff account */
             <>
               <Input label="Full name" value={form.fullName} onChange={(e) => set('fullName', e.target.value)} required />
               <Input label="Phone" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+260 97..." required />
@@ -159,47 +162,33 @@ function HoursRow({ staffId, day, wh }) {
     })
   }
 
+  const timeInput = { border: `1px solid ${BORDER}`, borderRadius: 8, padding: '4px 8px', fontSize: 13, color: NEAR_BLACK, backgroundColor: '#fff', outline: 'none', width: 112 }
+
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-outline-variant/40 last:border-0">
-      <span className="w-24 text-sm font-medium text-on-surface shrink-0">{DAYS[day]}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 8, borderBottom: `1px solid ${BORDER}44` }} className="last:border-b-0">
+      <span style={{ width: 88, fontSize: 13, fontWeight: 500, color: NEAR_BLACK, flexShrink: 0 }}>{DAYS[day]}</span>
 
       {/* Day off toggle */}
       <button
         type="button"
         onClick={() => setIsDayOff((v) => !v)}
-        className={classNames(
-          'w-8 h-4 rounded-full transition-colors shrink-0',
-          isDayOff ? 'bg-outline-variant' : 'bg-primary'
-        )}
+        style={{ width: 32, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: isDayOff ? '#C8A8B0' : PRIMARY, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
       >
-        <span className={classNames(
-          'block w-3 h-3 rounded-full bg-white shadow transition-transform mx-0.5',
-          isDayOff ? 'translate-x-0' : 'translate-x-4'
-        )} />
+        <span style={{ position: 'absolute', top: 3, left: isDayOff ? 3 : 13, width: 12, height: 12, borderRadius: '50%', backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
       </button>
-      <span className="text-xs text-on-surface-variant w-12 shrink-0">{isDayOff ? 'Day off' : 'Open'}</span>
+      <span style={{ fontSize: 11, color: MUTED, width: 44, flexShrink: 0 }}>{isDayOff ? 'Day off' : 'Open'}</span>
 
       {!isDayOff && (
         <>
-          <input
-            type="time"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-            className="text-sm border border-outline-variant rounded-lg px-2 py-1 bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 w-28"
-          />
-          <span className="text-xs text-on-surface-variant">-</span>
-          <input
-            type="time"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-            className="text-sm border border-outline-variant rounded-lg px-2 py-1 bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 w-28"
-          />
+          <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={timeInput} />
+          <span style={{ fontSize: 12, color: MUTED }}>–</span>
+          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={timeInput} />
         </>
       )}
 
-      <div className="ml-auto">
+      <div style={{ marginLeft: 'auto' }}>
         {saved ? (
-          <span className="text-xs text-green-700 font-medium">Saved ✓</span>
+          <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 500 }}>Saved ✓</span>
         ) : (
           <Button size="sm" variant="ghost" loading={loading} onClick={save}>Save</Button>
         )}
@@ -221,21 +210,23 @@ function ServiceAssignment({ staffId, assignedIds, services }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
       {services.map((s) => {
         const on = assignedIds.includes(s.id)
         return (
           <button
             key={s.id}
             onClick={() => toggle(s.id)}
-            className={classNames(
-              'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm text-left transition-colors',
-              on
-                ? 'border-primary bg-primary-container text-on-primary-container'
-                : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
-            )}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              borderRadius: 10, padding: '8px 12px', fontSize: 13, textAlign: 'left',
+              border: `1px solid ${on ? PRIMARY : BORDER}`,
+              backgroundColor: on ? '#FDF0F2' : '#fff',
+              color: on ? PRIMARY : MUTED,
+              cursor: 'pointer', transition: 'all 0.12s',
+            }}
           >
-            <span className={classNames('w-3 h-3 rounded-full shrink-0', on ? 'bg-primary' : 'bg-outline-variant')} />
+            <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, backgroundColor: on ? PRIMARY : BORDER }} />
             {s.name}
           </button>
         )
@@ -316,18 +307,18 @@ function StaffProfileEditor({ member }) {
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-on-surface mb-3">Public profile</h3>
-      <div className="flex gap-4 items-start">
+      <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, marginBottom: 12, marginTop: 0 }}>Public profile</h3>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
         {/* Avatar upload */}
-        <div className="shrink-0">
+        <div style={{ flexShrink: 0 }}>
           {avatarPreview ? (
-            <div className="relative w-20 h-20">
-              <img src={avatarPreview} alt="Avatar" className="w-20 h-20 rounded-full object-cover border-2 border-outline-variant" />
+            <div style={{ position: 'relative', width: 72, height: 72 }}>
+              <img src={avatarPreview} alt="Avatar" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${BORDER}` }} />
               <button
                 onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-on-primary rounded-full flex items-center justify-center border-2 border-surface-container-lowest hover:bg-primary/90 transition-colors"
+                style={{ position: 'absolute', bottom: -2, right: -2, width: 24, height: 24, borderRadius: '50%', backgroundColor: PRIMARY, color: '#fff', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
-                <Camera size={13} />
+                <Camera size={12} />
               </button>
             </div>
           ) : (
@@ -336,43 +327,45 @@ function StaffProfileEditor({ member }) {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); processFile(e.dataTransfer.files?.[0]) }}
-              className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${dragOver ? 'border-primary bg-primary/5' : 'border-outline-variant hover:border-primary/50 hover:bg-surface-container'}`}
+              style={{ width: 72, height: 72, borderRadius: '50%', border: `2px dashed ${dragOver ? PRIMARY : BORDER}`, backgroundColor: dragOver ? '#FDF0F2' : '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.12s' }}
             >
-              <Camera size={18} className="text-on-surface-variant" />
-              <span className="text-xs text-on-surface-variant">Photo</span>
+              <Camera size={16} color={MUTED} />
+              <span style={{ fontSize: 11, color: MUTED }}>Photo</span>
             </button>
           )}
           <input ref={fileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => processFile(e.target.files?.[0])} />
         </div>
 
         {/* Bio + visibility */}
-        <div className="flex-1 space-y-3">
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label className="text-xs font-medium text-on-surface-variant block mb-1">Short bio</label>
+            <label style={{ fontSize: 12, fontWeight: 500, color: MUTED, display: 'block', marginBottom: 4 }}>Short bio</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={2}
               placeholder="e.g. 5 years experience in braiding and natural hair"
-              className="w-full px-3 py-2 rounded-xl border border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, color: NEAR_BLACK, backgroundColor: '#fff', resize: 'none', outline: 'none', fontFamily: 'Inter, sans-serif' }}
+              onFocus={(e) => (e.target.style.borderColor = PRIMARY)}
+              onBlur={(e) => (e.target.style.borderColor = BORDER)}
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <button
               onClick={togglePublic}
-              className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${isPublic ? 'border-primary/40 bg-primary-container/40 text-primary' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, border: `1px solid ${isPublic ? PRIMARY : BORDER}`, backgroundColor: isPublic ? '#FDF0F2' : '#fff', color: isPublic ? PRIMARY : MUTED, cursor: 'pointer', transition: 'all 0.12s' }}
             >
-              {isPublic ? <Eye size={15} /> : <EyeOff size={15} />}
+              {isPublic ? <Eye size={13} /> : <EyeOff size={13} />}
               {isPublic ? 'Shown on public page' : 'Hidden from public page'}
             </button>
 
-            <div className="flex items-center gap-2">
-              {saved && <span className="text-xs text-green-700 font-medium">Saved ✓</span>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {saved && <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 500 }}>Saved ✓</span>}
               <button
                 onClick={save}
                 disabled={loading}
-                className="text-sm px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium"
+                style={{ fontSize: 13, fontWeight: 500, padding: '6px 14px', borderRadius: 8, backgroundColor: PRIMARY, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
               >
                 {loading ? 'Saving…' : 'Save bio'}
               </button>
@@ -391,33 +384,37 @@ function StaffPanel({ member, allServices }) {
   // Build a map of dayOfWeek → wh object from existing working hours
   const whByDay = Object.fromEntries((member.workingHours ?? []).map((wh) => [wh.dayOfWeek, wh]))
 
+  const [hovered, setHovered] = useState(false)
+
   return (
-    <div className="rounded-2xl border border-outline-variant overflow-hidden">
+    <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
       {/* Card header */}
       <button
-        className="w-full flex items-center gap-4 p-4 hover:bg-surface-container/50 transition-colors text-left"
+        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: 16, backgroundColor: hovered ? '#FAF8F6' : '#fff', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background-color 0.12s' }}
         onClick={() => setOpen((v) => !v)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
         <Avatar name={member.fullName} src={member.avatarUrl} />
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-on-surface">{member.fullName}</p>
-          <p className="text-sm text-on-surface-variant">{member.phone}</p>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: NEAR_BLACK, margin: 0 }}>{member.fullName}</p>
+          <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>{member.phone}</p>
         </div>
         <Badge color={member.role === 'OWNER' ? 'primary' : 'gray'}>
           {member.role}
         </Badge>
-        {open ? <ChevronUp size={18} className="text-on-surface-variant shrink-0" /> : <ChevronDown size={18} className="text-on-surface-variant shrink-0" />}
+        {open ? <ChevronUp size={16} color={MUTED} style={{ flexShrink: 0 }} /> : <ChevronDown size={16} color={MUTED} style={{ flexShrink: 0 }} />}
       </button>
 
       {/* Expanded panel */}
       {open && (
-        <div className="border-t border-outline-variant p-4 bg-surface-container/30 space-y-6">
+        <div style={{ borderTop: `1px solid ${BORDER}`, padding: 16, backgroundColor: '#FDFAFB', display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Public profile */}
           <StaffProfileEditor member={member} />
 
           {/* Working hours */}
           <div>
-            <h3 className="text-sm font-semibold text-on-surface mb-3">Working hours</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 12px' }}>Working hours</h3>
             <div>
               {DAYS.map((_, day) => (
                 <HoursRow key={day} staffId={member.id} day={day} wh={whByDay[day]} />
@@ -428,7 +425,7 @@ function StaffPanel({ member, allServices }) {
           {/* Services */}
           {allServices.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-on-surface mb-3">Assigned services</h3>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 12px' }}>Assigned services</h3>
               <ServiceAssignment
                 staffId={member.id}
                 assignedIds={member.assignedServiceIds ?? []}
@@ -437,10 +434,10 @@ function StaffPanel({ member, allServices }) {
             </div>
           )}
 
-          {/* PIN — shown for staff, and for owners who are also practitioners */}
+          {/* PIN */}
           {(member.role !== 'OWNER' || member.isAlsoStaff) && (
             <div>
-              <h3 className="text-sm font-semibold text-on-surface mb-3">PIN login</h3>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 12px' }}>PIN login</h3>
               <PinSetter staffId={member.id} />
             </div>
           )}

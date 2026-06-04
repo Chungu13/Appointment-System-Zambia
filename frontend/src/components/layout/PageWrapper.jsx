@@ -25,8 +25,10 @@ export function PageHeader({ title, subtitle, action, className = '' }) {
   return (
     <div className={classNames('flex items-start justify-between gap-4 mb-8', className)}>
       <div>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary">{title}</h1>
-        {subtitle && <p className="text-on-surface-variant mt-1">{subtitle}</p>}
+        <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 400, color: '#1A0A0D', margin: 0, lineHeight: 1.15 }}>
+          {title}
+        </h1>
+        {subtitle && <p style={{ color: '#6B4A50', fontSize: 14, marginTop: 4, margin: '4px 0 0' }}>{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

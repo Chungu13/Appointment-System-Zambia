@@ -41,34 +41,36 @@ function KeyEntry({ onVerified }) {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-xs">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary-container flex items-center justify-center mx-auto mb-4">
-            <KeyRound size={28} className="text-primary" />
+    <div style={{ minHeight: '100vh', backgroundColor: '#FAF8F6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+      <div style={{ width: '100%', maxWidth: 320 }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: '#E8C4CC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
+            <KeyRound size={26} color="#6B2737" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-on-surface">Staff portal</h1>
-          <p className="text-sm text-on-surface-variant mt-2">
+          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 400, color: '#1A0A0D', margin: '0 0 8px' }}>Staff portal</h1>
+          <p style={{ fontSize: 13, color: '#6B4A50', margin: 0, lineHeight: 1.5 }}>
             Enter your salon's staff access key to see today's schedule
           </p>
         </div>
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
             type="text"
             value={key}
             onChange={(e) => setKey(e.target.value.toUpperCase())}
             placeholder="e.g. GLOW2024"
             autoFocus
-            className="w-full px-4 py-3 rounded-2xl border-2 border-outline-variant bg-surface-container-lowest text-on-surface text-center text-xl font-bold tracking-widest uppercase focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+            style={{ width: '100%', boxSizing: 'border-box', padding: '14px 16px', border: '1px solid #D4B0B8', borderRadius: 12, fontSize: 20, fontWeight: 700, textAlign: 'center', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1A0A0D', backgroundColor: '#fff', outline: 'none' }}
+            onFocus={(e) => (e.target.style.borderColor = '#6B2737')}
+            onBlur={(e) => (e.target.style.borderColor = '#D4B0B8')}
           />
           {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
+            <p style={{ fontSize: 13, color: '#b91c1c', textAlign: 'center', margin: 0 }}>{error}</p>
           )}
           <button
             type="submit"
             disabled={!key.trim() || loading}
-            className="w-full py-3 rounded-2xl bg-primary text-on-primary font-semibold text-base disabled:opacity-50 hover:bg-primary/90 active:bg-primary/80 transition-colors"
+            style={{ width: '100%', padding: '13px 0', borderRadius: 10, backgroundColor: '#1A0A0D', color: '#fff', border: 'none', fontSize: 14, fontWeight: 500, cursor: (!key.trim() || loading) ? 'not-allowed' : 'pointer', opacity: (!key.trim() || loading) ? 0.45 : 1 }}
           >
             {loading ? 'Checking…' : 'Enter'}
           </button>
@@ -80,10 +82,10 @@ function KeyEntry({ onVerified }) {
 
 // ── Appointment card ──────────────────────────────────────────────────────────
 const STATUS_COLOR = {
-  confirmed: 'text-blue-700 bg-blue-50 border-blue-200',
-  pending:   'text-yellow-700 bg-yellow-50 border-yellow-200',
-  in_progress: 'text-purple-700 bg-purple-50 border-purple-200',
-  completed: 'text-gray-500 bg-gray-50 border-gray-200',
+  confirmed:   'text-emerald-800 bg-emerald-50 border-emerald-200',
+  pending:     'text-amber-800 bg-amber-50 border-amber-200',
+  in_progress: 'text-primary bg-primary-container border-outline-variant',
+  completed:   'text-on-surface-variant bg-surface-container border-outline-variant',
 }
 
 function AppointmentCard({ appt, isOwn, staffKey, onDone }) {
@@ -95,7 +97,7 @@ function AppointmentCard({ appt, isOwn, staffKey, onDone }) {
   })
 
   return (
-    <div className={`rounded-2xl border-2 p-4 transition-opacity ${done ? 'opacity-50' : ''} ${isOwn && !done ? 'border-primary bg-surface-container-lowest' : 'border-outline-variant'}`}>
+    <div className={`rounded-2xl p-4 transition-opacity ${done ? 'opacity-50' : ''}`} style={{ backgroundColor: '#fff', border: isOwn && !done ? '1.5px solid #6B2737' : '1px solid #E8D8DC' }}>
       <div className="flex items-start gap-3">
         <div className="shrink-0 text-center w-14">
           <p className={`text-lg font-bold font-display ${isOwn ? 'text-primary' : 'text-on-surface'}`}>
@@ -171,22 +173,22 @@ function DaySchedule({ staffKey, onSignOut }) {
   const isFiltering = !!trimmed
 
   return (
-    <div className="min-h-screen bg-background pb-16">
+    <div className="min-h-screen pb-16" style={{ backgroundColor: '#FAF8F6' }}>
       {/* Header */}
-      <header className="bg-primary text-on-primary px-5 pt-10 pb-6">
+      <header className="px-5 pt-10 pb-6" style={{ backgroundColor: '#1A0A0D', color: '#fff' }}>
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-on-primary/70 text-sm mb-1">Today</p>
+            <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Today</p>
             <h1 className="font-display text-xl font-bold">
               {new Date().toLocaleDateString('en-ZM', { weekday: 'long', day: 'numeric', month: 'long' })}
             </h1>
-            <p className="text-on-primary/70 text-sm mt-1">
+            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
               {todayAppts.length} appointment{todayAppts.length !== 1 ? 's' : ''}
             </p>
           </div>
           <button
             onClick={() => { clearStoredKey(); onSignOut() }}
-            className="text-xs text-on-primary/60 hover:text-on-primary/90 mt-1 transition-colors"
+            style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4, background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Change key
           </button>

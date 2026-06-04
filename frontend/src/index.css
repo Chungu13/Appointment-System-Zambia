@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", Georgia, serif;
 
   --color-primary: #6B2737;
   --color-background: #FDF5F6;
