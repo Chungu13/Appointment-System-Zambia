@@ -26,7 +26,7 @@ function parseTimeSlots(text) {
   );
   if (timeLines.length >= 2) {
     const slots = [
-      ...new Set(timeLines.map((l) => l.match(/(\d{1,2}:\d{2})/)[1])),
+      ...new Set(timeLines.map((l) => to12h(l.match(/(\d{1,2}:\d{2})/)[1]))),
     ];
     const firstTimeIdx = lines.findIndex((l) => time24Re.test(l));
     const header = lines
