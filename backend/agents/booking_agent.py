@@ -182,6 +182,8 @@ class BookingAgent:
             "- Be concise — no filler, no unnecessary questions. When a customer asks about a service, "
             "give them the price, duration and available times immediately.\n"
             "- Confirm service, stylist, date, and time before calling create_booking.\n"
+            "- When calling create_booking, use the staff_id from the available_staff list "
+            "returned by check_availability. Never guess or invent a staff_id.\n"
             "- After booking, offer payment — deposit only. Ask which payment method they prefer "
             "(Airtel Money, MTN MoMo, card, or cash).\n\n"
             "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
@@ -284,16 +286,25 @@ class BookingAgent:
             if not raw_slots:
                 return {"date": inputs["date"], "available_slots": [], "message": "No slots available on this date."}
 
-            by_staff: dict[str, list[str]] = {}
+            # Group by staff, keeping staff_id so the AI can pass it directly
+            # to create_booking without having to look it up separately.
+            seen: dict[int, dict] = {}
             for s in raw_slots:
-                by_staff.setdefault(s["staff_name"], []).append(
+                sid = s["staff_id"]
+                if sid not in seen:
+                    seen[sid] = {
+                        "staff_id":   sid,
+                        "staff_name": s["staff_name"],
+                        "times":      [],
+                    }
+                seen[sid]["times"].append(
                     s["starts_at"].strftime("%I:%M %p").lstrip("0")
                 )
 
             return {
                 "date": inputs["date"],
                 "service": raw_slots[0]["service_name"],
-                "slots_by_staff": by_staff,
+                "available_staff": list(seen.values()),
                 "total_slots": len(raw_slots),
             }
 
@@ -311,6 +322,21 @@ class BookingAgent:
                 staff = User.objects.get(pk=inputs["staff_id"])
             except User.DoesNotExist:
                 return {"error": f"Staff member {inputs['staff_id']} not found."}
+
+            # Ensure this staff member is actually assigned to the service
+            if not StaffService.objects.filter(service=service, staff=staff).exists():
+                assigned = list(
+                    StaffService.objects.filter(service=service)
+                    .select_related("staff")
+                    .values_list("staff__full_name", flat=True)
+                )
+                return {
+                    "error": (
+                        f"{staff.full_name} is not assigned to {service.name}. "
+                        f"Please use one of the staff members returned by check_availability: "
+                        f"{', '.join(assigned) or 'none available'}."
+                    )
+                }
 
             tz = timezone.get_current_timezone()
             try:
