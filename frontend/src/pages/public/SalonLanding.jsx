@@ -11,7 +11,7 @@ import { playPopSound } from '../../lib/sounds'
 const PRIMARY   = '#6B2737'
 const DARK      = '#1A0A0D'
 const BORDER    = '#f0ece8'
-const serif     = 'Inter, sans-serif'
+const serif     = "'Cormorant Garamond', Georgia, serif"
 const sans      = 'Inter, sans-serif'
 
 const TYPE_LABELS = {
@@ -50,6 +50,17 @@ function initials(name) {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
+function checkOpenNow(hours) {
+  const now = new Date()
+  const todayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1
+  const row = hours?.find((h) => h.dayOfWeek === todayIdx)
+  if (!row || row.isClosed || !row.opensAt || !row.closesAt) return false
+  const nowMins = now.getHours() * 60 + now.getMinutes()
+  const [oh, om] = row.opensAt.split(':').map(Number)
+  const [ch, cm] = row.closesAt.split(':').map(Number)
+  return nowMins >= oh * 60 + om && nowMins < ch * 60 + cm
+}
+
 // ── Eyebrow ───────────────────────────────────────────────────────────────────
 function Eyebrow({ children }) {
   return (
@@ -69,23 +80,20 @@ function SalonNav() {
     <nav style={{ position: 'sticky', top: 0, zIndex: 50, backgroundColor: '#fff', borderBottom: `0.5px solid ${BORDER}` }}>
       {/* Desktop bar */}
       <div className="hidden sm:flex" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 64px', height: 56, alignItems: 'center', justifyContent: 'space-between' }}>
-        <a href={homeUrl} style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: '#1a1a1a', letterSpacing: '-0.5px' }}>Kimawa</span>
+        <a href={homeUrl} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 26 }} />
+          <span style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: '#1a1a1a', letterSpacing: '-0.3px' }}>Kimawa</span>
         </a>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <a href={discoverUrl} style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#888', textDecoration: 'none' }}>
-            Find Beauty Services
-          </a>
-          <a href={discoverUrl} style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '9px 20px', borderRadius: 3, textDecoration: 'none' }}>
-            Browse &amp; Book
-          </a>
-        </div>
+        <a href={discoverUrl} style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#555', textDecoration: 'none' }}>
+          Find Beauty Services
+        </a>
       </div>
 
       {/* Mobile bar */}
       <div className="flex sm:hidden" style={{ padding: '0 20px', height: 56, alignItems: 'center', justifyContent: 'space-between' }}>
-        <a href={homeUrl} style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: '#1a1a1a' }}>Kimawa</span>
+        <a href={homeUrl} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7 }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 22 }} />
+          <span style={{ fontFamily: serif, fontSize: 16, fontWeight: 400, color: '#1a1a1a' }}>Kimawa</span>
         </a>
         <button onClick={() => setOpen((v) => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 12, color: '#1a1a1a' }}>
           {open ? <X size={20} /> : <Menu size={20} />}
@@ -98,11 +106,6 @@ function SalonNav() {
           <a href={discoverUrl} onClick={() => setOpen(false)} style={{ fontSize: 14, color: '#333', textDecoration: 'none', padding: '14px 16px', display: 'block' }}>
             Find Beauty Services
           </a>
-          <div style={{ padding: '8px 16px' }}>
-            <a href={discoverUrl} onClick={() => setOpen(false)} style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 20px', borderRadius: 3, textDecoration: 'none', textAlign: 'center', display: 'block' }}>
-              Browse &amp; Book
-            </a>
-          </div>
         </div>
       )}
     </nav>
@@ -112,17 +115,15 @@ function SalonNav() {
 // ── Hero ──────────────────────────────────────────────────────────────────────
 function Hero({ profile, onChatOpen }) {
   const bannerUrl = bannerFor(profile)
-  const openToday = profile.openingHours.find((h) => {
-    const today = new Date().getDay()
-    const todayIdx = today === 0 ? 6 : today - 1
-    return h.dayOfWeek === todayIdx && !h.isClosed
-  })
+  const isOpen = checkOpenNow(profile.openingHours)
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+  const todayRow = profile.openingHours.find((h) => h.dayOfWeek === todayIdx)
 
   return (
     <header className="salon-hero" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Background */}
-      <img src={bannerUrl} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }} />
-      <div style={{ position: 'absolute', inset: 0, backgroundColor: DARK }} />
+      {/* Background — image at full opacity, dark overlay on top */}
+      <img src={bannerUrl} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: DARK, opacity: 0.55 }} />
       {/* Bottom gradient */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 160, background: 'linear-gradient(to top, rgba(10,3,5,0.9), transparent)', pointerEvents: 'none' }} />
 
@@ -151,10 +152,10 @@ function Hero({ profile, onChatOpen }) {
               {profile.phone}
             </a>
           )}
-          {openToday && (
+          {todayRow && !todayRow.isClosed && (
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.75)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }} />
-              Open now · closes {formatTime(openToday.closesAt)}
+              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: isOpen ? '#4ade80' : '#f87171', display: 'inline-block' }} />
+              {isOpen ? `Open now · closes ${formatTime(todayRow.closesAt)}` : `Closed · opens ${formatTime(todayRow.opensAt)}`}
             </span>
           )}
         </div>
@@ -400,8 +401,7 @@ function TeamSection({ staff }) {
 // ── Hours ─────────────────────────────────────────────────────────────────────
 function HoursCard({ hours }) {
   const todayIdx = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1 })()
-  const todayRow = hours.find((h) => h.dayOfWeek === todayIdx)
-  const isOpenNow = todayRow && !todayRow.isClosed
+  const isOpenNow = checkOpenNow(hours)
 
   return (
     <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
