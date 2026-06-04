@@ -146,7 +146,7 @@ class Mutation:
         area: str = "",
     ) -> RegisterPayload:
         from django.conf import settings
-        from django_tenants.utils import tenant_context
+        from django_tenants.utils import tenant_context, schema_context
         from beautybook.jwt_auth import make_access_token, make_refresh_token
         from tenants.models import Domain, Tenant
 
@@ -161,6 +161,43 @@ class Mutation:
 
         if len(password) < 8:
             raise ValueError("Password must be at least 8 characters.")
+
+        email = email.strip().lower()
+
+        # ── Option A: resume incomplete onboarding ────────────────────────────
+        # If this email already owns a tenant that hasn't finished onboarding,
+        # return their existing credentials so they drop back into the flow
+        # seamlessly — no duplicate tenant created.
+        for existing_tenant in Tenant.objects.exclude(schema_name="public"):
+            with schema_context(existing_tenant.schema_name):
+                from staff.models import User as _User
+                try:
+                    existing_user = _User.objects.get(email=email, role="owner")
+                except _User.DoesNotExist:
+                    continue
+
+                if existing_tenant.onboarding_completed:
+                    raise ValueError(
+                        "An account with this email already exists. "
+                        "Please log in instead."
+                    )
+
+                # Incomplete onboarding — sync password in case they re-entered
+                # a different one, then hand back existing credentials.
+                if not existing_user.check_password(password):
+                    existing_user.set_password(password)
+                    existing_user.save(update_fields=["password"])
+
+                logger.info(
+                    "registerTenant: resuming incomplete onboarding for %r (tenant=%r)",
+                    email, existing_tenant.subdomain,
+                )
+                return RegisterPayload(
+                    access_token=make_access_token(existing_user.pk, "owner"),
+                    refresh_token=make_refresh_token(existing_user.pk),
+                    tenant_subdomain=existing_tenant.subdomain,
+                    staff_access_key=existing_tenant.staff_access_key or "",
+                )
 
         # ── Generate identifiers ──────────────────────────────────────────────
         base_slug = re.sub(r"[^a-z0-9]+", "-", business_name.lower().strip()).strip("-")
