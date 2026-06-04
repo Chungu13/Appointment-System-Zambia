@@ -42,13 +42,22 @@ function parseTimeSlots(text) {
       ),
     ];
     const firstTimeIdx = lines.findIndex((l) => timeLineRe.test(l));
+    const lastTimeIdx = lines.reduce(
+      (last, l, i) => (timeLineRe.test(l) && l.trim() ? i : last),
+      -1,
+    );
     const header = lines
       .slice(0, firstTimeIdx)
       .join(" ")
       .replace(/\*\*/g, "")
       .replace(/[:\-]+\s*$/, "")
       .trim();
-    return { header: header || "Available times", slots };
+    const footer = lines
+      .slice(lastTimeIdx + 1)
+      .join("\n")
+      .replace(/\*\*/g, "")
+      .trim();
+    return { header: header || "Available times", slots, footer: footer || null };
   }
 
   // Fallback: 12-hour format — "9:00 AM", "11:30 PM"
@@ -388,6 +397,19 @@ function SlotGrid({ data, onSend }) {
           </button>
         ))}
       </div>
+      {data.footer && (
+        <p
+          style={{
+            fontFamily: sans,
+            fontSize: 12,
+            fontWeight: 300,
+            color: "rgba(255,255,255,0.55)",
+            margin: "10px 0 0",
+          }}
+        >
+          {data.footer}
+        </p>
+      )}
     </div>
   );
 }
