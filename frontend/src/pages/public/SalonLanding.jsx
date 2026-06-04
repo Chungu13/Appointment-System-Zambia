@@ -389,12 +389,7 @@ function TeamSection({ staff }) {
                 </span>
               </div>
             )}
-            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 4px' }}>{member.fullName}</p>
-            {member.serviceNames?.length > 0 && (
-              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#666', margin: 0, lineHeight: 1.5 }}>
-                {member.serviceNames.slice(0, 2).join(' · ')}
-              </p>
-            )}
+            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{member.fullName}</p>
           </div>
         ))}
       </div>
