@@ -18,17 +18,30 @@ function to12h(time24) {
 }
 
 function parseTimeSlots(text) {
-  // Primary: 24-hour format lines — "- 08:00" or "- 08:00 with Alice" or "08:00"
   const lines = text.split("\n");
-  const time24Re = /^\s*-?\s*(\d{1,2}:\d{2})(?:\s.*)?$/;
+  const timeLineRe = /^\s*-?\s*(\d{1,2}:\d{2})\s*(AM|PM)?(?:\s.*)?$/i;
   const timeLines = lines.filter(
-    (l) => time24Re.test(l) && l.trim().length > 0,
+    (l) => timeLineRe.test(l) && l.trim().length > 0,
   );
+
   if (timeLines.length >= 2) {
     const slots = [
-      ...new Set(timeLines.map((l) => to12h(l.match(/(\d{1,2}:\d{2})/)[1]))),
+      ...new Set(
+        timeLines.map((l) => {
+          const m = l.match(/(\d{1,2}:\d{2})\s*(AM|PM)?/i);
+          if (!m) return null;
+          const [, time, period] = m;
+          if (period) {
+            // Already has AM/PM — preserve it exactly, just normalise spacing
+            const [h, min] = time.split(":");
+            return `${parseInt(h, 10)}:${min} ${period.toUpperCase()}`;
+          }
+          // Pure 24-hour — convert
+          return to12h(time);
+        }).filter(Boolean),
+      ),
     ];
-    const firstTimeIdx = lines.findIndex((l) => time24Re.test(l));
+    const firstTimeIdx = lines.findIndex((l) => timeLineRe.test(l));
     const header = lines
       .slice(0, firstTimeIdx)
       .join(" ")

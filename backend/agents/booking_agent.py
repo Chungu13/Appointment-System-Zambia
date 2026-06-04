@@ -286,7 +286,9 @@ class BookingAgent:
 
             by_staff: dict[str, list[str]] = {}
             for s in raw_slots:
-                by_staff.setdefault(s["staff_name"], []).append(s["starts_at"].strftime("%H:%M"))
+                by_staff.setdefault(s["staff_name"], []).append(
+                    s["starts_at"].strftime("%I:%M %p").lstrip("0")
+                )
 
             return {
                 "date": inputs["date"],
