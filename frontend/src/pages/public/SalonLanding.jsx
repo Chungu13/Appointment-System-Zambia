@@ -436,12 +436,54 @@ function HoursCard({ hours }) {
 
 // ── Location ──────────────────────────────────────────────────────────────────
 function LocationCard({ profile }) {
+  const parts = [profile.address, profile.area, profile.city].filter(Boolean)
+  const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent([profile.businessName, ...parts].join(', '))}`
+
   return (
-    <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: 16 }}>
-      <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 10px' }}>Location</p>
-      {profile.area && <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#555', margin: '0 0 4px' }}>{profile.area}</p>}
-      {profile.address && <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#555', margin: '0 0 4px' }}>{profile.address}</p>}
-      {profile.city && <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#555', margin: 0 }}>{profile.city}</p>}
+    <div style={{ borderRadius: 10, overflow: 'hidden', backgroundColor: DARK }}>
+      {/* Header */}
+      <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+        <div style={{ width: 38, height: 38, borderRadius: '50%', backgroundColor: PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+          <MapPin size={16} color="#fff" strokeWidth={2} />
+        </div>
+        <div>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', margin: '0 0 5px' }}>
+            Where to find us
+          </p>
+          <p style={{ fontFamily: serif, fontSize: 19, fontWeight: 400, color: '#fff', margin: 0, lineHeight: 1.15, letterSpacing: '-0.2px' }}>
+            {profile.businessName}
+          </p>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: '0.5px', backgroundColor: 'rgba(255,255,255,0.08)', margin: '0 20px' }} />
+
+      {/* Address lines */}
+      <div style={{ padding: '14px 20px 18px' }}>
+        {parts.map((part, i) => (
+          <p key={i} style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.6)', margin: '0 0 3px', lineHeight: 1.6 }}>
+            {part}
+          </p>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <div style={{ padding: '0 20px 20px' }}>
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.05em',
+            color: '#fff', backgroundColor: PRIMARY,
+            padding: '9px 18px', borderRadius: 5, textDecoration: 'none',
+          }}
+        >
+          <MapPin size={12} /> Get directions
+        </a>
+      </div>
     </div>
   )
 }
