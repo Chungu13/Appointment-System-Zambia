@@ -368,20 +368,25 @@ function PortfolioSection({ images }) {
 
 // ── Team ──────────────────────────────────────────────────────────────────────
 function TeamSection({ staff }) {
-  const publicStaff = staff.filter((s) => s.displayOnPublicPage)
-  if (publicStaff.length === 0) return null
+  if (!staff || staff.length === 0) return null
 
   return (
     <section>
       <Eyebrow>Meet the team</Eyebrow>
       <div className="salon-team-grid">
-        {publicStaff.map((member) => (
+        {staff.map((member) => (
           <div key={member.id} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: 18, textAlign: 'center' }}>
             {member.avatarUrl ? (
-              <img src={member.avatarUrl} alt={member.fullName} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px' }} />
+              <img
+                src={member.avatarUrl}
+                alt={member.fullName}
+                style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 12px', display: 'block' }}
+              />
             ) : (
-              <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#f5eaec', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-                <span style={{ fontFamily: sans, fontSize: 16, fontWeight: 500, color: PRIMARY }}>{initials(member.fullName)}</span>
+              <div style={{ width: 72, height: 72, borderRadius: '50%', backgroundColor: '#f5eaec', border: '1.5px solid #e8d0d5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <span style={{ fontFamily: sans, fontSize: 22, fontWeight: 500, color: PRIMARY, lineHeight: 1 }}>
+                  {initials(member.fullName)}
+                </span>
               </div>
             )}
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 4px' }}>{member.fullName}</p>
