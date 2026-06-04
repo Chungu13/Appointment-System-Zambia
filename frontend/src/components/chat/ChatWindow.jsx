@@ -579,11 +579,13 @@ export default function ChatWindow({
   onClose,
   salonName,
   initialMessage,
+  confirmedMessage,
 }) {
   const { messages, sendMessage, loading } = useAgentChat(
     customerPhone,
     salonName,
     initialMessage,
+    confirmedMessage,
   );
   const bottomRef = useRef(null);
   const prevCountRef = useRef(messages.length);

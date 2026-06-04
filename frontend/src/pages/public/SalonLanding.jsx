@@ -448,8 +448,9 @@ function LocationCard({ profile }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function SalonLanding() {
-  const [chatOpen,      setChatOpen]      = useState(false)
-  const [chatInitMsg,   setChatInitMsg]   = useState('')
+  const [chatOpen,        setChatOpen]        = useState(false)
+  const [chatInitMsg,     setChatInitMsg]     = useState('')
+  const [chatConfirmedMsg, setChatConfirmedMsg] = useState('')
   const { data, loading, error } = useQuery(SALON_PROFILE)
 
   // Detect return from payment page and auto-open chat with confirmation
@@ -460,10 +461,11 @@ export default function SalonLanding() {
     if (!successRef) return
     window.history.replaceState({}, '', window.location.pathname)
     const msg = service
-      ? `Your payment is confirmed! Your appointment for ${decodeURIComponent(service)} is booked. You'll receive a reminder before your appointment.`
-      : `Your payment is confirmed! Your appointment is booked. You'll receive a reminder before your appointment.`
+      ? `Your payment is confirmed! ✓\n\nYour appointment for ${decodeURIComponent(service)} is booked. You'll receive a reminder before your appointment.\n\nIs there anything else I can help you with?`
+      : `Your payment is confirmed! ✓\n\nYour appointment is booked. You'll receive a reminder before your appointment.\n\nIs there anything else I can help you with?`
     setTimeout(() => {
-      setChatInitMsg(msg)
+      setChatConfirmedMsg(msg)
+      setChatInitMsg('')
       playPopSound()
       setChatOpen(true)
     }, 400)
@@ -575,6 +577,7 @@ export default function SalonLanding() {
           customerPhone="+260000000000"
           salonName={profile.businessName}
           initialMessage={chatInitMsg}
+          confirmedMessage={chatConfirmedMsg}
           onClose={() => setChatOpen(false)}
         />
       )}
