@@ -237,11 +237,11 @@ class BookingAgent:
             "- NEVER charge the full service price upfront.\n\n"
             "Payment confirmation format — CRITICAL:\n"
             "After initiate_payment succeeds, check the payment_flow field in the result:\n\n"
-            "If payment_flow is 'redirect' (card / mock):\n"
+            "If payment_flow is 'redirect':\n"
             "  Append this line EXACTLY at the end of your response, after a blank line:\n"
             "  BOOKING_CONFIRMED | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
-            "payment_ref: [transaction_ref] | amount: ZMW [X] | staff: [staff name]\n"
-            "  Use the transaction_ref from the tool result. Use 24-hour HH:MM in this line only.\n\n"
+            "payment_ref: [transaction_ref] | checkout_url: [payment_url] | amount: ZMW [X] | staff: [staff name]\n"
+            "  Use transaction_ref and payment_url from the tool result. Use 24-hour HH:MM in this line only.\n\n"
             "If payment_flow is 'mobile_money' (Lipila / Airtel / MTN):\n"
             "  Tell the customer a prompt has been sent, then append this line EXACTLY:\n"
             "  MOBILE_PAYMENT_SENT | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
@@ -452,10 +452,6 @@ class BookingAgent:
             from django.conf import settings as _s
             _app_domain = getattr(_s, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
             _slug = self.tenant.subdomain
-            _base = (
-                f"http://localhost:{getattr(_s, 'VITE_DEV_PORT', 3000)}"
-                if _s.DEBUG else f"https://{_app_domain}"
-            )
 
             # Build the URLs that redirect-based providers (Lipila checkout, mock)
             # need — redirect_url goes back to the salon page with receipt params,
@@ -515,26 +511,10 @@ class BookingAgent:
                 },
             )
 
-            # Build the /pay frontend URL — this acts as a smart router:
-            # • For Lipila: DummyPayment detects provider_ref and redirects to Lipila
-            # • For mock:   DummyPayment shows the confirm button as usual
-            frontend_pay_url = (
-                f"{_base}/pay"
-                f"?ref={_quote(result.transaction_ref)}"
-                f"&amount={float(amount):.0f}"
-                f"&service={_quote(appt.service.name)}"
-                f"&salon={_quote(self.tenant.business_name)}"
-                f"&slug={_slug}"
-                f"&date={appt.starts_at.strftime('%Y-%m-%d')}"
-                f"&time={_quote(appt.starts_at.strftime('%H:%M'))}"
-                f"&staff={_quote(appt.staff.full_name)}"
-                f"&customer={_quote(appt.customer.full_name)}"
-            )
-
             return {
                 "payment_id": payment.pk,
                 "payment_flow": "redirect",
-                "payment_url": frontend_pay_url,
+                "payment_url": result.payment_url,  # Lipila checkout URL or mock-pay URL
                 "transaction_ref": result.transaction_ref,
                 "amount_zmw": str(amount),
                 "service_name": appt.service.name,

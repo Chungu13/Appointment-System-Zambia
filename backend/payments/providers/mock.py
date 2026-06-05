@@ -13,7 +13,11 @@ class MockPaymentProvider(BasePaymentProvider):
     ) -> PaymentResult:
         transaction_ref = str(uuid.uuid4())
         base = site_url.rstrip("/") if site_url else "http://localhost:8000"
-        payment_url = f"{base}/payments/mock-pay/{transaction_ref}/"
+        from urllib.parse import quote as _q
+        payment_url = (
+            f"{base}/payments/mock-pay/{transaction_ref}/"
+            + (f"?redirect_url={_q(redirect_url)}" if redirect_url else "")
+        )
         logger.info(
             "[MOCK] Transaction created | ref=%s | %.2f ZMW | %s (%s) | %s",
             transaction_ref, amount_zmw, customer_name, customer_phone, description,

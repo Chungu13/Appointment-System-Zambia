@@ -72,11 +72,21 @@ function parseServiceCard(text) {
 }
 
 function parseBookingConfirmed(text) {
-  const match = text.match(
-    /BOOKING_CONFIRMED\s*\|\s*service:\s*(.+?)\s*\|\s*date:\s*(\d{4}-\d{2}-\d{2})\s*\|\s*time:\s*(\d{2}:\d{2})\s*\|\s*payment_ref:\s*(\S+?)\s*\|\s*amount:\s*ZMW\s*([\d.]+)\s*\|\s*staff:\s*(.+?)(?:\n|$)/i,
-  );
-  if (!match) return null;
-  return { service: match[1].trim(), date: match[2], time: match[3], ref: match[4].trim(), amount: match[5], staff: match[6].trim() };
+  if (!/BOOKING_CONFIRMED/i.test(text)) return null;
+  // Key-value parser — robust to field order changes
+  const get = (key) => {
+    const m = text.match(new RegExp(`${key}:\\s*([^|\\n]+?)\\s*(?:\\||$)`, "i"));
+    return m ? m[1].trim() : "";
+  };
+  const service     = get("service");
+  const date        = get("date");
+  const time        = get("time");
+  const ref         = get("payment_ref");
+  const checkoutUrl = get("checkout_url");
+  const amount      = get("amount").replace(/^ZMW\s*/i, "");
+  const staff       = get("staff");
+  if (!service || !date || !time || !ref) return null;
+  return { service, date, time, ref, checkoutUrl, amount, staff };
 }
 
 function parseMobilePaymentSent(text) {
@@ -89,22 +99,9 @@ function parseMobilePaymentSent(text) {
 
 // ── Rich components ───────────────────────────────────────────────────────────
 
-function PaymentCard({ data, salonName, customerName }) {
-  const slug = window.location.hostname.split(".")[0];
-  const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN;
-  const port = window.location.port || "3000";
-  const payBase = appDomain ? `https://${appDomain}` : `http://localhost:${port}`;
-  const payUrl =
-    `${payBase}/pay` +
-    `?ref=${encodeURIComponent(data.ref)}` +
-    `&amount=${data.amount}` +
-    `&service=${encodeURIComponent(data.service)}` +
-    `&salon=${encodeURIComponent(salonName || "")}` +
-    `&slug=${slug}` +
-    `&date=${data.date}` +
-    `&time=${encodeURIComponent(data.time)}` +
-    `&staff=${encodeURIComponent(data.staff)}` +
-    `&customer=${encodeURIComponent(customerName || "")}`;
+function PaymentCard({ data, salonName }) {
+  // checkoutUrl comes directly from Lipila (or the mock-pay backend in dev)
+  const payUrl = data.checkoutUrl || "";
 
   const dateLabel = (() => {
     try { return new Date(`${data.date}T${data.time}`).toLocaleDateString("en-GB", { weekday: "long", month: "long", day: "numeric" }); }
@@ -285,7 +282,7 @@ function renderMessage(text, onSend, salonName, customerName) {
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {humanText && <span style={{ whiteSpace: "pre-wrap" }}>{humanText}</span>}
-          <PaymentCard data={booking} salonName={salonName} customerName={customerName} />
+          <PaymentCard data={booking} salonName={salonName} />
         </div>
       );
     }

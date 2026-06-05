@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -7,16 +7,20 @@ def mock_pay(request, transaction_ref: str):
     """
     Development-only mock payment page.
     GET  → show a "Pay Now" button
-    POST → simulate instant payment confirmation
+    POST → confirm payment, then redirect to redirect_url if provided
     """
+    redirect_url = request.GET.get("redirect_url", "")
+
     if request.method == "POST":
         from payments.webhook_views import _confirm_payment
         result = _confirm_payment(transaction_ref)
         if result["ok"]:
+            if redirect_url:
+                return HttpResponseRedirect(redirect_url)
             return HttpResponse(_success_page(transaction_ref))
         return HttpResponse(_error_page(result.get("error", "Unknown error")), status=400)
 
-    return HttpResponse(_pay_page(transaction_ref))
+    return HttpResponse(_pay_page(transaction_ref, redirect_url))
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +42,9 @@ _BASE_STYLE = """
 """
 
 
-def _pay_page(ref: str) -> str:
+def _pay_page(ref: str, redirect_url: str = "") -> str:
+    from urllib.parse import quote as _q
+    action = f"?redirect_url={_q(redirect_url)}" if redirect_url else ""
     return f"""<!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8"><title>Mock Payment</title>
 <style>{_BASE_STYLE}</style></head><body>
@@ -46,7 +52,7 @@ def _pay_page(ref: str) -> str:
   <span class="badge">DEV MODE</span>
   <h1>Mock Payment Gateway</h1>
   <p>No real money will be charged.<br>This simulates an instant payment confirmation.</p>
-  <form method="POST">
+  <form method="POST" action="{action}">
     <button type="submit">Pay Now (Simulate)</button>
   </form>
   <p class="ref">ref: {ref}</p>
