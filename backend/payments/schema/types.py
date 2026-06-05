@@ -34,7 +34,7 @@ class PaymentType:
     payment_type: PaymentTypeEnum
     method: PaymentMethodEnum
     status: PaymentStatusEnum
-    dpo_transaction_id: str
+    transaction_ref: str
     paid_at: Optional[datetime.datetime]
 
 
@@ -69,6 +69,6 @@ def payment_to_type(p) -> PaymentType:
         payment_type=PaymentTypeEnum(p.payment_type),
         method=PaymentMethodEnum(p.method),
         status=PaymentStatusEnum(p.status),
-        dpo_transaction_id=p.dpo_transaction_id,
+        transaction_ref=p.transaction_ref,
         paid_at=p.paid_at,
     )

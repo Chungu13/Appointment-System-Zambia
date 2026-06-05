@@ -29,8 +29,8 @@ class Payment(models.Model):
     payment_type = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES)
     method = models.CharField(max_length=20, choices=METHOD_CHOICES)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
-    dpo_transaction_id = models.CharField(max_length=100, blank=True)
-    dpo_token = models.CharField(max_length=200, blank=True)
+    transaction_ref = models.CharField(max_length=100, blank=True)
+    provider_ref = models.CharField(max_length=200, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 

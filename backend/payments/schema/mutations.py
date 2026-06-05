@@ -68,9 +68,9 @@ class PaymentsMutation:
             payment.save(update_fields=["status", "updated_at"])
             raise ValueError(f"Payment provider error: {result.error}")
 
-        payment.dpo_transaction_id = result.transaction_ref
-        payment.dpo_token = result.payment_url
-        payment.save(update_fields=["dpo_transaction_id", "dpo_token", "updated_at"])
+        payment.transaction_ref = result.transaction_ref
+        payment.provider_ref = result.provider_ref or result.payment_url or ""
+        payment.save(update_fields=["transaction_ref", "provider_ref", "updated_at"])
 
         return InitiatePaymentResult(
             payment_id=payment.pk,
@@ -85,7 +85,7 @@ class PaymentsMutation:
         from bookings.models import Appointment
         from payments.models import Payment
 
-        q = Q(dpo_transaction_id=payment_ref)
+        q = Q(transaction_ref=payment_ref)
         try:
             q |= Q(pk=int(payment_ref))
         except (ValueError, TypeError):

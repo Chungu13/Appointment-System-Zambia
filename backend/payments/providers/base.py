@@ -7,6 +7,8 @@ class PaymentResult:
     success: bool
     payment_url: str = ""
     transaction_ref: str = ""
+    provider_ref: str = ""
+    message: str = ""
     error: str = ""
 
 
@@ -15,12 +17,15 @@ class VerifyResult:
     success: bool
     paid: bool = False
     amount_zmw: float = 0.0
+    status: str = ""
+    message: str = ""
     error: str = ""
 
 
 @dataclass
 class RefundResult:
     success: bool
+    message: str = ""
     error: str = ""
 
 

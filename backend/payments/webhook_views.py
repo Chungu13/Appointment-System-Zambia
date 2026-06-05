@@ -63,7 +63,7 @@ def _confirm_hold_payment(transaction_ref: str, hold: dict) -> dict:
             payment_type="deposit",
             method=hold.get("payment_method", "airtel_money"),
             status="completed",
-            dpo_transaction_id=transaction_ref,
+            transaction_ref=transaction_ref,
             paid_at=now,
         )
 
@@ -112,7 +112,7 @@ def _confirm_payment(transaction_ref: str) -> dict:
     payment = (
         Payment.objects
         .select_related("appointment__customer", "appointment__service", "appointment__staff")
-        .filter(dpo_transaction_id=transaction_ref)
+        .filter(transaction_ref=transaction_ref)
         .first()
     )
     if not payment:

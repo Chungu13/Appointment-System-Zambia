@@ -458,9 +458,9 @@ class BookingAgent:
                 payment.save(update_fields=["status", "updated_at"])
                 return {"error": f"Payment provider error: {result.error}"}
 
-            payment.dpo_transaction_id = result.transaction_ref
-            payment.dpo_token = result.payment_url
-            payment.save(update_fields=["dpo_transaction_id", "dpo_token", "updated_at"])
+            payment.transaction_ref = result.transaction_ref
+            payment.provider_ref = result.provider_ref or result.payment_url or ""
+            payment.save(update_fields=["transaction_ref", "provider_ref", "updated_at"])
 
             from urllib.parse import quote as _quote
             from django.conf import settings as _s

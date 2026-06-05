@@ -25,7 +25,7 @@ class PaymentsQuery:
         payment = (
             Payment.objects
             .select_related("appointment__service")
-            .filter(dpo_transaction_id=ref)
+            .filter(transaction_ref=ref)
             .first()
         )
         if not payment:

@@ -247,7 +247,7 @@ class PaymentAgent:
 
             provider = get_provider()
             result = provider.refund_transaction(
-                payment.dpo_transaction_id, float(payment.amount_zmw)
+                payment.transaction_ref, float(payment.amount_zmw)
             )
 
             if not result.success:
