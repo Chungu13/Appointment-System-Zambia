@@ -196,7 +196,14 @@ CACHES = {
 # Celery (Redis broker)
 # ---------------------------------------------------------------------------
 PAYMENT_PROVIDER = config("PAYMENT_PROVIDER", default="mock")
-OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+OPENAI_API_KEY   = config("OPENAI_API_KEY",   default="")
+
+# ---------------------------------------------------------------------------
+# Lipila payment provider
+# ---------------------------------------------------------------------------
+LIPILA_API_KEY      = config("LIPILA_API_KEY",      default="")
+LIPILA_ENV          = config("LIPILA_ENV",          default="sandbox")
+LIPILA_CALLBACK_URL = config("LIPILA_CALLBACK_URL", default="")
 
 # ---------------------------------------------------------------------------
 # Vercel API (auto-provision tenant subdomains on registration)
