@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 
 class MockPaymentProvider(BasePaymentProvider):
     def create_transaction(
-        self, appointment_id, amount_zmw, customer_name, customer_phone, description, site_url=""
+        self, appointment_id, amount_zmw, customer_name, customer_phone,
+        description, site_url="", redirect_url="", callback_url="",
     ) -> PaymentResult:
         transaction_ref = str(uuid.uuid4())
         base = site_url.rstrip("/") if site_url else "http://localhost:8000"

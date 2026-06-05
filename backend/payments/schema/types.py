@@ -60,6 +60,7 @@ class PaymentStatusResult:
     appointment_id: int
     service_name: str
     starts_at: str
+    provider_ref: str = ""   # Lipila checkout URL when present
 
 
 def payment_to_type(p) -> PaymentType:

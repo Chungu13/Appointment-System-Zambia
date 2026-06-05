@@ -448,6 +448,39 @@ class BookingAgent:
                 status="pending",
             )
 
+            from urllib.parse import quote as _quote
+            from django.conf import settings as _s
+            _app_domain = getattr(_s, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
+            _slug = self.tenant.subdomain
+            _base = (
+                f"http://localhost:{getattr(_s, 'VITE_DEV_PORT', 3000)}"
+                if _s.DEBUG else f"https://{_app_domain}"
+            )
+
+            # Build the URLs that redirect-based providers (Lipila checkout, mock)
+            # need — redirect_url goes back to the salon page with receipt params,
+            # callback_url is the server-to-server webhook Lipila calls on completion.
+            transaction_ref = f"KIMAWA-{appt.pk}"
+            redirect_url = (
+                f"https://{_slug}.{_app_domain}/"
+                f"?payment_success={_quote(transaction_ref)}"
+                f"&service={_quote(appt.service.name)}"
+                f"&amount={float(amount):.0f}"
+                f"&appt_date={appt.starts_at.strftime('%Y-%m-%d')}"
+                f"&appt_time={_quote(appt.starts_at.strftime('%H:%M'))}"
+                f"&appt_staff={_quote(appt.staff.full_name)}"
+                f"&appt_customer={_quote(appt.customer.full_name)}"
+            ) if not _s.DEBUG else (
+                f"http://localhost:{getattr(_s, 'VITE_DEV_PORT', 3000)}/{_slug}/"
+                f"?payment_success={_quote(transaction_ref)}"
+                f"&service={_quote(appt.service.name)}"
+                f"&amount={float(amount):.0f}"
+            )
+            callback_url = (
+                f"https://{_slug}.{getattr(_s, 'TENANT_API_DOMAIN_SUFFIX', 'api.kimawa.pro')}"
+                f"/payments/webhook/{_quote(transaction_ref)}/"
+            ) if not _s.DEBUG else ""
+
             provider = get_provider()
             result = provider.create_transaction(
                 appointment_id=appt.pk,
@@ -456,6 +489,8 @@ class BookingAgent:
                 customer_phone=appt.customer.phone,
                 description=f"{appt.service.name} with {appt.staff.full_name} on {appt.starts_at:%Y-%m-%d %H:%M}",
                 site_url=site_url,
+                redirect_url=redirect_url,
+                callback_url=callback_url,
             )
 
             if not result.success:
@@ -464,7 +499,7 @@ class BookingAgent:
                 return {"error": f"Payment provider error: {result.error}"}
 
             payment.transaction_ref = result.transaction_ref
-            payment.provider_ref = result.provider_ref or result.payment_url or ""
+            payment.provider_ref = result.provider_ref or ""
             payment.save(update_fields=["transaction_ref", "provider_ref", "updated_at"])
 
             AgentLog.objects.create(
@@ -480,32 +515,9 @@ class BookingAgent:
                 },
             )
 
-            # Mobile-money providers (e.g. Lipila) push a USSD prompt directly to
-            # the customer's phone — no redirect URL is needed or returned.
-            is_mobile_money = not result.payment_url
-
-            if is_mobile_money:
-                return {
-                    "payment_id": payment.pk,
-                    "payment_flow": "mobile_money",
-                    "transaction_ref": result.transaction_ref,
-                    "amount_zmw": str(amount),
-                    "service_name": appt.service.name,
-                    "staff_name": appt.staff.full_name,
-                    "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
-                    "customer_phone": appt.customer.phone,
-                    "message": result.message or "Payment prompt sent. Check your phone.",
-                }
-
-            # Redirect-based providers (mock, card) — build the frontend pay URL.
-            from urllib.parse import quote as _quote
-            from django.conf import settings as _s
-            _app_domain = getattr(_s, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
-            _slug = self.tenant.subdomain
-            _base = (
-                f"http://localhost:{getattr(_s, 'VITE_DEV_PORT', 3000)}"
-                if _s.DEBUG else f"https://{_app_domain}"
-            )
+            # Build the /pay frontend URL — this acts as a smart router:
+            # • For Lipila: DummyPayment detects provider_ref and redirects to Lipila
+            # • For mock:   DummyPayment shows the confirm button as usual
             frontend_pay_url = (
                 f"{_base}/pay"
                 f"?ref={_quote(result.transaction_ref)}"
@@ -514,10 +526,11 @@ class BookingAgent:
                 f"&salon={_quote(self.tenant.business_name)}"
                 f"&slug={_slug}"
                 f"&date={appt.starts_at.strftime('%Y-%m-%d')}"
-                f"&time={appt.starts_at.strftime('%H:%M')}"
+                f"&time={_quote(appt.starts_at.strftime('%H:%M'))}"
                 f"&staff={_quote(appt.staff.full_name)}"
                 f"&customer={_quote(appt.customer.full_name)}"
             )
+
             return {
                 "payment_id": payment.pk,
                 "payment_flow": "redirect",

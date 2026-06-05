@@ -36,4 +36,5 @@ class PaymentsQuery:
             appointment_id=appt.pk,
             service_name=appt.service.name,
             starts_at=appt.starts_at.isoformat(),
+            provider_ref=payment.provider_ref or "",
         )
