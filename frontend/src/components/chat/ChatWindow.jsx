@@ -79,6 +79,14 @@ function parseBookingConfirmed(text) {
   return { service: match[1].trim(), date: match[2], time: match[3], ref: match[4].trim(), amount: match[5], staff: match[6].trim() };
 }
 
+function parseMobilePaymentSent(text) {
+  const match = text.match(
+    /MOBILE_PAYMENT_SENT\s*\|\s*service:\s*(.+?)\s*\|\s*date:\s*(\d{4}-\d{2}-\d{2})\s*\|\s*time:\s*(\d{2}:\d{2})\s*\|\s*amount:\s*ZMW\s*([\d.]+)\s*\|\s*staff:\s*(.+?)\s*\|\s*phone:\s*(\S+?)(?:\n|$)/i,
+  );
+  if (!match) return null;
+  return { service: match[1].trim(), date: match[2], time: match[3], amount: match[4], staff: match[5].trim(), phone: match[6].trim() };
+}
+
 // ── Rich components ───────────────────────────────────────────────────────────
 
 function PaymentCard({ data, salonName, customerName }) {
@@ -152,6 +160,50 @@ function SlotGrid({ data, onSend }) {
   );
 }
 
+// ── Mobile payment sent card ──────────────────────────────────────────────────
+
+function MobilePaymentCard({ data }) {
+  const dateLabel = (() => {
+    try {
+      return new Date(`${data.date}T${data.time}`).toLocaleDateString("en-GB", {
+        weekday: "long", day: "numeric", month: "long",
+      });
+    } catch { return data.date; }
+  })();
+
+  return (
+    <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: 14, marginTop: 4 }}>
+      {/* Status row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <span style={{ fontSize: 14, color: "#fff" }}>📱</span>
+        </div>
+        <p style={{ fontFamily: serif, fontSize: 15, fontWeight: 400, color: "#fff", margin: 0 }}>
+          Payment prompt sent
+        </p>
+      </div>
+
+      {/* Booking details */}
+      <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 2px" }}>{data.service}</p>
+      <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 2px" }}>{dateLabel} at {to12h(data.time)}</p>
+      <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 10px" }}>with {data.staff}</p>
+
+      {/* Amount */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 12 }}>
+        <span style={{ fontFamily: sans, fontSize: 20, fontWeight: 500, color: "#fff" }}>ZMW {data.amount}</span>
+        <span style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>sent to {data.phone}</span>
+      </div>
+
+      {/* Instruction */}
+      <div style={{ backgroundColor: "rgba(74,222,128,0.1)", border: "0.5px solid rgba(74,222,128,0.2)", borderRadius: 6, padding: "8px 12px" }}>
+        <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.75)", margin: 0, lineHeight: 1.6 }}>
+          Enter your PIN when prompted on your phone to confirm this booking.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Receipt card ──────────────────────────────────────────────────────────────
 
 function ReceiptCard({ booking, salonName }) {
@@ -209,6 +261,22 @@ function ReceiptCard({ booking, salonName }) {
 }
 
 function renderMessage(text, onSend, salonName, customerName) {
+  // Mobile money — USSD prompt sent to phone
+  const mobileIdx = text.search(/MOBILE_PAYMENT_SENT\s*\|/i);
+  if (mobileIdx !== -1) {
+    const humanText = text.slice(0, mobileIdx).trim();
+    const mobileData = parseMobilePaymentSent(text.slice(mobileIdx));
+    if (mobileData) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {humanText && <span style={{ whiteSpace: "pre-wrap" }}>{humanText}</span>}
+          <MobilePaymentCard data={mobileData} />
+        </div>
+      );
+    }
+  }
+
+  // Redirect-based payment (mock / card)
   const bookingIdx = text.search(/BOOKING_CONFIRMED\s*\|/i);
   if (bookingIdx !== -1) {
     const humanText = text.slice(0, bookingIdx).trim();
@@ -222,6 +290,7 @@ function renderMessage(text, onSend, salonName, customerName) {
       );
     }
   }
+
   const slots = parseTimeSlots(text);
   if (slots) return <SlotGrid data={slots} onSend={onSend} />;
   const service = parseServiceCard(text);

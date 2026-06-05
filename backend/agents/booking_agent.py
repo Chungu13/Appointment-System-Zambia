@@ -176,7 +176,7 @@ class BookingAgent:
 
         return (
             f"You are a warm, professional booking assistant for {self.tenant.business_name}, "
-            "a beauty salon in Zambia.\n\n"
+            "a beauty and or wellness business in Zambia.\n\n"
             "Your job:\n"
             "- When a customer names a service they want to book, IMMEDIATELY call check_availability "
             f"for today ({today.isoformat()}) and check whether any slots come back.\n"
@@ -185,7 +185,7 @@ class BookingAgent:
             "- After check_availability returns results, look at the available_staff list:\n"
             "  → If there is only ONE staff member available: proceed with that person, no need to ask.\n"
             "  → If there are MULTIPLE staff members: ask the customer which one they prefer.\n"
-            "    Example: 'Who would you like? Alice is free at 9 AM and 10 AM, Bob is free at 11 AM and 2 PM.'\n"
+            "    Example: 'Who would you like? Alice is free at 9 AM and 10 AM, Bob is free at 11 AM and 2 PM or do you prefer one of them?'\n"
             "  → If the customer says 'anyone', 'no preference', 'you choose', or similar: "
             "pick the staff member with the earliest available time slot automatically.\n"
             "- When calling create_booking, use the staff_id from the available_staff list "
@@ -236,13 +236,18 @@ class BookingAgent:
             "The remaining ZMW [balance] is paid in person after your service.'\n"
             "- NEVER charge the full service price upfront.\n\n"
             "Payment confirmation format — CRITICAL:\n"
-            "When a booking is confirmed and payment is required, append this line EXACTLY at the "
-            "end of your response, after a blank line. Do not modify the format:\n"
-            "BOOKING_CONFIRMED | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
+            "After initiate_payment succeeds, check the payment_flow field in the result:\n\n"
+            "If payment_flow is 'redirect' (card / mock):\n"
+            "  Append this line EXACTLY at the end of your response, after a blank line:\n"
+            "  BOOKING_CONFIRMED | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
             "payment_ref: [transaction_ref] | amount: ZMW [X] | staff: [staff name]\n"
-            "Replace each [placeholder] with the real value. "
-            "For payment_ref use the transaction_ref field from the initiate_payment tool result — "
-            "NOT the payment_id. Use 24-hour HH:MM for time in this line only.\n\n"
+            "  Use the transaction_ref from the tool result. Use 24-hour HH:MM in this line only.\n\n"
+            "If payment_flow is 'mobile_money' (Lipila / Airtel / MTN):\n"
+            "  Tell the customer a prompt has been sent, then append this line EXACTLY:\n"
+            "  MOBILE_PAYMENT_SENT | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
+            "amount: ZMW [X] | staff: [staff name] | phone: [customer_phone]\n"
+            "  Example message: 'A payment prompt of ZMW [X] has been sent to your phone. "
+            "Enter your PIN when prompted to confirm your booking.'\n\n"
             "Guidelines:\n"
             "- Use simple, friendly English. Write dates as '3rd June 2026' or 'tomorrow, Wednesday 3rd June'. "
             "Write times as '9:00 AM' or '2:30 PM' — never '09:00' or '14:30'. Keep responses short and clear.\n"
@@ -462,6 +467,37 @@ class BookingAgent:
             payment.provider_ref = result.provider_ref or result.payment_url or ""
             payment.save(update_fields=["transaction_ref", "provider_ref", "updated_at"])
 
+            AgentLog.objects.create(
+                agent_type="payment",
+                action=f"Agent initiated payment of ZMW {amount} for {appt.customer.full_name} ({appt.customer.phone})",
+                related_appointment=appt,
+                outcome="success",
+                metadata={
+                    "tenant": self.tenant.schema_name,
+                    "payment_id": payment.pk,
+                    "transaction_ref": result.transaction_ref,
+                    "amount_zmw": str(amount),
+                },
+            )
+
+            # Mobile-money providers (e.g. Lipila) push a USSD prompt directly to
+            # the customer's phone — no redirect URL is needed or returned.
+            is_mobile_money = not result.payment_url
+
+            if is_mobile_money:
+                return {
+                    "payment_id": payment.pk,
+                    "payment_flow": "mobile_money",
+                    "transaction_ref": result.transaction_ref,
+                    "amount_zmw": str(amount),
+                    "service_name": appt.service.name,
+                    "staff_name": appt.staff.full_name,
+                    "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
+                    "customer_phone": appt.customer.phone,
+                    "message": result.message or "Payment prompt sent. Check your phone.",
+                }
+
+            # Redirect-based providers (mock, card) — build the frontend pay URL.
             from urllib.parse import quote as _quote
             from django.conf import settings as _s
             _app_domain = getattr(_s, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
@@ -482,22 +518,9 @@ class BookingAgent:
                 f"&staff={_quote(appt.staff.full_name)}"
                 f"&customer={_quote(appt.customer.full_name)}"
             )
-
-            AgentLog.objects.create(
-                agent_type="payment",
-                action=f"Agent initiated payment of ZMW {amount} for {appt.customer.full_name} ({appt.customer.phone})",
-                related_appointment=appt,
-                outcome="success",
-                metadata={
-                    "tenant": self.tenant.schema_name,
-                    "payment_id": payment.pk,
-                    "transaction_ref": result.transaction_ref,
-                    "amount_zmw": str(amount),
-                },
-            )
-
             return {
                 "payment_id": payment.pk,
+                "payment_flow": "redirect",
                 "payment_url": frontend_pay_url,
                 "transaction_ref": result.transaction_ref,
                 "amount_zmw": str(amount),
