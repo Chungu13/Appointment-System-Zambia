@@ -55,8 +55,8 @@ class LipilaProvider(BasePaymentProvider):
 
     @staticmethod
     def _format_phone(phone: str) -> str:
-        """Normalise to 260XXXXXXXXX format."""
-        phone = phone.strip().replace(" ", "").replace("-", "")
+        """Normalise to 260XXXXXXXXX format. Handles +260, 0, and bare formats."""
+        phone = phone.strip().lstrip("+").replace(" ", "").replace("-", "")
         if phone.startswith("0"):
             phone = "260" + phone[1:]
         if not phone.startswith("260"):

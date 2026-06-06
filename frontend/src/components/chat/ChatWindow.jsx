@@ -380,7 +380,6 @@ function ChatHeader({ salonName, onClose }) {
 
 function IntakeForm({ salonName, onSubmit, onClose }) {
   const [name, setName]   = useState("");
-  const [phone, setPhone] = useState("+260");
   const [error, setError] = useState("");
 
   const inputStyle = {
@@ -394,10 +393,9 @@ function IntakeForm({ salonName, onSubmit, onClose }) {
 
   function submit(e) {
     e.preventDefault();
-    if (!name.trim())                            { setError("Please enter your name.");         return; }
-    if (!phone.trim() || phone.trim() === "+260") { setError("Please enter your phone number."); return; }
+    if (!name.trim()) { setError("Please enter your name."); return; }
     setError("");
-    onSubmit({ name: name.trim(), phone: phone.trim() });
+    onSubmit({ name: name.trim(), phone: "" });
   }
 
   return (
@@ -410,7 +408,7 @@ function IntakeForm({ salonName, onSubmit, onClose }) {
           Before we start
         </p>
         <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.5)", margin: "0 0 24px", lineHeight: 1.6 }}>
-          So we know who to book the appointment for.
+          What's your name?
         </p>
 
         <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -419,13 +417,6 @@ function IntakeForm({ salonName, onSubmit, onClose }) {
             placeholder="Your full name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            style={inputStyle}
-          />
-          <input
-            placeholder="+260 97 000 0000"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            type="tel"
             style={inputStyle}
           />
           {error && <p style={{ fontFamily: sans, fontSize: 12, color: "#f87171", margin: 0 }}>{error}</p>}

@@ -94,7 +94,7 @@ _TOOLS = [
                         "description": "Customer's mobile money number. Use the customer's phone from intake unless they specify a different one.",
                     },
                 },
-                "required": ["appointment_id"],
+                "required": ["appointment_id", "mobile_money_phone"],
             },
         },
     },
@@ -132,7 +132,7 @@ class BookingAgent:
         suffix = "th" if 11 <= day % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
         return f"{day}{suffix} {d.strftime('%B %Y')}"
 
-    def _system_prompt(self, customer_phone: str, customer_name: str = "") -> str:
+    def _system_prompt(self, customer_name: str = "") -> str:
         import datetime as _dt
         import zoneinfo as _zi
         _cat = _zi.ZoneInfo("Africa/Lusaka")
@@ -196,11 +196,14 @@ class BookingAgent:
             "  With [Staff name]\n\n"
             "  Deposit: ZMW [X] — ZMW [Y] balance paid in person.\n\n"
             "  Shall I confirm this booking?\n"
-            "  Nothing else. No questions about payment method.\n"
+            "  Nothing else. No other questions yet.\n"
             "Step 2 — When the customer says yes/confirm/ok:\n"
-            "  Call create_booking immediately.\n"
-            "  Then call initiate_payment immediately, using the customer's phone number.\n"
-            "  Do NOT ask about payment method. Do NOT ask for their phone number again — you already have it.\n\n"
+            "  Ask ONE question: 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
+            "  Do not call any tools yet. Wait for their reply.\n"
+            "Step 3 — Once the customer provides their phone number:\n"
+            "  Call create_booking immediately, using their phone number as customer_phone.\n"
+            "  Then call initiate_payment immediately with that same phone number as mobile_money_phone.\n"
+            "  Do NOT ask anything else.\n\n"
             "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
             f"- The current time in Zambia is {current_time_str} (CAT, UTC+2). "
             f"Today is {today_day}, {today_str}.\n"
@@ -248,8 +251,9 @@ class BookingAgent:
             "- Prices are in Zambian Kwacha (ZMW). Always mention the deposit amount.\n"
             "- If asked something outside your tools, suggest calling the salon directly.\n"
             f"- Today is {today_day}, {today_str}. Current time in Zambia: {current_time_str}.\n"
-            f"- The customer's name is {customer_name or 'not provided'} and their phone number is {customer_phone}. "
-            "You already have this information — never ask for their name or phone number.\n"
+            f"- The customer's name is {customer_name or 'not provided'}. "
+            "You already have their name — never ask for it again.\n"
+            "- You do NOT have their phone number. Ask for it at Step 2 of the booking flow (see above) — not before.\n"
             + policies_section
         )
 
@@ -529,7 +533,7 @@ class BookingAgent:
         while True:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[{"role": "system", "content": self._system_prompt(customer_phone, customer_name)}] + messages,
+                messages=[{"role": "system", "content": self._system_prompt(customer_name)}] + messages,
                 tools=_TOOLS,
                 tool_choice="auto",
             )
