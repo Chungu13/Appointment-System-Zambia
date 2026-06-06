@@ -75,19 +75,25 @@ class LipilaProvider(BasePaymentProvider):
         narration: str,
         email: str = "",
     ) -> PaymentResult:
+        formatted_phone = self._format_phone(phone)
         payload = {
             "referenceId": reference,
             "amount": round(amount, 2),
             "narration": narration,
-            "accountNumber": self._format_phone(phone),
+            "accountNumber": formatted_phone,
             "currency": "ZMW",
         }
         if email:
             payload["email"] = email
 
+        print(f"[Lipila] phone_raw={phone!r} phone_formatted={formatted_phone!r}", flush=True)
+        print(f"[Lipila] payload={payload}", flush=True)
+        print(f"[Lipila] api_key_set={bool(self.api_key)} api_key_prefix={self.api_key[:8] + '...' if self.api_key else 'MISSING'}", flush=True)
+        print(f"[Lipila] base_url={self.base_url}", flush=True)
+        print(f"[Lipila] callback_url={self.callback_url!r}", flush=True)
         logger.info(
-            "[Lipila] initiate_collection | ref=%s | ZMW %.2f | phone=%s",
-            reference, amount, phone,
+            "[Lipila] initiate_collection | ref=%s | ZMW %.2f | phone_raw=%s | phone_fmt=%s",
+            reference, amount, phone, formatted_phone,
         )
 
         try:
@@ -97,7 +103,12 @@ class LipilaProvider(BasePaymentProvider):
                 headers=self._headers(),
                 timeout=30,
             )
-            data = response.json()
+            print(f"[Lipila] response status={response.status_code}", flush=True)
+            print(f"[Lipila] response body={response.text}", flush=True)
+            try:
+                data = response.json()
+            except Exception:
+                data = {}
             logger.info(
                 "[Lipila] collection response | status=%s | body=%s",
                 response.status_code, data,
@@ -119,6 +130,7 @@ class LipilaProvider(BasePaymentProvider):
             return PaymentResult(success=False, status="failed", message=msg)
 
         except Exception as exc:
+            print(f"[Lipila] exception: {exc}", flush=True)
             logger.exception("[Lipila] initiate_collection exception: %s", exc)
             return PaymentResult(success=False, status="failed", message=str(exc))
 
