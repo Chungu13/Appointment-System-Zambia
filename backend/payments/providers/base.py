@@ -5,11 +5,10 @@ from dataclasses import dataclass
 @dataclass
 class PaymentResult:
     success: bool
-    payment_url: str = ""       # Hosted checkout URL (Lipila) or mock URL
-    transaction_ref: str = ""   # Our reference, e.g. KIMAWA-123
-    provider_ref: str = ""      # Provider's internal identifier
+    status: str = "pending"   # "pending" | "completed" | "failed"
+    provider_ref: str = ""    # Provider's internal identifier
+    reference_id: str = ""    # Our reference, e.g. KIMAWA-123
     message: str = ""
-    error: str = ""
 
 
 @dataclass
@@ -31,20 +30,17 @@ class RefundResult:
 
 class BasePaymentProvider(ABC):
     @abstractmethod
-    def create_transaction(
+    def initiate_collection(
         self,
-        appointment_id: int,
-        amount_zmw: float,
-        customer_name: str,
-        customer_phone: str,
-        description: str,
-        site_url: str = "",
-        redirect_url: str = "",   # Where to send the customer after payment
-        callback_url: str = "",   # Webhook URL for server-to-server notification
+        phone: str,
+        amount: float,
+        reference: str,
+        narration: str,
+        email: str = "",
     ) -> PaymentResult: ...
 
     @abstractmethod
-    def verify_transaction(self, transaction_ref: str) -> VerifyResult: ...
+    def verify_transaction(self, reference: str) -> VerifyResult: ...
 
     @abstractmethod
-    def refund_transaction(self, transaction_ref: str, amount_zmw: float) -> RefundResult: ...
+    def refund_transaction(self, reference: str, amount_zmw: float) -> RefundResult: ...

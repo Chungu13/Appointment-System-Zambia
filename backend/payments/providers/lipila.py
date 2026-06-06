@@ -18,141 +18,121 @@ FAILURE_MESSAGES = {
 
 class LipilaProvider(BasePaymentProvider):
     """
-    Lipila payment integration — hosted checkout flow.
+    Lipila mobile money collection — push payment flow.
 
     Required env vars:
         LIPILA_API_KEY       — from the Lipila dashboard
         LIPILA_ENV           — 'sandbox' (default) or 'production'
         LIPILA_CALLBACK_URL  — server-to-server webhook, e.g.
-                               https://api.kimawa.pro/payments/webhook/
+                               https://api.kimawa.pro/webhooks/lipila/
 
     Flow:
-        1. create_transaction  → calls Lipila checkout endpoint
-                               → returns a hosted payment_url
-        2. Customer is redirected to that URL and pays on Lipila's page
-        3. Lipila calls our webhook (callback_url) on completion
-        4. Lipila redirects the customer to redirect_url
+        1. initiate_collection  → calls Lipila /collections/mobile-money
+                                → customer receives a PIN prompt on their phone
+                                → returns immediately with status='pending'
+        2. Customer enters PIN on their phone
+        3. Lipila calls our webhook (LIPILA_CALLBACK_URL) on completion
+        4. Webhook updates Payment + Appointment status
     """
 
     def __init__(self):
         self.api_key = settings.LIPILA_API_KEY
         env = getattr(settings, "LIPILA_ENV", "sandbox")
-        self.default_callback_url = getattr(settings, "LIPILA_CALLBACK_URL", "")
-
         self.base_url = (
             "https://blz.lipila.io/api/v1"
             if env == "production"
             else "https://api.lipila.dev/api/v1"
         )
+        self.callback_url = getattr(settings, "LIPILA_CALLBACK_URL", "")
 
-    def _headers(self, callback_url: str = "") -> dict:
+    def _headers(self) -> dict:
         return {
             "accept": "application/json",
             "Content-Type": "application/json",
             "x-api-key": self.api_key,
-            "callbackUrl": callback_url or self.default_callback_url,
+            "callbackUrl": self.callback_url,
         }
 
     @staticmethod
-    def _customer_amount(deposit_zmw: float) -> float:
-        """Customer pays deposit + 10 % Kimawa service fee."""
-        return round(deposit_zmw * 1.10, 2)
+    def _format_phone(phone: str) -> str:
+        """Normalise to 260XXXXXXXXX format."""
+        phone = phone.strip().replace(" ", "").replace("-", "")
+        if phone.startswith("0"):
+            phone = "260" + phone[1:]
+        if not phone.startswith("260"):
+            phone = "260" + phone
+        return phone
 
     # ------------------------------------------------------------------
-    # create_transaction — hosted checkout page
+    # initiate_collection — push PIN prompt to phone
     # ------------------------------------------------------------------
 
-    def create_transaction(
+    def initiate_collection(
         self,
-        appointment_id: int,
-        amount_zmw: float,
-        customer_name: str,
-        customer_phone: str,
-        description: str,
-        site_url: str = "",
-        redirect_url: str = "",
-        callback_url: str = "",
+        phone: str,
+        amount: float,
+        reference: str,
+        narration: str,
+        email: str = "",
     ) -> PaymentResult:
-        """
-        Create a Lipila checkout session and return the hosted payment URL.
-
-        NOTE: Verify the exact endpoint path and response field names
-        against your Lipila API documentation — update CHECKOUT_ENDPOINT
-        and the response field below if needed.
-        """
-        CHECKOUT_ENDPOINT = "/checkout"   # ← adjust if Lipila uses a different path
-
-        customer_pays = self._customer_amount(amount_zmw)
-        transaction_ref = f"KIMAWA-{appointment_id}"
-
         payload = {
-            "referenceId": transaction_ref,
-            "amount": customer_pays,
+            "referenceId": reference,
+            "amount": round(amount, 2),
+            "narration": narration,
+            "accountNumber": self._format_phone(phone),
             "currency": "ZMW",
-            "narration": description,
-            "redirectUrl": redirect_url,
         }
+        if email:
+            payload["email"] = email
 
         logger.info(
-            "[Lipila] create_transaction | ref=%s | ZMW %.2f (customer pays %.2f) | redirect=%s",
-            transaction_ref, amount_zmw, customer_pays, redirect_url,
+            "[Lipila] initiate_collection | ref=%s | ZMW %.2f | phone=%s",
+            reference, amount, phone,
         )
 
         try:
             response = requests.post(
-                f"{self.base_url}{CHECKOUT_ENDPOINT}",
-                headers=self._headers(callback_url),
+                f"{self.base_url}/collections/mobile-money",
                 json=payload,
+                headers=self._headers(),
                 timeout=30,
             )
             data = response.json()
-            logger.info("[Lipila] checkout response | status=%s | body=%s", response.status_code, data)
+            logger.info(
+                "[Lipila] collection response | status=%s | body=%s",
+                response.status_code, data,
+            )
 
             if response.status_code in (200, 201):
-                # Adjust the field name below to match what Lipila actually returns
-                checkout_url = (
-                    data.get("checkoutUrl")
-                    or data.get("paymentLink")
-                    or data.get("payment_link")
-                    or data.get("url")
-                    or ""
-                )
-                provider_id = data.get("identifier") or data.get("id") or ""
-
-                if not checkout_url:
-                    logger.warning("[Lipila] No checkout URL in response: %s", data)
-                    return PaymentResult(
-                        success=False,
-                        error=f"Lipila returned no checkout URL. Response: {data}",
-                    )
-
                 return PaymentResult(
                     success=True,
-                    payment_url=checkout_url,
-                    transaction_ref=transaction_ref,
-                    provider_ref=provider_id,
-                    message=data.get("message", "Redirecting to payment page…"),
+                    status="pending",
+                    provider_ref=data.get("identifier", ""),
+                    reference_id=data.get("referenceId", reference),
+                    message=data.get("message", "Payment prompt sent to phone"),
                 )
-            else:
-                msg = data.get("message") or data.get("error") or "Payment initiation failed"
-                logger.warning("[Lipila] checkout failed | status=%s | %s", response.status_code, msg)
-                return PaymentResult(success=False, error=msg)
+
+            msg = data.get("message") or data.get("error") or "Payment initiation failed"
+            logger.warning(
+                "[Lipila] collection failed | status=%s | %s", response.status_code, msg,
+            )
+            return PaymentResult(success=False, status="failed", message=msg)
 
         except Exception as exc:
-            logger.exception("[Lipila] create_transaction exception: %s", exc)
-            return PaymentResult(success=False, error=str(exc))
+            logger.exception("[Lipila] initiate_collection exception: %s", exc)
+            return PaymentResult(success=False, status="failed", message=str(exc))
 
     # ------------------------------------------------------------------
     # verify_transaction
     # ------------------------------------------------------------------
 
-    def verify_transaction(self, transaction_ref: str) -> VerifyResult:
-        logger.info("[Lipila] verify_transaction | ref=%s", transaction_ref)
+    def verify_transaction(self, reference: str) -> VerifyResult:
+        logger.info("[Lipila] verify_transaction | ref=%s", reference)
         try:
             response = requests.get(
                 f"{self.base_url}/collections/check-status",
                 headers=self._headers(),
-                params={"referenceId": transaction_ref},
+                params={"referenceId": reference},
                 timeout=30,
             )
             data = response.json()
@@ -161,7 +141,9 @@ class LipilaProvider(BasePaymentProvider):
             friendly = FAILURE_MESSAGES.get(raw_message, raw_message)
             paid = status == "Successful"
 
-            logger.info("[Lipila] verify | ref=%s | status=%s | paid=%s", transaction_ref, status, paid)
+            logger.info(
+                "[Lipila] verify | ref=%s | status=%s | paid=%s", reference, status, paid,
+            )
             return VerifyResult(
                 success=True,
                 paid=paid,
@@ -177,27 +159,9 @@ class LipilaProvider(BasePaymentProvider):
     # refund_transaction
     # ------------------------------------------------------------------
 
-    def refund_transaction(self, transaction_ref: str, amount_zmw: float) -> RefundResult:
-        logger.info("[Lipila] refund requested for ref=%s — manual process", transaction_ref)
+    def refund_transaction(self, reference: str, amount_zmw: float) -> RefundResult:
+        logger.info("[Lipila] refund requested for ref=%s — manual process", reference)
         return RefundResult(
             success=False,
             message="Refunds must be processed manually via the Lipila dashboard.",
         )
-
-    # ------------------------------------------------------------------
-    # get_wallet_balance (utility, not part of base interface)
-    # ------------------------------------------------------------------
-
-    def get_wallet_balance(self) -> float | None:
-        try:
-            response = requests.get(
-                f"{self.base_url}/merchants/balance",
-                headers=self._headers(),
-                timeout=30,
-            )
-            data = response.json()
-            if data.get("success"):
-                return float(data["data"]["balance"])
-            return None
-        except Exception:
-            return None

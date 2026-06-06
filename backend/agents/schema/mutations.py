@@ -52,16 +52,13 @@ class AgentsMutation:
         history = json.loads(raw) if raw else []
 
         request = info.context.request
-        tenant = request.tenant
-        scheme = "https" if request.is_secure() else "http"
-        site_url = f"{scheme}://{request.get_host()}"
+        tenant  = request.tenant
 
         agent = BookingAgent(tenant)
         response_text, updated_history, raw_slots = agent.chat(
             message=message,
             customer_phone=customer_phone,
             conversation_history=history,
-            site_url=site_url,
             customer_name=customer_name,
         )
 

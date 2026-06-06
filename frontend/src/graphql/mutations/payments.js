@@ -1,31 +1,20 @@
 import { gql } from '@apollo/client'
 
-export const CONFIRM_DUMMY_PAYMENT = gql`
-  mutation ConfirmDummyPayment($paymentRef: String!) {
-    confirmDummyPayment(paymentRef: $paymentRef) {
-      success
-      appointmentId
-      serviceName
-      startsAt
-      staffName
-    }
-  }
-`
-
 export const INITIATE_PAYMENT = gql`
   mutation InitiatePayment(
     $appointmentId: Int!
-    $paymentMethod: PaymentMethodEnum!
+    $phone: String!
     $paymentType: PaymentTypeEnum
   ) {
     initiatePayment(
       appointmentId: $appointmentId
-      paymentMethod: $paymentMethod
+      phone: $phone
       paymentType: $paymentType
     ) {
-      paymentId
-      paymentUrl
-      transactionRef
+      success
+      reference
+      message
+      instantConfirm
     }
   }
 `

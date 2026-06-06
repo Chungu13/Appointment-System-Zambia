@@ -1,5 +1,4 @@
 import logging
-import uuid
 
 from .base import BasePaymentProvider, PaymentResult, RefundResult, VerifyResult
 
@@ -7,27 +6,62 @@ logger = logging.getLogger(__name__)
 
 
 class MockPaymentProvider(BasePaymentProvider):
-    def create_transaction(
-        self, appointment_id, amount_zmw, customer_name, customer_phone,
-        description, site_url="", redirect_url="", callback_url="",
-    ) -> PaymentResult:
-        transaction_ref = str(uuid.uuid4())
-        base = site_url.rstrip("/") if site_url else "http://localhost:8000"
-        from urllib.parse import quote as _q
-        payment_url = (
-            f"{base}/payments/mock-pay/{transaction_ref}/"
-            + (f"?redirect_url={_q(redirect_url)}" if redirect_url else "")
-        )
-        logger.info(
-            "[MOCK] Transaction created | ref=%s | %.2f ZMW | %s (%s) | %s",
-            transaction_ref, amount_zmw, customer_name, customer_phone, description,
-        )
-        return PaymentResult(success=True, payment_url=payment_url, transaction_ref=transaction_ref)
+    """
+    Dev-only provider — simulates push payment by auto-confirming instantly.
+    The payment record must already exist with transaction_ref set before calling
+    initiate_collection, so _auto_confirm can find and complete it immediately.
+    """
 
-    def verify_transaction(self, transaction_ref: str) -> VerifyResult:
-        logger.info("[MOCK] Transaction verified | ref=%s | paid=True", transaction_ref)
+    def initiate_collection(
+        self,
+        phone: str,
+        amount: float,
+        reference: str,
+        narration: str,
+        email: str = "",
+    ) -> PaymentResult:
+        logger.info(
+            "[MOCK] initiate_collection | ref=%s | ZMW %.2f | phone=%s",
+            reference, amount, phone,
+        )
+        self._auto_confirm(reference)
+        return PaymentResult(
+            success=True,
+            status="completed",
+            reference_id=reference,
+            message="Dev: payment auto-confirmed",
+        )
+
+    @staticmethod
+    def _auto_confirm(reference: str):
+        """Immediately mark payment + appointment as confirmed (dev only)."""
+        from django.utils import timezone
+        from payments.models import Payment
+
+        payment = (
+            Payment.objects
+            .select_related("appointment")
+            .filter(transaction_ref=reference)
+            .first()
+        )
+        if not payment:
+            logger.warning("[MOCK] _auto_confirm: no payment found for ref=%s", reference)
+            return
+
+        if payment.status != "completed":
+            payment.status = "completed"
+            payment.paid_at = timezone.now()
+            payment.save(update_fields=["status", "paid_at", "updated_at"])
+
+        appt = payment.appointment
+        if appt and appt.status not in ("confirmed", "completed"):
+            appt.status = "confirmed"
+            appt.save(update_fields=["status", "updated_at"])
+
+    def verify_transaction(self, reference: str) -> VerifyResult:
+        logger.info("[MOCK] verify_transaction | ref=%s | paid=True", reference)
         return VerifyResult(success=True, paid=True)
 
-    def refund_transaction(self, transaction_ref: str, amount_zmw: float) -> RefundResult:
-        logger.info("[MOCK] Refund processed | ref=%s | %.2f ZMW", transaction_ref, amount_zmw)
+    def refund_transaction(self, reference: str, amount_zmw: float) -> RefundResult:
+        logger.info("[MOCK] refund | ref=%s | ZMW %.2f", reference, amount_zmw)
         return RefundResult(success=True)

@@ -5,15 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.static import serve
 from strawberry.django.views import GraphQLView
 from beautybook.schema_tenant import schema
-from payments.views import mock_pay
 from payments.webhook_views import payment_webhook
 
 # Tenant-specific URLs (routed per-tenant subdomain)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("graphql/", csrf_exempt(GraphQLView.as_view(schema=schema))),
-    path("payments/mock-pay/<str:transaction_ref>/", mock_pay, name="mock_pay"),
-    path("payments/webhook/<str:transaction_ref>/", payment_webhook, name="payment_webhook"),
+    path("webhooks/lipila/", payment_webhook, name="lipila_webhook"),
     # Serve uploaded media files unconditionally (works with DEBUG=False in production)
     re_path(r"^media/(?P<path>.+)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ]

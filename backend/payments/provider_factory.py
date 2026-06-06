@@ -8,8 +8,5 @@ def get_provider() -> BasePaymentProvider:
     if provider_name == "lipila":
         from payments.providers.lipila import LipilaProvider
         return LipilaProvider()
-    if provider_name == "lenco":
-        from payments.providers.lenco import LencoPaymentProvider
-        return LencoPaymentProvider()
     from payments.providers.mock import MockPaymentProvider
     return MockPaymentProvider()

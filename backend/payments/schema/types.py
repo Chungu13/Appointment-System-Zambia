@@ -8,59 +8,51 @@ from typing import Optional
 class PaymentTypeEnum(Enum):
     DEPOSIT = "deposit"
     BALANCE = "balance"
-    REFUND = "refund"
+    REFUND  = "refund"
 
 
 @strawberry.enum
 class PaymentMethodEnum(Enum):
     AIRTEL_MONEY = "airtel_money"
-    MTN_MOMO = "mtn_momo"
-    CARD = "card"
-    CASH = "cash"
+    MTN_MOMO     = "mtn_momo"
+    CARD         = "card"
+    CASH         = "cash"
 
 
 @strawberry.enum
 class PaymentStatusEnum(Enum):
-    PENDING = "pending"
+    PENDING   = "pending"
     COMPLETED = "completed"
-    FAILED = "failed"
-    REFUNDED = "refunded"
+    FAILED    = "failed"
+    REFUNDED  = "refunded"
 
 
 @strawberry.type
 class PaymentType:
-    id: int
-    amount_zmw: float
-    payment_type: PaymentTypeEnum
-    method: PaymentMethodEnum
-    status: PaymentStatusEnum
+    id:              int
+    amount_zmw:      float
+    payment_type:    PaymentTypeEnum
+    method:          PaymentMethodEnum
+    status:          PaymentStatusEnum
     transaction_ref: str
-    paid_at: Optional[datetime.datetime]
+    paid_at:         Optional[datetime.datetime]
 
 
 @strawberry.type
 class InitiatePaymentResult:
-    payment_id: int
-    payment_url: str
-    transaction_ref: str
-
-
-@strawberry.type
-class ConfirmPaymentResult:
-    success: bool
-    appointment_id: int
-    service_name: str
-    starts_at: str
-    staff_name: str
+    success:         bool
+    reference:       str
+    message:         str
+    instant_confirm: bool = False  # True when mock auto-confirms in dev
 
 
 @strawberry.type
 class PaymentStatusResult:
-    status: str
+    status:         str
     appointment_id: int
-    service_name: str
-    starts_at: str
-    provider_ref: str = ""   # Lipila checkout URL when present
+    service_name:   str
+    starts_at:      str
+    provider_ref:   str = ""
 
 
 def payment_to_type(p) -> PaymentType:

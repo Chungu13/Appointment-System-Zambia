@@ -127,7 +127,7 @@ class BookingsMutation:
                 payment_url=None,
             )
 
-        # ── Path B: deposit required → Redis hold + payment redirect ──────────
+        # ── Path B: deposit required → Redis hold + mobile money push ──────────
         conflict = (
             Appointment.objects
             .filter(
@@ -141,32 +141,25 @@ class BookingsMutation:
         if conflict:
             raise ValueError("This time slot is no longer available.")
 
+        import uuid
         from bookings.holds import save_hold
         from payments.provider_factory import get_provider
 
-        request = info.context.request
-        scheme = "https" if request.is_secure() else "http"
-        site_url = f"{scheme}://{request.get_host()}"
-
-        description = (
-            f"{service.name} with {staff.full_name} "
-            f"on {starts_at:%Y-%m-%d %H:%M}"
-        )
+        transaction_ref = f"HOLD-{uuid.uuid4().hex[:12].upper()}"
+        narration = f"{service.name} with {staff.full_name} on {starts_at:%Y-%m-%d %H:%M}"
 
         provider = get_provider()
-        result = provider.create_transaction(
-            appointment_id=0,
-            amount_zmw=deposit_required,
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            description=description,
-            site_url=site_url,
+        result = provider.initiate_collection(
+            phone=customer_phone,
+            amount=deposit_required,
+            reference=transaction_ref,
+            narration=narration,
         )
 
         if not result.success:
-            raise ValueError(f"Payment provider error: {result.error}")
+            raise ValueError(f"Payment provider error: {result.message}")
 
-        save_hold(result.transaction_ref, {
+        save_hold(transaction_ref, {
             "service_id": service_id,
             "staff_id": staff_id,
             "starts_at": starts_at.isoformat(),
@@ -188,17 +181,18 @@ class BookingsMutation:
             ),
             outcome="success",
             metadata={
-                "transaction_ref": result.transaction_ref,
+                "transaction_ref": transaction_ref,
                 "deposit_required": deposit_required,
                 "customer_phone": customer_phone,
             },
         )
 
+        # payment_url is empty — customer pays via PIN prompt on their phone
         return CreateBookingResult(
             appointment=None,
             deposit_required=deposit_required,
             requires_payment=True,
-            payment_url=result.payment_url,
+            payment_url=None,
         )
 
     @strawberry.mutation

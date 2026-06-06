@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Send, Sparkles } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
 import { useAgentChat } from "../../hooks/useAgentChat";
 import { playPopSound, playDingSound } from "../../lib/sounds";
+import { CHECK_PAYMENT_STATUS } from "../../graphql/queries/bookings";
 
 const DARK    = "#1A0A0D";
 const PRIMARY = "#6B2737";
@@ -90,11 +92,20 @@ function parseBookingConfirmed(text) {
 }
 
 function parseMobilePaymentSent(text) {
-  const match = text.match(
-    /MOBILE_PAYMENT_SENT\s*\|\s*service:\s*(.+?)\s*\|\s*date:\s*(\d{4}-\d{2}-\d{2})\s*\|\s*time:\s*(\d{2}:\d{2})\s*\|\s*amount:\s*ZMW\s*([\d.]+)\s*\|\s*staff:\s*(.+?)\s*\|\s*phone:\s*(\S+?)(?:\n|$)/i,
-  );
-  if (!match) return null;
-  return { service: match[1].trim(), date: match[2], time: match[3], amount: match[4], staff: match[5].trim(), phone: match[6].trim() };
+  if (!/MOBILE_PAYMENT_SENT/i.test(text)) return null;
+  const get = (key) => {
+    const m = text.match(new RegExp(`${key}:\\s*([^|\\n]+?)\\s*(?:\\||$)`, "i"));
+    return m ? m[1].trim() : "";
+  };
+  const service = get("service");
+  const date    = get("date");
+  const time    = get("time");
+  const amount  = get("amount").replace(/^ZMW\s*/i, "");
+  const staff   = get("staff");
+  const phone   = get("phone");
+  const ref     = get("payment_ref");
+  if (!service || !date || !time) return null;
+  return { service, date, time, amount, staff, phone, ref };
 }
 
 // ── Rich components ───────────────────────────────────────────────────────────
@@ -433,8 +444,67 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
   const { messages, sendMessage, loading } = useAgentChat(
     customer.phone, customer.name, salonName, initialMessage, confirmedBooking,
   );
+  const [extraMessages, setExtraMessages] = useState([]);
+  const [pollRef, setPollRef] = useState(null);
+  const receiptInjectedRef = useRef(false);
+  const displayMessages = [...messages, ...extraMessages];
   const bottomRef = useRef(null);
   const prevCountRef = useRef(messages.length);
+
+  // Detect MOBILE_PAYMENT_SENT and start polling
+  useEffect(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg.role === "assistant" && msg.content) {
+        const data = parseMobilePaymentSent(msg.content);
+        if (data?.ref && data.ref !== pollRef) {
+          receiptInjectedRef.current = false;
+          setPollRef(data.ref);
+        }
+        break;
+      }
+    }
+  }, [messages]);
+
+  // Poll checkPaymentStatus every 3s while waiting for PIN confirmation
+  const { data: pollData } = useQuery(CHECK_PAYMENT_STATUS, {
+    variables: { ref: pollRef },
+    pollInterval: 3000,
+    skip: !pollRef || receiptInjectedRef.current,
+    fetchPolicy: "network-only",
+  });
+
+  useEffect(() => {
+    if (pollData?.checkPaymentStatus?.status === "completed" && pollRef && !receiptInjectedRef.current) {
+      receiptInjectedRef.current = true;
+      // Find the mobile payment data from the triggering message
+      let mobileData = null;
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const msg = messages[i];
+        if (msg.role === "assistant" && msg.content) {
+          const d = parseMobilePaymentSent(msg.content);
+          if (d?.ref === pollRef) { mobileData = d; break; }
+        }
+      }
+      setExtraMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          type: "receipt",
+          booking: {
+            service:  mobileData?.service || pollData.checkPaymentStatus.serviceName,
+            date:     mobileData?.date    || pollData.checkPaymentStatus.startsAt.slice(0, 10),
+            time:     mobileData?.time    || pollData.checkPaymentStatus.startsAt.slice(11, 16),
+            staff:    mobileData?.staff   || "",
+            amount:   mobileData?.amount  || "",
+            ref:      pollRef,
+            customer: customer.name,
+          },
+        },
+      ]);
+      setPollRef(null);
+    }
+  }, [pollData, pollRef]);
 
   useEffect(() => { playPopSound(); }, []);
 
@@ -445,7 +515,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
     prevCountRef.current = curr;
   }, [messages]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [displayMessages, loading]);
 
   return (
     <div className="animate-chat-slide-up fixed bottom-4 z-50 flex flex-col overflow-hidden"
@@ -453,7 +523,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
       <ChatHeader salonName={salonName} onClose={onClose} />
 
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-        {messages.map((msg, i) => (
+        {displayMessages.map((msg, i) => (
           <MessageBubble key={i} message={msg} onSend={sendMessage} salonName={salonName} customerName={customer.name} />
         ))}
         {loading && (

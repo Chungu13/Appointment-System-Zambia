@@ -84,15 +84,14 @@ _TOOLS = [
         "type": "function",
         "function": {
             "name": "initiate_payment",
-            "description": "Start a payment for an appointment. Call this immediately after create_booking when the customer confirms.",
+            "description": "Send a mobile money payment prompt to the customer's phone. Call this immediately after create_booking succeeds.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "appointment_id": {"type": "integer"},
-                    "payment_method": {
+                    "mobile_money_phone": {
                         "type": "string",
-                        "enum": ["airtel_money", "mtn_momo", "card", "cash"],
-                        "description": "Optional. Defaults to card.",
+                        "description": "Customer's mobile money number. Use the customer's phone from intake unless they specify a different one.",
                     },
                 },
                 "required": ["appointment_id"],
@@ -200,8 +199,8 @@ class BookingAgent:
             "  Nothing else. No questions about payment method.\n"
             "Step 2 — When the customer says yes/confirm/ok:\n"
             "  Call create_booking immediately.\n"
-            "  Then call initiate_payment immediately.\n"
-            "  Do NOT ask about payment method — it is handled by the payment button.\n\n"
+            "  Then call initiate_payment immediately, using the customer's phone number.\n"
+            "  Do NOT ask about payment method. Do NOT ask for their phone number again — you already have it.\n\n"
             "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
             f"- The current time in Zambia is {current_time_str} (CAT, UTC+2). "
             f"Today is {today_day}, {today_str}.\n"
@@ -236,18 +235,13 @@ class BookingAgent:
             "The remaining ZMW [balance] is paid in person after your service.'\n"
             "- NEVER charge the full service price upfront.\n\n"
             "Payment confirmation format — CRITICAL:\n"
-            "After initiate_payment succeeds, check the payment_flow field in the result:\n\n"
-            "If payment_flow is 'redirect':\n"
-            "  Append this line EXACTLY at the end of your response, after a blank line:\n"
-            "  BOOKING_CONFIRMED | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
-            "payment_ref: [transaction_ref] | checkout_url: [payment_url] | amount: ZMW [X] | staff: [staff name]\n"
-            "  Use transaction_ref and payment_url from the tool result. Use 24-hour HH:MM in this line only.\n\n"
-            "If payment_flow is 'mobile_money' (Lipila / Airtel / MTN):\n"
-            "  Tell the customer a prompt has been sent, then append this line EXACTLY:\n"
+            "After initiate_payment succeeds, tell the customer a prompt has been sent, "
+            "then append this line EXACTLY at the end of your response, after a blank line:\n"
             "  MOBILE_PAYMENT_SENT | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
-            "amount: ZMW [X] | staff: [staff name] | phone: [customer_phone]\n"
-            "  Example message: 'A payment prompt of ZMW [X] has been sent to your phone. "
-            "Enter your PIN when prompted to confirm your booking.'\n\n"
+            "amount: ZMW [X] | staff: [staff name] | phone: [mobile_money_phone] | payment_ref: [transaction_ref]\n"
+            "Use the phone and transaction_ref values from the tool result. Use 24-hour HH:MM in this line only.\n"
+            "Example human message before the line: "
+            "'A payment prompt of ZMW [X] has been sent to [phone]. Enter your PIN when prompted to confirm your booking.'\n\n"
             "Guidelines:\n"
             "- Use simple, friendly English. Write dates as '3rd June 2026' or 'tomorrow, Wednesday 3rd June'. "
             "Write times as '9:00 AM' or '2:30 PM' — never '09:00' or '14:30'. Keep responses short and clear.\n"
@@ -263,7 +257,7 @@ class BookingAgent:
     # Tool execution
     # ------------------------------------------------------------------
 
-    def _run_tool(self, name: str, inputs: dict, customer_phone: str, site_url: str) -> dict:
+    def _run_tool(self, name: str, inputs: dict, customer_phone: str) -> dict:
         import datetime as _dt
 
         from django.contrib.auth import get_user_model
@@ -437,85 +431,72 @@ class BookingAgent:
             if appt.status == "cancelled":
                 return {"error": "Cannot pay for a cancelled appointment."}
 
+            # Use the phone the customer provided during intake unless they specified another
+            mobile_money_phone = inputs.get("mobile_money_phone") or customer_phone
             amount = appt.service.deposit_zmw
-            payment_type = "deposit"
+            transaction_ref = f"KIMAWA-{appt.pk}"
 
+            # Create payment record with transaction_ref set upfront so mock can confirm it
             payment = Payment.objects.create(
                 appointment=appt,
                 amount_zmw=amount,
-                payment_type=payment_type,
-                method=inputs.get("payment_method", "card"),
+                payment_type="deposit",
+                method="airtel_money",
                 status="pending",
+                transaction_ref=transaction_ref,
             )
-
-            from urllib.parse import quote as _quote
-            from django.conf import settings as _s
-            _app_domain = getattr(_s, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
-            _slug = self.tenant.subdomain
-
-            # Build the URLs that redirect-based providers (Lipila checkout, mock)
-            # need — redirect_url goes back to the salon page with receipt params,
-            # callback_url is the server-to-server webhook Lipila calls on completion.
-            transaction_ref = f"KIMAWA-{appt.pk}"
-            redirect_url = (
-                f"https://{_slug}.{_app_domain}/"
-                f"?payment_success={_quote(transaction_ref)}"
-                f"&service={_quote(appt.service.name)}"
-                f"&amount={float(amount):.0f}"
-                f"&appt_date={appt.starts_at.strftime('%Y-%m-%d')}"
-                f"&appt_time={_quote(appt.starts_at.strftime('%H:%M'))}"
-                f"&appt_staff={_quote(appt.staff.full_name)}"
-                f"&appt_customer={_quote(appt.customer.full_name)}"
-            ) if not _s.DEBUG else (
-                f"http://localhost:{getattr(_s, 'VITE_DEV_PORT', 3000)}/{_slug}/"
-                f"?payment_success={_quote(transaction_ref)}"
-                f"&service={_quote(appt.service.name)}"
-                f"&amount={float(amount):.0f}"
-            )
-            callback_url = (
-                f"https://{_slug}.{getattr(_s, 'TENANT_API_DOMAIN_SUFFIX', 'api.kimawa.pro')}"
-                f"/payments/webhook/{_quote(transaction_ref)}/"
-            ) if not _s.DEBUG else ""
 
             provider = get_provider()
-            result = provider.create_transaction(
-                appointment_id=appt.pk,
-                amount_zmw=float(amount),
-                customer_name=appt.customer.full_name,
-                customer_phone=appt.customer.phone,
-                description=f"{appt.service.name} with {appt.staff.full_name} on {appt.starts_at:%Y-%m-%d %H:%M}",
-                site_url=site_url,
-                redirect_url=redirect_url,
-                callback_url=callback_url,
+            result = provider.initiate_collection(
+                phone=mobile_money_phone,
+                amount=float(amount),
+                reference=transaction_ref,
+                narration=f"{appt.service.name} deposit",
             )
 
             if not result.success:
                 payment.status = "failed"
                 payment.save(update_fields=["status", "updated_at"])
-                return {"error": f"Payment provider error: {result.error}"}
+                return {"error": f"Payment initiation failed: {result.message}"}
 
-            payment.transaction_ref = result.transaction_ref
-            payment.provider_ref = result.provider_ref or ""
-            payment.save(update_fields=["transaction_ref", "provider_ref", "updated_at"])
+            update_fields = ["updated_at"]
+            if result.provider_ref:
+                payment.provider_ref = result.provider_ref
+                update_fields.append("provider_ref")
+
+            # Mock auto-confirms immediately — mark payment + appointment here too
+            if result.status == "completed":
+                from django.utils import timezone as _tz
+                payment.status  = "completed"
+                payment.paid_at = _tz.now()
+                update_fields += ["status", "paid_at"]
+                if appt.status not in ("confirmed", "completed"):
+                    appt.status = "confirmed"
+                    appt.save(update_fields=["status", "updated_at"])
+
+            payment.save(update_fields=list(set(update_fields)))
 
             AgentLog.objects.create(
                 agent_type="payment",
-                action=f"Agent initiated payment of ZMW {amount} for {appt.customer.full_name} ({appt.customer.phone})",
+                action=(
+                    f"Agent initiated payment of ZMW {amount} for "
+                    f"{appt.customer.full_name} ({mobile_money_phone})"
+                ),
                 related_appointment=appt,
                 outcome="success",
                 metadata={
                     "tenant": self.tenant.schema_name,
                     "payment_id": payment.pk,
-                    "transaction_ref": result.transaction_ref,
+                    "transaction_ref": transaction_ref,
                     "amount_zmw": str(amount),
+                    "phone": mobile_money_phone,
                 },
             )
 
             return {
-                "payment_id": payment.pk,
-                "payment_flow": "redirect",
-                "payment_url": result.payment_url,  # Lipila checkout URL or mock-pay URL
-                "transaction_ref": result.transaction_ref,
+                "payment_flow": "mobile_money",
+                "transaction_ref": transaction_ref,
+                "phone": mobile_money_phone,
                 "amount_zmw": str(amount),
                 "service_name": appt.service.name,
                 "staff_name": appt.staff.full_name,
@@ -533,7 +514,6 @@ class BookingAgent:
         message: str,
         customer_phone: str,
         conversation_history: list,
-        site_url: str = "",
         customer_name: str = "",
     ) -> tuple[str, list, list]:
         """
@@ -570,7 +550,7 @@ class BookingAgent:
                     except json.JSONDecodeError:
                         inputs = {}
 
-                    result = self._run_tool(tc.function.name, inputs, customer_phone, site_url)
+                    result = self._run_tool(tc.function.name, inputs, customer_phone)
                     logger.info("Tool %s(%s) → %s", tc.function.name, inputs, result)
 
                     # Log to AgentLog on every tool call
