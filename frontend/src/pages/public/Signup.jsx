@@ -252,8 +252,8 @@ export default function Signup() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="max-sm:grid-cols-1">
               <Field label="Phone" error={fieldErrors.phone}>
-                <Input value={form.phone} onChange={set('phone')} placeholder="+260 97 000 0000" type="tel" maxLength={16} />
-                <p style={{ marginTop: 4, fontSize: 11, color: '#999' }}>Format: +260 97 123 4567</p>
+                <Input value={form.phone} onChange={set('phone')} placeholder="+260971234567" type="tel" maxLength={13} />
+                <p style={{ marginTop: 4, fontSize: 11, color: '#999' }}>Format: +260971234567</p>
               </Field>
               <Field label="Email" error={fieldErrors.email}>
                 <Input value={form.email} onChange={set('email')} placeholder="you@example.com" type="email" />
