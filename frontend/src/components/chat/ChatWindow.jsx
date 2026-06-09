@@ -60,17 +60,8 @@ function parseServiceCard(text) {
   const structured = text.match(
     /SERVICE:\s*(.+?)\s*\|\s*DURATION:\s*(\d+)\s*min\s*\|\s*PRICE:\s*ZMW\s*([\d,]+(?:\.\d+)?)(?:\s*\|\s*DEPOSIT:\s*ZMW\s*([\d,]+(?:\.\d+)?))?(?:\s*\|\s*STAFF:\s*(.+?))?(?:\n|$)/i,
   );
-  if (structured) {
-    return { name: structured[1].trim(), duration: structured[2], price: structured[3], deposit: structured[4] || null, staff: structured[5]?.trim() || null };
-  }
-  const priceMatch = text.match(/ZMW\s*([\d,]+(?:\.\d+)?)/i);
-  const durationMatch = text.match(/(\d+)\s*min/i);
-  if (!priceMatch || !durationMatch) return null;
-  const lines = text.trim().split("\n").map((l) => l.replace(/\*\*/g, "").trim()).filter(Boolean);
-  if (!lines[0] || lines[0].length > 60) return null;
-  const staffMatch = text.match(/with\s+([A-Za-z]+)/i);
-  const depositMatch = text.match(/ZMW\s*([\d,]+(?:\.\d+)?)\s*deposit|deposit.*?ZMW\s*([\d,]+(?:\.\d+)?)/i);
-  return { name: lines[0], duration: durationMatch[1], price: priceMatch[1], deposit: depositMatch ? depositMatch[1] || depositMatch[2] : null, staff: staffMatch?.[1] || null };
+  if (!structured) return null;
+  return { name: structured[1].trim(), duration: structured[2], price: structured[3], deposit: structured[4] || null, staff: structured[5]?.trim() || null };
 }
 
 function parseBookingConfirmed(text) {
