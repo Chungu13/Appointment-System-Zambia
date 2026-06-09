@@ -469,7 +469,8 @@ class BookingAgent:
             mobile_money_phone = inputs.get("mobile_money_phone") or customer_phone
             deposit        = float(appt.service.deposit_zmw)
             customer_total = _calculate_customer_total(deposit)
-            transaction_ref = f"KIMAWA-{appt.pk}"
+            import uuid as _uuid
+            transaction_ref = f"KIMAWA-{_uuid.uuid4().hex[:12].upper()}"
 
             # Create payment record — amount_zmw is what the customer actually pays
             payment = Payment.objects.create(

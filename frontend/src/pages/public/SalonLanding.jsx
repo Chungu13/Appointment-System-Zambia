@@ -540,6 +540,7 @@ export default function SalonLanding() {
   }
 
   function openChat(msg = '') {
+    setSessionId(crypto.randomUUID())
     setChatInitMsg(msg)
     playPopSound()
     setChatOpen(true)
