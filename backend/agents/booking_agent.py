@@ -218,8 +218,12 @@ class BookingAgent:
             "  Ask ONE question: 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
             "  Do not call any tools yet. Wait for their reply.\n"
             "Step 3 — Once the customer provides their phone number:\n"
-            "  Call create_booking immediately, using their phone number as customer_phone.\n"
+            "  Call create_booking immediately. CRITICAL: use the EXACT service_id you called "
+            "check_availability with — never a different service.\n"
             "  Then call initiate_payment immediately with that same phone number as mobile_money_phone.\n"
+            "  In your confirmation message use amount_charged from the initiate_payment result — "
+            "not the total from check_availability. These must match; if they differ, tell the customer "
+            "the correct amount before they confirm on their phone.\n"
             "  Do NOT ask anything else.\n\n"
             "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
             f"- The current time in Zambia is {current_time_str} (CAT, UTC+2). "
@@ -257,10 +261,11 @@ class BookingAgent:
             "After initiate_payment succeeds, tell the customer a prompt has been sent, "
             "then append this line EXACTLY at the end of your response, after a blank line:\n"
             "  MOBILE_PAYMENT_SENT | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
-            "amount: ZMW [X] | staff: [staff name] | phone: [mobile_money_phone] | payment_ref: [transaction_ref]\n"
-            "Use the phone and transaction_ref values from the tool result. Use 24-hour HH:MM in this line only.\n"
+            "amount: ZMW [amount_charged] | staff: [staff name] | phone: [mobile_money_phone] | payment_ref: [transaction_ref]\n"
+            "Use amount_charged, phone and transaction_ref from the initiate_payment tool result — "
+            "NOT the totals from check_availability. Use 24-hour HH:MM in this line only.\n"
             "Example human message before the line: "
-            "'A payment prompt of ZMW [X] has been sent to [phone]. Enter your PIN when prompted to confirm your booking.'\n\n"
+            "'A payment prompt of ZMW [amount_charged] has been sent to [phone]. Enter your PIN when prompted to confirm your booking.'\n\n"
             "Guidelines:\n"
             "- Use simple, friendly English. Write dates as '3rd June 2026' or 'tomorrow, Wednesday 3rd June'. "
             "Write times as '9:00 AM' or '2:30 PM' — never '09:00' or '14:30'. Keep responses short and clear.\n"
@@ -467,15 +472,20 @@ class BookingAgent:
 
             # Use the phone the customer provided during intake unless they specified another
             mobile_money_phone = inputs.get("mobile_money_phone") or customer_phone
-            deposit        = float(appt.service.deposit_zmw)
-            customer_total = _calculate_customer_total(deposit)
+
+            # Always derive amounts from the booked appointment's service —
+            # this is the authoritative source, not what check_availability returned.
+            actual_deposit = float(appt.service.deposit_zmw)
+            actual_total   = _calculate_customer_total(actual_deposit)
+            actual_fee     = round(actual_total - actual_deposit, 2)
+
             import uuid as _uuid
             transaction_ref = f"KIMAWA-{_uuid.uuid4().hex[:12].upper()}"
 
             # Create payment record — amount_zmw is what the customer actually pays
             payment = Payment.objects.create(
                 appointment=appt,
-                amount_zmw=customer_total,
+                amount_zmw=actual_total,
                 payment_type="deposit",
                 method="airtel_money",
                 status="pending",
@@ -485,7 +495,7 @@ class BookingAgent:
             provider = get_provider()
             result = provider.initiate_collection(
                 phone=mobile_money_phone,
-                amount=customer_total,
+                amount=actual_total,
                 reference=transaction_ref,
                 narration=f"{appt.service.name} deposit",
             )
@@ -515,7 +525,7 @@ class BookingAgent:
             AgentLog.objects.create(
                 agent_type="payment",
                 action=(
-                    f"Agent initiated payment of ZMW {customer_total} for "
+                    f"Agent initiated payment of ZMW {actual_total} for "
                     f"{appt.customer.full_name} ({mobile_money_phone})"
                 ),
                 related_appointment=appt,
@@ -524,8 +534,8 @@ class BookingAgent:
                     "tenant": self.tenant.schema_name,
                     "payment_id": payment.pk,
                     "transaction_ref": transaction_ref,
-                    "customer_total": str(customer_total),
-                    "deposit_zmw": str(deposit),
+                    "amount_charged": str(actual_total),
+                    "deposit_zmw": str(actual_deposit),
                     "phone": mobile_money_phone,
                 },
             )
@@ -534,8 +544,10 @@ class BookingAgent:
                 "payment_flow": "mobile_money",
                 "transaction_ref": transaction_ref,
                 "phone": mobile_money_phone,
-                "amount_zmw": str(customer_total),
-                "deposit_zmw": str(deposit),
+                "amount_charged": actual_total,
+                "deposit": actual_deposit,
+                "service_fee": actual_fee,
+                "message": f"Payment of ZMW {actual_total} initiated to {mobile_money_phone}",
                 "service_name": appt.service.name,
                 "staff_name": appt.staff.full_name,
                 "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
