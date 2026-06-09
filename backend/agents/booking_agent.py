@@ -354,6 +354,7 @@ class BookingAgent:
                 deposit = customer_total = service_fee = balance_salon = 0.0
 
             return {
+                "service_id": inputs["service_id"],   # echo back so AI uses this exact id in create_booking
                 "date": inputs["date"],
                 "service": raw_slots[0]["service_name"],
                 "deposit_zmw": deposit,
@@ -369,6 +370,18 @@ class BookingAgent:
             return {"staff": list(User.objects.filter(pk__in=staff_ids).values("id", "full_name"))}
 
         elif name == "create_booking":
+            # Hard guard: service_id must match what check_availability was called with.
+            if hasattr(self, "_last_availability_slots") and self._last_availability_slots:
+                expected_sid = self._last_availability_slots[0]["service_id"]
+                if inputs["service_id"] != expected_sid:
+                    return {
+                        "error": (
+                            f"Wrong service_id={inputs['service_id']}. "
+                            f"You checked availability for service_id={expected_sid}. "
+                            f"You MUST use service_id={expected_sid} — do not book a different service."
+                        )
+                    }
+
             try:
                 service = Service.objects.get(pk=inputs["service_id"], is_active=True)
             except Service.DoesNotExist:
