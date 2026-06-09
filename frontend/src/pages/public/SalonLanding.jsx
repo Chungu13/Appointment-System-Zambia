@@ -586,6 +586,18 @@ export default function SalonLanding() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <HoursCard hours={profile.openingHours} />
           <LocationCard profile={profile} />
+          <button
+            onClick={() => openChat('What are your policies? (cancellations, late arrivals, deposits, etc.)')}
+            style={{
+              width: '100%', padding: '13px 18px',
+              border: `0.5px solid ${BORDER}`, borderRadius: 8,
+              background: '#faf8f6', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a' }}>Policies</span>
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: PRIMARY }}>Ask in chat</span>
+          </button>
         </div>
       </div>
 
