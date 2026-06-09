@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Send, Sparkles } from "lucide-react";
+import { X, Send, Sparkles, ShieldCheck } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { useAgentChat } from "../../hooks/useAgentChat";
 import { playPopSound, playDingSound } from "../../lib/sounds";
@@ -259,6 +259,61 @@ function ReceiptCard({ booking, salonName }) {
   );
 }
 
+function renderRichText(text) {
+  const lines = text.split("\n");
+  const els = [];
+  let i = 0;
+  while (i < lines.length) {
+    const raw = lines[i];
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      els.push(<div key={i} style={{ height: 6 }} />);
+      i++;
+      continue;
+    }
+    // Bullet line
+    if (/^[-•]\s/.test(trimmed)) {
+      const content = trimmed.replace(/^[-•]\s*/, "");
+      const colonIdx = content.indexOf(":");
+      const hasLabel = colonIdx > 0 && colonIdx < 40;
+      els.push(
+        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "5px 0", borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
+          <ShieldCheck size={13} style={{ color: PRIMARY, flexShrink: 0, marginTop: 2 }} />
+          <span style={{ fontFamily: sans, fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.55 }}>
+            {hasLabel ? (
+              <>
+                <span style={{ fontWeight: 600, color: "#fff" }}>{content.slice(0, colonIdx)}</span>
+                <span style={{ color: "rgba(255,255,255,0.55)" }}>:</span>
+                {content.slice(colonIdx + 1)}
+              </>
+            ) : content}
+          </span>
+        </div>
+      );
+      i++;
+      continue;
+    }
+    // Section header (short line ending with ":")
+    if (trimmed.endsWith(":") && trimmed.length < 60) {
+      els.push(
+        <p key={i} style={{ fontFamily: sans, fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", margin: els.length > 0 ? "10px 0 4px" : "0 0 4px" }}>
+          {trimmed.slice(0, -1)}
+        </p>
+      );
+      i++;
+      continue;
+    }
+    // Plain line
+    els.push(
+      <span key={i} style={{ fontFamily: sans, fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.6, display: "block" }}>
+        {trimmed}
+      </span>
+    );
+    i++;
+  }
+  return <div style={{ display: "flex", flexDirection: "column" }}>{els}</div>;
+}
+
 function renderMessage(text, onSend, salonName, customerName) {
   // Mobile money — USSD prompt sent to phone
   const mobileIdx = text.search(/MOBILE_PAYMENT_SENT\s*\|/i);
@@ -294,7 +349,7 @@ function renderMessage(text, onSend, salonName, customerName) {
   if (slots) return <SlotGrid data={slots} onSend={onSend} />;
   const service = parseServiceCard(text);
   if (service) return <ServiceCard data={service} onSend={onSend} />;
-  return <span style={{ whiteSpace: "pre-wrap" }}>{text}</span>;
+  return renderRichText(text);
 }
 
 function MessageBubble({ message, onSend, salonName, customerName }) {

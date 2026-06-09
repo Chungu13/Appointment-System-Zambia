@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
-import { MapPin, Phone, Calendar, Menu, X, ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
+import { MapPin, Phone, Calendar, Menu, X, ChevronLeft, ChevronRight, ChevronDown, Sparkles, ScrollText } from 'lucide-react'
 import { SALON_PROFILE } from '../../graphql/queries/salons'
 import ChatWindow from '../../components/chat/ChatWindow'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
@@ -591,14 +591,23 @@ export default function SalonLanding() {
           <button
             onClick={() => openChat('What are your policies? (cancellations, late arrivals, deposits, etc.)', true)}
             style={{
-              width: '100%', padding: '13px 18px',
+              width: '100%', padding: '14px 18px',
               border: `0.5px solid ${BORDER}`, borderRadius: 8,
               background: '#faf8f6', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'flex', alignItems: 'center', gap: 12,
+              transition: 'background 0.15s',
             }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#f3eeeb'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#faf8f6'}
           >
-            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a' }}>Policies</span>
-            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: PRIMARY }}>Ask in chat</span>
+            <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#f0e8ea', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ScrollText size={15} style={{ color: PRIMARY }} />
+            </div>
+            <div style={{ textAlign: 'left', flex: 1 }}>
+              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>Policies</p>
+              <p style={{ fontFamily: sans, fontSize: 11, color: '#999', margin: '2px 0 0' }}>Cancellations, fees &amp; more</p>
+            </div>
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, whiteSpace: 'nowrap' }}>Ask in chat</span>
           </button>
         </div>
       </div>
