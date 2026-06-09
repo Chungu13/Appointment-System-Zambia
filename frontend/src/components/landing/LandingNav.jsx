@@ -22,7 +22,7 @@ export default function LandingNav({ variant = 'public' }) {
         {/* Section 1 — Left: logo + wordmark */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 32 }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: '#1a1a1a' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 400, color: '#6B2737', letterSpacing: '-0.3px' }}>
             Kimawa
           </span>
         </Link>
@@ -85,7 +85,7 @@ export default function LandingNav({ variant = 'public' }) {
       <div className="flex lg:hidden" style={{ alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 28 }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: '#1a1a1a' }}>Kimawa</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 400, color: '#6B2737', letterSpacing: '-0.3px' }}>Kimawa</span>
         </Link>
         <button onClick={() => setOpen((v) => !v)} style={{ color: '#1a1a1a', background: 'none', border: 'none', cursor: 'pointer', padding: 12 }}>
           {open ? <X size={20} /> : <Menu size={20} />}
