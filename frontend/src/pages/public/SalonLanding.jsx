@@ -491,6 +491,7 @@ function LocationCard({ profile }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function SalonLanding() {
   const [chatOpen,          setChatOpen]          = useState(false)
+  const [chatKey,           setChatKey]           = useState(0)
   const [chatInitMsg,       setChatInitMsg]       = useState('')
   const [chatConfirmedBooking, setChatConfirmedBooking] = useState(null)
   const { data, loading, error } = useQuery(SALON_PROFILE)
@@ -540,7 +541,7 @@ export default function SalonLanding() {
   }
 
   function openChat(msg = '') {
-    setSessionId(crypto.randomUUID())
+    setChatKey(k => k + 1)
     setChatInitMsg(msg)
     playPopSound()
     setChatOpen(true)
@@ -623,6 +624,7 @@ export default function SalonLanding() {
 
       {chatOpen && (
         <ChatWindow
+          key={chatKey}
           salonName={profile.businessName}
           initialMessage={chatInitMsg}
           confirmedBooking={chatConfirmedBooking}
