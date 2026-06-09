@@ -493,6 +493,7 @@ export default function SalonLanding() {
   const [chatOpen,          setChatOpen]          = useState(false)
   const [chatKey,           setChatKey]           = useState(0)
   const [chatInitMsg,       setChatInitMsg]       = useState('')
+  const [chatSkipIntake,    setChatSkipIntake]    = useState(false)
   const [chatConfirmedBooking, setChatConfirmedBooking] = useState(null)
   const { data, loading, error } = useQuery(SALON_PROFILE)
 
@@ -540,9 +541,10 @@ export default function SalonLanding() {
     )
   }
 
-  function openChat(msg = '') {
+  function openChat(msg = '', skipIntake = false) {
     setChatKey(k => k + 1)
     setChatInitMsg(msg)
+    setChatSkipIntake(skipIntake)
     playPopSound()
     setChatOpen(true)
   }
@@ -587,7 +589,7 @@ export default function SalonLanding() {
           <HoursCard hours={profile.openingHours} />
           <LocationCard profile={profile} />
           <button
-            onClick={() => openChat('What are your policies? (cancellations, late arrivals, deposits, etc.)')}
+            onClick={() => openChat('What are your policies? (cancellations, late arrivals, deposits, etc.)', true)}
             style={{
               width: '100%', padding: '13px 18px',
               border: `0.5px solid ${BORDER}`, borderRadius: 8,
@@ -640,6 +642,7 @@ export default function SalonLanding() {
           salonName={profile.businessName}
           initialMessage={chatInitMsg}
           confirmedBooking={chatConfirmedBooking}
+          skipIntake={chatSkipIntake}
           onClose={() => setChatOpen(false)}
         />
       )}

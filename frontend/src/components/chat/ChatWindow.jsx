@@ -536,10 +536,10 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export default function ChatWindow({ customerPhone, customerName, onClose, salonName, initialMessage, confirmedBooking }) {
+export default function ChatWindow({ customerPhone, customerName, onClose, salonName, initialMessage, confirmedBooking, skipIntake }) {
   const [customer, setCustomer] = useState(
-    customerPhone && customerPhone !== "+260000000000"
-      ? { name: customerName || "", phone: customerPhone }
+    (customerPhone && customerPhone !== "+260000000000") || skipIntake
+      ? { name: customerName || "", phone: customerPhone || "" }
       : null,
   );
 
