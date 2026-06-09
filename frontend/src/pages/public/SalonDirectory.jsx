@@ -76,7 +76,6 @@ function StatsBar() {
   const stats = [
     { value: 'Free', label: 'Free to list your business' },
     { value: 'ZMW',  label: 'Local payments supported' },
-    { value: '0%',   label: 'No monthly fees, ever' },
   ]
   return (
     <section style={{ borderTop: `0.5px solid ${BORDER}`, borderBottom: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
@@ -198,7 +197,6 @@ function BottomCTA() {
     'AI assistant answers customer questions and books appointments automatically',
     'Full calendar management with reminders and deposit collection',
     'Real-time analytics in Zambian Kwacha',
-    'No monthly fees — we take a small % per booking only when you earn.',
   ]
   return (
     <section style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: 80, paddingBottom: 80, backgroundColor: '#fff' }} className="px-16 max-sm:px-5 max-sm:py-14">
