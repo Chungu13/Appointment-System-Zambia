@@ -10,6 +10,19 @@ from agents.log_labels import friendly_tool_label
 
 logger = logging.getLogger(__name__)
 
+
+def _calculate_customer_total(deposit_zmw: float) -> float:
+    """
+    What the customer pays upfront.
+    Owner always receives deposit_zmw exactly (paid out via disbursement).
+    Kimawa earns 10% commission; Lipila fees are covered by the service fee.
+    """
+    kimawa_fee      = deposit_zmw * 0.10
+    lipila_disburse = deposit_zmw * 0.015
+    subtotal        = deposit_zmw + kimawa_fee + lipila_disburse
+    total           = subtotal / (1 - 0.025)   # gross up to cover 2.5% collection fee
+    return round(total, 2)
+
 _TOOLS = [
     {
         "type": "function",
@@ -194,9 +207,13 @@ class BookingAgent:
             "  [Service name]\n"
             "  [Day, Date] at [Time]\n"
             "  With [Staff name]\n\n"
-            "  Deposit: ZMW [X] — ZMW [Y] balance paid in person.\n\n"
+            "  Deposit: ZMW [deposit_zmw]\n"
+            "  Service fee: ZMW [service_fee]\n"
+            "  Total now: ZMW [customer_total]\n"
+            "  ZMW [balance_at_salon] balance paid at the salon.\n\n"
             "  Shall I confirm this booking?\n"
-            "  Nothing else. No other questions yet.\n"
+            "  Use the deposit_zmw, service_fee, customer_total and balance_at_salon values "
+            "from the check_availability result. Nothing else. No other questions yet.\n"
             "Step 2 — When the customer says yes/confirm/ok:\n"
             "  Ask ONE question: 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
             "  Do not call any tools yet. Wait for their reply.\n"
@@ -233,9 +250,8 @@ class BookingAgent:
             "- Never write one long paragraph — use short lines with line breaks.\n"
             "- Only ask a follow-up question when you genuinely need information to proceed.\n\n"
             "Payment — IMPORTANT:\n"
-            "- Collect the deposit only — never the full price upfront.\n"
-            "- Tell the customer: 'To confirm your booking, a deposit of ZMW [deposit amount] is required. "
-            "The remaining ZMW [balance] is paid in person after your service.'\n"
+            "- The customer pays customer_total now (deposit + service fee). "
+            "The balance_at_salon is paid in person after the service.\n"
             "- NEVER charge the full service price upfront.\n\n"
             "Payment confirmation format — CRITICAL:\n"
             "After initiate_payment succeeds, tell the customer a prompt has been sent, "
@@ -320,9 +336,23 @@ class BookingAgent:
                     s["starts_at"].strftime("%I:%M %p").lstrip("0")
                 )
 
+            service_obj = Service.objects.filter(pk=inputs["service_id"]).values("deposit_zmw", "price_zmw").first()
+            if service_obj:
+                deposit       = float(service_obj["deposit_zmw"])
+                price         = float(service_obj["price_zmw"])
+                customer_total = _calculate_customer_total(deposit)
+                service_fee   = round(customer_total - deposit, 2)
+                balance_salon = round(price - deposit, 2)
+            else:
+                deposit = customer_total = service_fee = balance_salon = 0.0
+
             return {
                 "date": inputs["date"],
                 "service": raw_slots[0]["service_name"],
+                "deposit_zmw": deposit,
+                "customer_total": customer_total,
+                "service_fee": service_fee,
+                "balance_at_salon": balance_salon,
                 "available_staff": list(seen.values()),
                 "total_slots": len(raw_slots),
             }
@@ -437,13 +467,14 @@ class BookingAgent:
 
             # Use the phone the customer provided during intake unless they specified another
             mobile_money_phone = inputs.get("mobile_money_phone") or customer_phone
-            amount = appt.service.deposit_zmw
+            deposit        = float(appt.service.deposit_zmw)
+            customer_total = _calculate_customer_total(deposit)
             transaction_ref = f"KIMAWA-{appt.pk}"
 
-            # Create payment record with transaction_ref set upfront so mock can confirm it
+            # Create payment record — amount_zmw is what the customer actually pays
             payment = Payment.objects.create(
                 appointment=appt,
-                amount_zmw=amount,
+                amount_zmw=customer_total,
                 payment_type="deposit",
                 method="airtel_money",
                 status="pending",
@@ -453,7 +484,7 @@ class BookingAgent:
             provider = get_provider()
             result = provider.initiate_collection(
                 phone=mobile_money_phone,
-                amount=float(amount),
+                amount=customer_total,
                 reference=transaction_ref,
                 narration=f"{appt.service.name} deposit",
             )
@@ -483,7 +514,7 @@ class BookingAgent:
             AgentLog.objects.create(
                 agent_type="payment",
                 action=(
-                    f"Agent initiated payment of ZMW {amount} for "
+                    f"Agent initiated payment of ZMW {customer_total} for "
                     f"{appt.customer.full_name} ({mobile_money_phone})"
                 ),
                 related_appointment=appt,
@@ -492,7 +523,8 @@ class BookingAgent:
                     "tenant": self.tenant.schema_name,
                     "payment_id": payment.pk,
                     "transaction_ref": transaction_ref,
-                    "amount_zmw": str(amount),
+                    "customer_total": str(customer_total),
+                    "deposit_zmw": str(deposit),
                     "phone": mobile_money_phone,
                 },
             )
@@ -501,7 +533,8 @@ class BookingAgent:
                 "payment_flow": "mobile_money",
                 "transaction_ref": transaction_ref,
                 "phone": mobile_money_phone,
-                "amount_zmw": str(amount),
+                "amount_zmw": str(customer_total),
+                "deposit_zmw": str(deposit),
                 "service_name": appt.service.name,
                 "staff_name": appt.staff.full_name,
                 "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),

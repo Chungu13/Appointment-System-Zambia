@@ -135,6 +135,56 @@ class LipilaProvider(BasePaymentProvider):
             return PaymentResult(success=False, status="failed", message=str(exc))
 
     # ------------------------------------------------------------------
+    # initiate_disbursement — send owner payout
+    # ------------------------------------------------------------------
+
+    def initiate_disbursement(
+        self,
+        phone: str,
+        amount: float,
+        reference: str,
+        narration: str,
+    ) -> PaymentResult:
+        formatted_phone = self._format_phone(phone)
+        payload = {
+            "referenceId": reference,
+            "amount": round(amount, 2),
+            "accountNumber": formatted_phone,
+            "currency": "ZMW",
+            "narration": narration,
+        }
+        print(f"[Lipila Disbursement] phone_raw={phone!r} phone_fmt={formatted_phone!r} amount={amount} ref={reference}", flush=True)
+        print(f"[Lipila Disbursement] payload={payload}", flush=True)
+
+        try:
+            response = requests.post(
+                f"{self.base_url}/disbursements/mobile-money",
+                json=payload,
+                headers=self._headers(),
+                timeout=30,
+            )
+            print(f"[Lipila Disbursement] status={response.status_code} body={response.text}", flush=True)
+            try:
+                data = response.json()
+            except Exception:
+                data = {}
+
+            if response.status_code in (200, 201):
+                return PaymentResult(
+                    success=True,
+                    status="pending",
+                    provider_ref=data.get("identifier", ""),
+                    message=data.get("message", "Disbursement initiated"),
+                )
+            msg = data.get("message") or data.get("error") or "Disbursement failed"
+            return PaymentResult(success=False, status="failed", message=msg)
+
+        except Exception as exc:
+            print(f"[Lipila Disbursement] exception: {exc}", flush=True)
+            logger.exception("[Lipila] initiate_disbursement exception: %s", exc)
+            return PaymentResult(success=False, status="failed", message=str(exc))
+
+    # ------------------------------------------------------------------
     # verify_transaction
     # ------------------------------------------------------------------
 

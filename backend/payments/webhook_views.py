@@ -40,7 +40,43 @@ def payment_webhook(request):
     return JsonResponse(result, status=200 if result["ok"] else 400)
 
 
-def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref: str = "") -> dict:
+def _trigger_disbursement(transaction_ref: str, deposit_zmw: float, service_name: str) -> None:
+    """Send owner payout after successful payment. Never raises — logs errors only."""
+    try:
+        from django.db import connection
+        from tenants.models import Tenant
+        from payments.providers.lipila import LipilaProvider
+
+        tenant = Tenant.objects.filter(schema_name=connection.schema_name).first()
+        if not tenant:
+            logger.warning("[Disbursement] Tenant not found for schema %s", connection.schema_name)
+            return
+
+        payout_phone = tenant.payout_phone or tenant.phone
+        if not payout_phone:
+            logger.warning("[Disbursement] No payout_phone set for tenant %s", tenant.schema_name)
+            return
+
+        disburse_ref = f"DISBURSE-{transaction_ref}"
+        result = LipilaProvider().initiate_disbursement(
+            phone=payout_phone,
+            amount=deposit_zmw,
+            reference=disburse_ref,
+            narration=f"Booking payout — {service_name}",
+        )
+        if result.success:
+            logger.info(
+                "[Disbursement] sent ZMW %.2f to %s | ref=%s",
+                deposit_zmw, payout_phone, disburse_ref,
+            )
+        else:
+            logger.warning("[Disbursement] failed | ref=%s | %s", disburse_ref, result.message)
+
+    except Exception as exc:
+        logger.exception("[Disbursement] unexpected error for ref=%s: %s", transaction_ref, exc)
+
+
+def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref: str = "", message: str = "") -> dict:
     """Confirm or fail a payment based on Lipila webhook status."""
     from django.utils import timezone
     from agents.models import AgentLog
@@ -84,6 +120,14 @@ def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref
                 "amount_zmw": float(payment.amount_zmw),
             },
         )
+
+        # Disburse the service deposit to the salon owner
+        _trigger_disbursement(
+            transaction_ref=reference_id,
+            deposit_zmw=float(appt.service.deposit_zmw),
+            service_name=appt.service.name,
+        )
+
         return {"ok": True, "appointment_status": appt.status}
 
     # Any non-Successful status = failed
