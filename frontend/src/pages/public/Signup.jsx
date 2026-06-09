@@ -105,11 +105,19 @@ export default function Signup() {
     }
   }
 
+  function validatePhone(raw) {
+    const digits = raw.replace(/\D/g, '')
+    // Accept +260XXXXXXXXX (12 digits) or 0XXXXXXXXX (10 digits starting with 0)
+    if (digits.startsWith('260') && digits.length === 12) return true
+    if (digits.startsWith('0') && digits.length === 10) return true
+    return false
+  }
+
   function validate() {
     const errs = {}
     if (!form.businessName.trim()) errs.businessName = 'Required'
     if (!form.ownerName.trim()) errs.ownerName = 'Required'
-    if (!form.phone.trim() || form.phone === '+260') errs.phone = 'Enter your phone number'
+    if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number — e.g. +260 97 123 4567'
     if (!form.email.trim() || !form.email.includes('@')) errs.email = 'Enter a valid email'
     if (form.password.length < 8) errs.password = 'At least 8 characters'
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match'
@@ -244,7 +252,8 @@ export default function Signup() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="max-sm:grid-cols-1">
               <Field label="Phone" error={fieldErrors.phone}>
-                <Input value={form.phone} onChange={set('phone')} placeholder="+260 97 000 0000" type="tel" />
+                <Input value={form.phone} onChange={set('phone')} placeholder="+260 97 000 0000" type="tel" maxLength={16} />
+                <p style={{ marginTop: 4, fontSize: 11, color: '#999' }}>Format: +260 97 123 4567</p>
               </Field>
               <Field label="Email" error={fieldErrors.email}>
                 <Input value={form.email} onChange={set('email')} placeholder="you@example.com" type="email" />

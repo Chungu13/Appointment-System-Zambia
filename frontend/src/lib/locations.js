@@ -1,6 +1,4 @@
-export const CITIES = [
-  'Lusaka', 'Ndola', 'Kitwe', 'Livingstone', 'Kabwe', 'Chipata', 'Solwezi', 'Other',
-]
+export const CITIES = ['Lusaka', 'Kitwe', 'Ndola']
 
 export const LUSAKA_AREAS = [
   'Kabulonga', 'Ibex Hill', 'Roma', 'Chilenje', 'Woodlands',

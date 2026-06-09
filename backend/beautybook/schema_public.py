@@ -162,6 +162,14 @@ class Mutation:
         if len(password) < 8:
             raise ValueError("Password must be at least 8 characters.")
 
+        import re as _re
+        _phone_digits = _re.sub(r'\D', '', phone.strip())
+        if not (
+            (_phone_digits.startswith('260') and len(_phone_digits) == 12) or
+            (_phone_digits.startswith('0')   and len(_phone_digits) == 10)
+        ):
+            raise ValueError("Enter a valid Zambian phone number, e.g. +260 97 123 4567.")
+
         email = email.strip().lower()
 
         # ── Option A: resume incomplete onboarding ────────────────────────────

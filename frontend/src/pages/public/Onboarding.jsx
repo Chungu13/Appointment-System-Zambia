@@ -20,6 +20,10 @@ const MINT_CHIP = '#d4ecd4'
 
 const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+function isValidTime(val) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(val)
+}
+
 
 const STEP_LABELS = ['Business Hours', 'Your Services', 'Your Team', 'AI Policies', "You're Ready!"]
 
@@ -85,6 +89,16 @@ function ProgressBar({ step }) {
 
 // ── Step 1 — Business Hours ───────────────────────────────────────────────────
 function ScheduleStep({ scheduleType, setScheduleType, sameHours, setSameHours }) {
+  const [timeErrors, setTimeErrors] = useState({})
+
+  function validateTimeField(key, val) {
+    if (val && !isValidTime(val)) {
+      setTimeErrors((e) => ({ ...e, [key]: 'Use HH:MM format, e.g. 08:00' }))
+    } else {
+      setTimeErrors((e) => { const n = { ...e }; delete n[key]; return n })
+    }
+  }
+
   function toggleDay(i) {
     setSameHours((h) => ({
       ...h,
@@ -155,12 +169,20 @@ function ScheduleStep({ scheduleType, setScheduleType, sameHours, setSameHours }
               <div key={key}>
                 <label className="block text-sm font-medium mb-1.5" style={{ color: TEXT }}>{label}</label>
                 <input
-                  type="time"
+                  type="text"
                   value={sameHours[key]}
-                  onChange={(e) => setSameHours((h) => ({ ...h, [key]: e.target.value }))}
+                  placeholder="e.g. 08:00"
+                  maxLength={5}
+                  onChange={(e) => {
+                    setSameHours((h) => ({ ...h, [key]: e.target.value }))
+                    validateTimeField(key, e.target.value)
+                  }}
+                  onBlur={(e) => validateTimeField(key, e.target.value)}
                   className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white outline-none"
-                  style={{ color: TEXT }}
+                  style={{ color: TEXT, borderColor: timeErrors[key] ? '#dc2626' : undefined }}
                 />
+                {timeErrors[key] && <p className="mt-1 text-xs text-red-600">{timeErrors[key]}</p>}
+                <p className="mt-1 text-xs" style={{ color: '#999' }}>Format: HH:MM (24-hour)</p>
               </div>
             ))}
           </div>
@@ -432,14 +454,26 @@ function HoursPicker({ hours, onChange }) {
           )
         })}
       </div>
-      <div className="flex gap-3">
-        <input type="time" value={hours.start}
-          onChange={(e) => onChange({ ...hours, start: e.target.value })}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white outline-none" />
-        <span className="text-xs self-center" style={{ color: MUTED }}>to</span>
-        <input type="time" value={hours.end}
-          onChange={(e) => onChange({ ...hours, end: e.target.value })}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white outline-none" />
+      <div className="flex gap-3 items-start">
+        <div>
+          <input type="text" value={hours.start} placeholder="08:00" maxLength={5}
+            onChange={(e) => onChange({ ...hours, start: e.target.value })}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white outline-none w-20"
+            style={{ borderColor: hours.start && !isValidTime(hours.start) ? '#dc2626' : undefined }} />
+          {hours.start && !isValidTime(hours.start) && (
+            <p className="text-xs text-red-600 mt-0.5">HH:MM</p>
+          )}
+        </div>
+        <span className="text-xs self-center pt-1" style={{ color: MUTED }}>to</span>
+        <div>
+          <input type="text" value={hours.end} placeholder="18:00" maxLength={5}
+            onChange={(e) => onChange({ ...hours, end: e.target.value })}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white outline-none w-20"
+            style={{ borderColor: hours.end && !isValidTime(hours.end) ? '#dc2626' : undefined }} />
+          {hours.end && !isValidTime(hours.end) && (
+            <p className="text-xs text-red-600 mt-0.5">HH:MM</p>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -1149,6 +1183,13 @@ export default function Onboarding() {
 
   async function handleNext() {
     setError('')
+
+    if (step === 1 && scheduleType === 'same') {
+      if (!isValidTime(sameHours.start) || !isValidTime(sameHours.end)) {
+        setError('Enter valid business hours in HH:MM format (e.g. 08:00 — 18:00).')
+        return
+      }
+    }
 
     if (step === 2 && !step2Done.current) {
       if (services.length === 0) { setError('Add at least one service to continue.'); return }
