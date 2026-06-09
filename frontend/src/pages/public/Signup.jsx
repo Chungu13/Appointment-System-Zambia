@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation } from '@apollo/client/react'
-import { Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { publicClient } from '../../lib/apollo'
 import { REGISTER_TENANT } from '../../graphql/mutations/auth'
 import { setTokens, saveRole } from '../../lib/auth'
@@ -317,7 +317,7 @@ export default function Signup() {
               disabled={loading}
               style={{ width: '100%', padding: 13, backgroundColor: PRIMARY, color: '#fff', border: 'none', borderRadius: 5, fontSize: 13, fontWeight: 500, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: sans, marginTop: 8 }}
             >
-              {loading ? 'Creating your account…' : <><span>Create my account</span><ArrowRight size={15} /></>}
+              {loading ? 'Creating your account…' : 'Create my account'}
             </button>
 
             <p style={{ textAlign: 'center', fontSize: 13, color: MUTED }}>
