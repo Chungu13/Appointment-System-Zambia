@@ -137,7 +137,7 @@ export default function Login() {
           </form>
 
           <p style={{ fontSize: 12, color: '#666', textAlign: 'center', marginTop: 24 }}>
-            <Link to="/" style={{ color: '#666', textDecoration: 'none' }}>← Back to directory</Link>
+            <Link to="/" style={{ color: '#666', textDecoration: 'none' }}>Back to directory</Link>
           </p>
         </div>
       </div>

@@ -272,9 +272,9 @@ function ServicesSection({ services, onBook }) {
                         const label = svc.category ? `${svc.category} — ${svc.name}` : svc.name
                         onBook(`I want to book ${label} [service_id:${svc.id}]`)
                       }}
-                      style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', letterSpacing: '0.04em' }}
+                      style={{ fontFamily: sans, fontSize: 11, fontWeight: 600, color: '#fff', background: PRIMARY, border: 'none', cursor: 'pointer', padding: '7px 16px', borderRadius: 6, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}
                     >
-                      Book →
+                      Book
                     </button>
                   </div>
                 </div>
