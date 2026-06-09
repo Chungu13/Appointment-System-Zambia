@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { User, Lock, Camera, Pencil, AlertTriangle } from 'lucide-react'
+import { User, Lock, Camera, Pencil, AlertTriangle, Smartphone } from 'lucide-react'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { UPDATE_MY_PROFILE, CHANGE_PASSWORD } from '../../graphql/mutations/staff'
-import { DELETE_TENANT } from '../../graphql/mutations/tenant'
+import { UPDATE_TENANT_PROFILE, DELETE_TENANT } from '../../graphql/mutations/tenant'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
@@ -176,6 +176,119 @@ function PersonalDetailsCard({ profile }) {
   )
 }
 
+function ContactPaymentsCard({ settings, refetchSettings }) {
+  const [editing, setEditing]             = useState(false)
+  const [phone, setPhone]                 = useState(settings.phone || '')
+  const [payoutPhone, setPayoutPhone]     = useState(settings.payoutPhone || '')
+  const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber || '')
+  const [saved, setSaved]                 = useState(false)
+
+  const [updateTenantProfile, { loading, error }] = useMutation(UPDATE_TENANT_PROFILE, {
+    onCompleted: () => {
+      setEditing(false)
+      setSaved(true)
+      refetchSettings()
+      setTimeout(() => setSaved(false), 3000)
+    },
+  })
+
+  function save() {
+    updateTenantProfile({
+      variables: {
+        phone: phone.trim(),
+        payoutPhone: payoutPhone.trim(),
+        whatsappNumber: whatsappNumber.trim(),
+      },
+    })
+  }
+
+  function cancel() {
+    setPhone(settings.phone || '')
+    setPayoutPhone(settings.payoutPhone || '')
+    setWhatsappNumber(settings.whatsappNumber || '')
+    setEditing(false)
+  }
+
+  const row = (label, value) => (
+    <div className="grid grid-cols-[160px_1fr] gap-2">
+      <span className="text-on-surface-variant">{label}</span>
+      <span className="text-on-surface font-medium">{value || '-'}</span>
+    </div>
+  )
+
+  return (
+    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Smartphone size={17} color="#6B2737" />
+        Contact & Payments
+      </h2>
+
+      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
+
+      {editing ? (
+        <div className="space-y-4">
+          <div>
+            <Input
+              label="Contact number"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+260 97 000 0000"
+            />
+          </div>
+          <div>
+            <Input
+              label="Mobile money number"
+              type="tel"
+              value={payoutPhone}
+              onChange={(e) => setPayoutPhone(e.target.value)}
+              placeholder="+260 97 000 0000"
+            />
+            <p className="text-xs text-on-surface-variant mt-1">Kimawa sends your earnings to this number.</p>
+          </div>
+          <div>
+            <Input
+              label="WhatsApp number"
+              type="tel"
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value)}
+              placeholder="+260 97 000 0000"
+            />
+            <p className="text-xs text-on-surface-variant mt-1">We send booking notifications to this number.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3 text-sm">
+          {row('Contact number', settings.phone)}
+          {row('Mobile money number', settings.payoutPhone)}
+          {row('WhatsApp number', settings.whatsappNumber)}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        {editing ? (
+          <>
+            <Button onClick={save} loading={loading}>Save changes</Button>
+            <button
+              type="button"
+              onClick={cancel}
+              className="text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <Button variant="secondary" onClick={() => setEditing(true)}>
+            <Pencil size={13} className="mr-1.5 inline-block" />
+            Edit
+          </Button>
+        )}
+        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+      </div>
+    </div>
+  )
+}
+
 function ChangePasswordCard() {
   const [currentPassword, setCurrentPassword]   = useState('')
   const [newPassword, setNewPassword]           = useState('')
@@ -333,6 +446,7 @@ function DangerZoneCard() {
 
 export default function Profile() {
   const { data, loading, error } = useQuery(MY_PROFILE)
+  const { data: settingsData, refetch: refetchSettings } = useQuery(SALON_SETTINGS)
 
   return (
     <PageWrapper>
@@ -344,6 +458,12 @@ export default function Profile() {
       {data?.myProfile && (
         <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 24 }}>
           <PersonalDetailsCard profile={data.myProfile} />
+          {settingsData?.salonSettings && (
+            <ContactPaymentsCard
+              settings={settingsData.salonSettings}
+              refetchSettings={refetchSettings}
+            />
+          )}
           <ChangePasswordCard />
           <DangerZoneCard />
         </div>

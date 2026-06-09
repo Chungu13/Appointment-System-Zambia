@@ -57,6 +57,9 @@ class SalonSettingsType:
     city: str
     area: str
     address: str
+    phone: str
+    payout_phone: str
+    whatsapp_number: str
     staff_access_key: str
     cover_image_url: str
     business_policies: BusinessPoliciesType
@@ -99,6 +102,9 @@ class TenantQuery:
             city=tenant.city,
             area=tenant.area or "",
             address=tenant.address or "",
+            phone=tenant.phone or "",
+            payout_phone=tenant.payout_phone or "",
+            whatsapp_number=tenant.whatsapp_number or "",
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
             business_policies=_policies_from_db(tenant.business_policies or {}),
@@ -175,6 +181,8 @@ class TenantMutation:
         phone: Optional[str] = None,
         city: Optional[str] = None,
         area: Optional[str] = None,
+        payout_phone: Optional[str] = None,
+        whatsapp_number: Optional[str] = None,
     ) -> bool:
         from beautybook.permissions import require_owner
         require_owner(info)
@@ -192,7 +200,14 @@ class TenantMutation:
             tenant.city = city.strip()
         if area is not None:
             tenant.area = area.strip()
-        tenant.save(update_fields=["cover_image_url", "address", "phone", "city", "area", "updated_at"])
+        if payout_phone is not None:
+            tenant.payout_phone = payout_phone.strip()
+        if whatsapp_number is not None:
+            tenant.whatsapp_number = whatsapp_number.strip()
+        tenant.save(update_fields=[
+            "cover_image_url", "address", "phone", "city", "area",
+            "payout_phone", "whatsapp_number", "updated_at",
+        ])
         return True
 
     @strawberry.mutation

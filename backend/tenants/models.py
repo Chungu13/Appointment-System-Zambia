@@ -20,6 +20,8 @@ class Tenant(TenantMixin):
     area = models.CharField(max_length=120, blank=True, default="")
     address = models.TextField(blank=True)
     staff_access_key = models.CharField(max_length=50, blank=True)
+    payout_phone = models.CharField(max_length=20, blank=True, default='')
+    whatsapp_number = models.CharField(max_length=20, blank=True, default='')
     cover_image_url = models.TextField(blank=True)
     portfolio_preview_url = models.TextField(blank=True)
     business_policies = models.JSONField(default=dict, blank=True)

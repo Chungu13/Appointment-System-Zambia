@@ -8,6 +8,9 @@ export const SALON_SETTINGS = gql`
       city
       area
       address
+      phone
+      payoutPhone
+      whatsappNumber
       staffAccessKey
       coverImageUrl
       onboardingCompleted

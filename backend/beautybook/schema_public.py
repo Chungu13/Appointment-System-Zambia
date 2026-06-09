@@ -236,6 +236,8 @@ class Mutation:
             area=area.strip(),
             address=address,
             phone=phone,
+            payout_phone=phone,
+            whatsapp_number=phone,
             on_trial=True,
             is_active=True,
             staff_access_key=staff_key,
