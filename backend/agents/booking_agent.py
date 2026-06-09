@@ -180,10 +180,16 @@ class BookingAgent:
         if policies.get("additionalInfo"):
             policies_lines.append(f"- Additional info: {policies['additionalInfo']}")
 
-        policies_section = ""
         if policies_lines:
             policies_section = (
-                "\n\nBUSINESS POLICIES:\n" + "\n".join(policies_lines)
+                "\n\nBUSINESS POLICIES (answer policy questions ONLY from this list — do NOT call any tools):\n"
+                + "\n".join(policies_lines)
+            )
+        else:
+            policies_section = (
+                "\n\nBUSINESS POLICIES: No specific policies have been configured yet. "
+                "If a customer asks about policies, tell them politely that the salon hasn't set them up yet "
+                "and suggest they call or message the salon directly for details."
             )
 
         return (
