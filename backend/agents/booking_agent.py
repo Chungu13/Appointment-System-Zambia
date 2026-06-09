@@ -257,6 +257,8 @@ class BookingAgent:
             "- When a customer asks about a specific service, reply with ONLY this on one line:\n"
             "  SERVICE: [name] | DURATION: [X min] | PRICE: ZMW [X] | DEPOSIT: ZMW [X] | STAFF: [name]\n"
             "  Then on a new line ask if they want to see available times. No other text before the SERVICE line.\n"
+            "- CRITICAL: NEVER use the SERVICE: format for anything other than a direct service lookup. "
+            "Policy answers, greetings, confirmations, and all other responses must be plain text only.\n"
             "- When listing available time slots, show them in 12-hour AM/PM format:\n"
             "  - 9:00 AM\n"
             "  - 10:30 AM\n"
