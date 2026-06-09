@@ -154,7 +154,7 @@ function Features() {
     },
     {
       title: 'AI Booking Agent',
-      body: 'Customers message your salon and the AI handles the full booking conversation — from service selection to slot confirmation — 24 hours a day.',
+      body: 'Customers message your salon and the AI handles the full booking conversation from service selection to slot confirmation, 24 hours a day.',
     },
   ]
   return (
