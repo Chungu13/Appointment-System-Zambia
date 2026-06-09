@@ -87,7 +87,7 @@ function parseBookingConfirmed(text) {
   const checkoutUrl = get("checkout_url");
   const amount      = get("amount").replace(/^ZMW\s*/i, "");
   const staff       = get("staff");
-  if (!service || !date || !time || !ref) return null;
+  if (!service || !date || !time) return null;
   return { service, date, time, ref, checkoutUrl, amount, staff };
 }
 

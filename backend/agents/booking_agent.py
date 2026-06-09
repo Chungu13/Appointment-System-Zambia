@@ -207,17 +207,23 @@ class BookingAgent:
             "  [Service name]\n"
             "  [Day, Date] at [Time]\n"
             "  With [Staff name]\n\n"
-            "  Deposit: ZMW [deposit_zmw]\n"
-            "  Service fee: ZMW [service_fee]\n"
-            "  Total now: ZMW [customer_total]\n"
-            "  ZMW [balance_at_salon] balance paid at the salon.\n\n"
+            "  If deposit_zmw > 0:\n"
+            "    Deposit: ZMW [deposit_zmw]\n"
+            "    Service fee: ZMW [service_fee]\n"
+            "    Total now: ZMW [customer_total]\n"
+            "    ZMW [balance_at_salon] balance paid at the salon.\n"
+            "  If deposit_zmw == 0:\n"
+            "    No deposit required — ZMW [balance_at_salon] is paid at the salon.\n"
             "  Shall I confirm this booking?\n"
-            "  Use the deposit_zmw, service_fee, customer_total and balance_at_salon values "
-            "from the check_availability result. Nothing else. No other questions yet.\n"
+            "  Use values from the check_availability result. No other questions yet.\n"
             "Step 2 — When the customer says yes/confirm/ok:\n"
-            "  Ask ONE question: 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
-            "  Do not call any tools yet. Wait for their reply.\n"
-            "Step 3 — Once the customer provides their phone number:\n"
+            "  If deposit_zmw > 0:\n"
+            "    Ask ONE question: 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
+            "    Do not call any tools yet. Wait for their reply.\n"
+            "  If deposit_zmw == 0:\n"
+            "    Call create_booking immediately (EXACT service_id from check_availability).\n"
+            "    Then call initiate_payment immediately with mobile_money_phone='' — no phone needed.\n"
+            "Step 3 — (Only when deposit_zmw > 0) Once the customer provides their phone number:\n"
             "  Call create_booking immediately. CRITICAL: use the EXACT service_id you called "
             "check_availability with — never a different service.\n"
             "  Then call initiate_payment immediately with that same phone number as mobile_money_phone.\n"
@@ -258,14 +264,17 @@ class BookingAgent:
             "The balance_at_salon is paid in person after the service.\n"
             "- NEVER charge the full service price upfront.\n\n"
             "Payment confirmation format — CRITICAL:\n"
-            "After initiate_payment succeeds, tell the customer a prompt has been sent, "
-            "then append this line EXACTLY at the end of your response, after a blank line:\n"
-            "  MOBILE_PAYMENT_SENT | service: [service name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
-            "amount: ZMW [amount_charged] | staff: [staff name] | phone: [mobile_money_phone] | payment_ref: [transaction_ref]\n"
-            "Use amount_charged, phone and transaction_ref from the initiate_payment tool result — "
-            "NOT the totals from check_availability. Use 24-hour HH:MM in this line only.\n"
-            "Example human message before the line: "
-            "'A payment prompt of ZMW [amount_charged] has been sent to [phone]. Enter your PIN when prompted to confirm your booking.'\n\n"
+            "If initiate_payment returns payment_flow == 'mobile_money':\n"
+            "  Tell the customer a prompt has been sent, then append EXACTLY after a blank line:\n"
+            "  MOBILE_PAYMENT_SENT | service: [service_name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
+            "amount: ZMW [amount_charged] | staff: [staff_name] | phone: [mobile_money_phone] | payment_ref: [transaction_ref]\n"
+            "  Use amount_charged, phone and transaction_ref from the initiate_payment result. 24-hour HH:MM in this line only.\n"
+            "  Example: 'A payment prompt of ZMW [amount_charged] has been sent to [phone]. Enter your PIN when prompted.'\n"
+            "If initiate_payment returns payment_flow == 'no_deposit':\n"
+            "  Tell the customer their booking is confirmed and no payment is needed now, then append EXACTLY after a blank line:\n"
+            "  BOOKING_CONFIRMED | service: [service_name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
+            "staff: [staff_name] | amount: ZMW 0 | payment_ref: [transaction_ref]\n"
+            "  Example: 'Your booking is confirmed! No deposit required — just show up and pay at the salon.'\n\n"
             "Guidelines:\n"
             "- Use simple, friendly English. Write dates as '3rd June 2026' or 'tomorrow, Wednesday 3rd June'. "
             "Write times as '9:00 AM' or '2:30 PM' — never '09:00' or '14:30'. Keep responses short and clear.\n"
@@ -493,6 +502,30 @@ class BookingAgent:
             actual_deposit = float(appt.service.deposit_zmw)
             actual_total   = _calculate_customer_total(actual_deposit)
             actual_fee     = round(actual_total - actual_deposit, 2)
+
+            # ── No-deposit path — skip payment entirely ──────────────────────
+            if actual_deposit == 0:
+                appt.status = "confirmed"
+                appt.save(update_fields=["status", "updated_at"])
+                transaction_ref = f"APPT-{appt.pk}"
+                AgentLog.objects.create(
+                    agent_type="payment",
+                    action=f"No-deposit booking confirmed for {appt.customer.full_name} — {appt.service.name}",
+                    related_appointment=appt,
+                    outcome="success",
+                    metadata={"tenant": self.tenant.schema_name, "appointment_id": appt.pk},
+                )
+                return {
+                    "payment_flow": "no_deposit",
+                    "transaction_ref": transaction_ref,
+                    "amount_charged": 0,
+                    "deposit": 0,
+                    "service_fee": 0,
+                    "message": "Booking confirmed. No deposit required.",
+                    "service_name": appt.service.name,
+                    "staff_name": appt.staff.full_name,
+                    "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
+                }
 
             import uuid as _uuid
             transaction_ref = f"KIMAWA-{_uuid.uuid4().hex[:12].upper()}"
