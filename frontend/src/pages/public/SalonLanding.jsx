@@ -269,8 +269,8 @@ function ServicesSection({ services, onBook }) {
                     <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{formatZMW(svc.priceZmw)}</p>
                     <button
                       onClick={() => {
-                        const label = svc.category ? `${svc.category} (${svc.name})` : svc.name
-                        onBook(`I want to book ${label}`)
+                        const label = svc.category ? `${svc.category} — ${svc.name}` : svc.name
+                        onBook(`I want to book ${label} [service_id:${svc.id}]`)
                       }}
                       style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', letterSpacing: '0.04em' }}
                     >

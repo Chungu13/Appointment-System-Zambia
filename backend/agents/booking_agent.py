@@ -275,6 +275,8 @@ class BookingAgent:
             f"- The customer's name is {customer_name or 'not provided'}. "
             "You already have their name — never ask for it again.\n"
             "- You do NOT have their phone number. Ask for it at Step 2 of the booking flow (see above) — not before.\n"
+            "- If the customer's message contains [service_id:X], extract X and use that exact integer "
+            "as the service_id for check_availability and create_booking. Never look up by name when an ID is provided.\n"
             + policies_section
         )
 
