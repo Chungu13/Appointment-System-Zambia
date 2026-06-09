@@ -165,7 +165,7 @@ function Hero({ profile, onChatOpen }) {
 }
 
 // ── Stats bar ─────────────────────────────────────────────────────────────────
-function StatsBar({ profile, onOpenChat }) {
+function StatsBar({ profile, onOpenChat, onOpenPolicies }) {
   const minPrice = profile.services.length
     ? Math.min(...profile.services.filter((s) => s.priceZmw > 0).map((s) => s.priceZmw))
     : null
@@ -187,12 +187,21 @@ function StatsBar({ profile, onOpenChat }) {
             </div>
           ))}
         </div>
-        <button
-          onClick={() => onOpenChat('')}
-          style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#888', border: `0.5px solid #ddd`, padding: '9px 20px', borderRadius: 3, background: 'none', cursor: 'pointer', letterSpacing: '0.04em', minHeight: 44, display: 'flex', alignItems: 'center' }}
-        >
-          Ask or Book
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={onOpenPolicies}
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: PRIMARY, border: `1.5px solid ${PRIMARY}`, padding: '9px 18px', borderRadius: 3, background: 'transparent', cursor: 'pointer', letterSpacing: '0.04em', minHeight: 44, display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <ScrollText size={13} />
+            Policies
+          </button>
+          <button
+            onClick={() => onOpenChat('')}
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: '#fff', border: 'none', padding: '9px 20px', borderRadius: 3, background: PRIMARY, cursor: 'pointer', letterSpacing: '0.04em', minHeight: 44, display: 'flex', alignItems: 'center' }}
+          >
+            Ask or Book
+          </button>
+        </div>
       </div>
     </section>
   )
@@ -573,7 +582,7 @@ export default function SalonLanding() {
       `}</style>
       <SalonNav />
       <Hero profile={profile} onChatOpen={openChat} />
-      <StatsBar profile={profile} onOpenChat={openChat} />
+      <StatsBar profile={profile} onOpenChat={openChat} onOpenPolicies={() => openChat('What are your policies? (cancellations, late arrivals, deposits, etc.)', true)} />
 
       {/* Main content + sidebar */}
       <div className="salon-content-grid" style={{ maxWidth: 1200, margin: '0 auto', alignItems: 'start' }}>
@@ -588,27 +597,6 @@ export default function SalonLanding() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <HoursCard hours={profile.openingHours} />
           <LocationCard profile={profile} />
-          <button
-            onClick={() => openChat('What are your policies? (cancellations, late arrivals, deposits, etc.)', true)}
-            style={{
-              width: '100%', padding: '14px 18px',
-              border: `0.5px solid ${BORDER}`, borderRadius: 8,
-              background: '#faf8f6', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 12,
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f3eeeb'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#faf8f6'}
-          >
-            <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#f0e8ea', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <ScrollText size={15} style={{ color: PRIMARY }} />
-            </div>
-            <div style={{ textAlign: 'left', flex: 1 }}>
-              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>Policies</p>
-              <p style={{ fontFamily: sans, fontSize: 11, color: '#999', margin: '2px 0 0' }}>Cancellations, fees &amp; more</p>
-            </div>
-            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: PRIMARY, whiteSpace: 'nowrap' }}>Ask in chat</span>
-          </button>
         </div>
       </div>
 
