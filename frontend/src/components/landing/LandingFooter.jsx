@@ -11,8 +11,9 @@ export default function LandingFooter() {
         className="max-sm:flex-col max-sm:items-start max-sm:gap-4"
       >
         {/* Logo */}
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 20, fontWeight: 300, color: PRIMARY, letterSpacing: '-0.5px' }}>
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 22 }} />
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 400, color: PRIMARY, letterSpacing: '-0.3px' }}>
             Kimawa
           </span>
         </Link>
