@@ -20,14 +20,14 @@ const PAIN_POINTS = [
 ]
 
 const SOLUTIONS = [
-  { title: 'AI takes bookings 24/7',    body: 'Your booking page never sleeps. Clients book anytime — midnight, weekends, holidays — without calling you.' },
+  { title: 'AI takes bookings 24/7',    body: 'Your booking page never sleeps. Clients book anytime: midnight, weekends, holidays, without calling you.' },
   { title: 'Deposits reduce no-shows',  body: 'Require a deposit at booking via Airtel Money or MTN MoMo. No-shows drop dramatically once a client has paid upfront.' },
   { title: 'Admin runs itself',         body: 'Confirmations, reminders, rescheduling, and cancellations are handled automatically so you stay focused on your work.' },
 ]
 
 const FEATURES = [
   { title: 'Smart Booking Page',  body: 'A 24/7 booking page your clients can use from any device. Share the link on Instagram, WhatsApp, anywhere.' },
-  { title: 'Mobile Money Payments', body: 'Accept deposits via Airtel Money and MTN MoMo directly at booking — no card terminal needed.' },
+  { title: 'Mobile Money Payments', body: 'Accept deposits via Airtel Money and MTN MoMo directly at booking. No card terminal needed.' },
   { title: 'Staff & Scheduling',  body: 'Assign services per staff member, set working hours, and manage your whole team from one dashboard.' },
 ]
 
@@ -52,7 +52,7 @@ export default function ForBusinesses() {
             Grow Your Beauty Business with AI.
           </h1>
           <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: 'rgba(255,255,255,0.62)', lineHeight: 1.85, maxWidth: 520, margin: '0 auto 52px' }}>
-            Kimawa automates your bookings, collects payments, and gives you insights — so you can focus on what you do best.
+            Kimawa automates your bookings, collects payments, and gives you insights so you can focus on what you do best.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
             <a href="/signup" style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: PRIMARY, backgroundColor: '#fff', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
