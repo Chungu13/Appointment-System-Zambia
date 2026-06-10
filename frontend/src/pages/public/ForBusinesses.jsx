@@ -6,9 +6,10 @@ const PRIMARY    = '#6B2737'
 const TEXT       = '#1a0a0d'
 const MUTED      = '#b09090'
 const CREAM_ALT  = '#fdf8f8'
-const CHIP       = '#d4a8b0'
+const CHIP       = '#b07888'
 const BORDER     = '#d4b8be'
 const LIGHT_CARD = '#f5e4e8'
+const CARD_BODY  = '#5a2d36'
 
 const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
@@ -93,7 +94,7 @@ export default function ForBusinesses() {
               >
                 <p style={{ fontFamily: sans, fontSize: 13, color: CHIP, margin: '0 0 20px' }}>0{i + 1}</p>
                 <h3 style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{p.title}</h3>
-                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{p.body}</p>
+                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: CARD_BODY, lineHeight: 1.75, margin: 0 }}>{p.body}</p>
               </div>
             ))}
           </div>
@@ -119,7 +120,7 @@ export default function ForBusinesses() {
               >
                 <div style={{ width: 1, height: 28, backgroundColor: PRIMARY, opacity: 0.4, marginBottom: 24 }} />
                 <h3 style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{s.title}</h3>
-                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{s.body}</p>
+                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: CARD_BODY, lineHeight: 1.75, margin: 0 }}>{s.body}</p>
               </div>
             ))}
           </div>
@@ -145,7 +146,7 @@ export default function ForBusinesses() {
               >
                 <div style={{ width: 1, height: 28, backgroundColor: PRIMARY, opacity: 0.4, marginBottom: 24 }} />
                 <h3 style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{f.title}</h3>
-                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{f.body}</p>
+                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: CARD_BODY, lineHeight: 1.75, margin: 0 }}>{f.body}</p>
               </div>
             ))}
           </div>

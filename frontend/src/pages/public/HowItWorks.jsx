@@ -7,9 +7,10 @@ const TEXT       = '#1a0a0d'
 const MUTED      = '#b09090'
 const CREAM      = '#faf7f7'
 const CREAM_ALT  = '#fdf8f8'
-const CHIP       = '#d4a8b0'
+const CHIP       = '#b07888'
 const BORDER     = '#d4b8be'
 const LIGHT_CARD = '#f5e4e8'
+const CARD_BODY  = '#5a2d36'
 
 const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
@@ -116,7 +117,7 @@ export default function HowItWorks() {
               >
                 <p style={{ fontFamily: sans, fontSize: 13, color: CHIP, margin: '0 0 20px' }}>{step.n}</p>
                 <h3 style={{ fontFamily: sans, fontSize: 24, fontWeight: 400, color: TEXT, margin: '0 0 12px' }}>{step.title}</h3>
-                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{step.body}</p>
+                <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: CARD_BODY, lineHeight: 1.75, margin: 0 }}>{step.body}</p>
               </div>
             ))}
           </div>
