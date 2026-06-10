@@ -11,8 +11,7 @@ const CHIP       = '#d4a8b0'
 const BORDER     = '#d4b8be'
 const LIGHT_CARD = '#f5e4e8'
 
-const serif = "'Cormorant Garamond', Georgia, serif"
-const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
+const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const CUSTOMER_STEPS = [
   {
@@ -89,7 +88,7 @@ export default function HowItWorks() {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.38)', margin: '0 0 28px' }}>
             Getting started
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, margin: '0 0 24px', letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontFamily: sans, fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, margin: '0 0 24px', letterSpacing: '-0.5px' }}>
             How Kimawa Works
           </h1>
           <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: 'rgba(255,255,255,0.62)', lineHeight: 1.85, margin: 0 }}>
@@ -103,7 +102,7 @@ export default function HowItWorks() {
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ marginBottom: 56 }}>
             <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>For Customers</p>
-            <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Book in 3 easy steps</h2>
+            <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Book in 3 easy steps</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ border: `0.5px solid ${BORDER}` }}>
             {CUSTOMER_STEPS.map((step, i) => (
@@ -115,8 +114,8 @@ export default function HowItWorks() {
                   borderRight: i < 2 ? `0.5px solid ${BORDER}` : 'none',
                 }}
               >
-                <p style={{ fontFamily: serif, fontSize: 13, color: CHIP, margin: '0 0 20px' }}>{step.n}</p>
-                <h3 style={{ fontFamily: serif, fontSize: 24, fontWeight: 400, color: TEXT, margin: '0 0 12px' }}>{step.title}</h3>
+                <p style={{ fontFamily: sans, fontSize: 13, color: CHIP, margin: '0 0 20px' }}>{step.n}</p>
+                <h3 style={{ fontFamily: sans, fontSize: 24, fontWeight: 400, color: TEXT, margin: '0 0 12px' }}>{step.title}</h3>
                 <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{step.body}</p>
               </div>
             ))}
@@ -129,7 +128,7 @@ export default function HowItWorks() {
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ marginBottom: 56 }}>
             <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>For Business Owners</p>
-            <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Go live in 3 steps</h2>
+            <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Go live in 3 steps</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ backgroundColor: PRIMARY }}>
             {OWNER_STEPS.map((step, i) => (
@@ -140,8 +139,8 @@ export default function HowItWorks() {
                   borderRight: i < 2 ? '0.5px solid rgba(255,255,255,0.1)' : 'none',
                 }}
               >
-                <p style={{ fontFamily: serif, fontSize: 13, color: 'rgba(255,255,255,0.22)', margin: '0 0 20px' }}>{step.n}</p>
-                <h3 style={{ fontFamily: serif, fontSize: 24, fontWeight: 400, color: '#fff', margin: '0 0 12px' }}>{step.title}</h3>
+                <p style={{ fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.22)', margin: '0 0 20px' }}>{step.n}</p>
+                <h3 style={{ fontFamily: sans, fontSize: 24, fontWeight: 400, color: '#fff', margin: '0 0 12px' }}>{step.title}</h3>
                 <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75, margin: 0 }}>{step.body}</p>
               </div>
             ))}
@@ -152,7 +151,7 @@ export default function HowItWorks() {
       {/* ── CTA ── */}
       <section style={{ backgroundColor: '#fff', padding: '96px 40px', textAlign: 'center' }}>
         <div style={{ maxWidth: 460, margin: '0 auto' }}>
-          <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 16px', letterSpacing: '-0.3px' }}>
+          <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 16px', letterSpacing: '-0.3px' }}>
             Ready to get started?
           </h2>
           <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, margin: '0 0 40px', lineHeight: 1.85 }}>

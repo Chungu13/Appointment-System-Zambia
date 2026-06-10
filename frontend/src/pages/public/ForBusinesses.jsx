@@ -10,8 +10,7 @@ const CHIP       = '#d4a8b0'
 const BORDER     = '#d4b8be'
 const LIGHT_CARD = '#f5e4e8'
 
-const serif = "'Cormorant Garamond', Georgia, serif"
-const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
+const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const PAIN_POINTS = [
   { title: 'Missed calls = missed bookings',     body: "Clients call when you're hands-deep in a treatment. They don't leave a message. They book elsewhere." },
@@ -48,7 +47,7 @@ export default function ForBusinesses() {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.38)', margin: '0 0 28px' }}>
             For Business Owners
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, margin: '0 0 24px', letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontFamily: sans, fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, margin: '0 0 24px', letterSpacing: '-0.5px' }}>
             Grow Your Beauty Business with AI.
           </h1>
           <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: 'rgba(255,255,255,0.62)', lineHeight: 1.85, maxWidth: 520, margin: '0 auto 52px' }}>
@@ -68,7 +67,7 @@ export default function ForBusinesses() {
         <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.1)', marginTop: 72, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 800, margin: '72px auto 0' }}>
           {STATS.map((s, i) => (
             <div key={s.label} style={{ padding: '30px 0', borderLeft: i > 0 ? '0.5px solid rgba(255,255,255,0.1)' : 'none', textAlign: 'center' }}>
-              <p style={{ fontFamily: serif, fontSize: 34, fontWeight: 300, color: '#fff', margin: '0 0 4px', letterSpacing: '-0.5px' }}>{s.value}</p>
+              <p style={{ fontFamily: sans, fontSize: 34, fontWeight: 300, color: '#fff', margin: '0 0 4px', letterSpacing: '-0.5px' }}>{s.value}</p>
               <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: 'rgba(255,255,255,0.38)', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>{s.label}</p>
             </div>
           ))}
@@ -79,7 +78,7 @@ export default function ForBusinesses() {
       <section style={{ backgroundColor: '#fff', padding: '96px 40px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ marginBottom: 56 }}>
-            <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 12px', letterSpacing: '-0.3px' }}>Sound familiar?</h2>
+            <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 12px', letterSpacing: '-0.3px' }}>Sound familiar?</h2>
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.6, margin: 0 }}>Every beauty professional faces these problems. Kimawa solves all of them.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ border: `0.5px solid ${BORDER}` }}>
@@ -92,8 +91,8 @@ export default function ForBusinesses() {
                   borderRight: i < 2 ? `0.5px solid ${BORDER}` : 'none',
                 }}
               >
-                <p style={{ fontFamily: serif, fontSize: 13, color: CHIP, margin: '0 0 20px' }}>0{i + 1}</p>
-                <h3 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{p.title}</h3>
+                <p style={{ fontFamily: sans, fontSize: 13, color: CHIP, margin: '0 0 20px' }}>0{i + 1}</p>
+                <h3 style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{p.title}</h3>
                 <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{p.body}</p>
               </div>
             ))}
@@ -106,7 +105,7 @@ export default function ForBusinesses() {
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ marginBottom: 56 }}>
             <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>How it works</p>
-            <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Kimawa has you covered</h2>
+            <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Kimawa has you covered</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ border: `0.5px solid ${BORDER}` }}>
             {SOLUTIONS.map((s, i) => (
@@ -119,7 +118,7 @@ export default function ForBusinesses() {
                 }}
               >
                 <div style={{ width: 1, height: 28, backgroundColor: PRIMARY, opacity: 0.4, marginBottom: 24 }} />
-                <h3 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{s.title}</h3>
+                <h3 style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{s.title}</h3>
                 <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{s.body}</p>
               </div>
             ))}
@@ -131,7 +130,7 @@ export default function ForBusinesses() {
       <section style={{ backgroundColor: '#fff', padding: '96px 40px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ marginBottom: 56 }}>
-            <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 12px', letterSpacing: '-0.3px' }}>Everything in one platform</h2>
+            <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 12px', letterSpacing: '-0.3px' }}>Everything in one platform</h2>
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, maxWidth: 480, margin: 0 }}>No juggling multiple apps. One dashboard, everything connected.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ border: `0.5px solid ${BORDER}` }}>
@@ -145,7 +144,7 @@ export default function ForBusinesses() {
                 }}
               >
                 <div style={{ width: 1, height: 28, backgroundColor: PRIMARY, opacity: 0.4, marginBottom: 24 }} />
-                <h3 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{f.title}</h3>
+                <h3 style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 10px' }}>{f.title}</h3>
                 <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.75, margin: 0 }}>{f.body}</p>
               </div>
             ))}
@@ -156,7 +155,7 @@ export default function ForBusinesses() {
       {/* ── CTA ── */}
       <section id="signup" style={{ backgroundColor: PRIMARY, padding: '96px 40px', textAlign: 'center' }}>
         <div style={{ maxWidth: 580, margin: '0 auto' }}>
-          <h2 style={{ fontFamily: serif, fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 300, color: '#fff', margin: '0 0 20px', letterSpacing: '-0.4px' }}>
+          <h2 style={{ fontFamily: sans, fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 300, color: '#fff', margin: '0 0 20px', letterSpacing: '-0.4px' }}>
             Get Started for Free
           </h2>
           <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: 'rgba(255,255,255,0.62)', margin: '0 0 16px', lineHeight: 1.85 }}>
