@@ -155,7 +155,7 @@ export default function HowItWorks() {
           <h2 style={{ fontFamily: sans, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: '0 0 16px', letterSpacing: '-0.3px' }}>
             Ready to get started?
           </h2>
-          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, margin: '0 0 40px', lineHeight: 1.85 }}>
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, margin: '0 0 40px', lineHeight: 1.85 }}>
             Be among the first beauty professionals in Zambia on Kimawa.
           </p>
           <a
