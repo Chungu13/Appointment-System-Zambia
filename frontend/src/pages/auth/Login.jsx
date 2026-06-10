@@ -64,13 +64,9 @@ export default function Login() {
       {/* Left dark panel */}
       <div
         className="hidden lg:flex"
-        style={{ width: 280, minWidth: 280, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'space-between' }}
+        style={{ width: 280, minWidth: 280, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'flex-start' }}
       >
         <span style={{ color: '#fff', fontSize: 20, fontWeight: 500 }}>Kimawa</span>
-        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 300, lineHeight: 1.7, margin: 0 }}>
-          Your salon,<br />always open.
-        </p>
-        <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11 }}>kimawa.pro</span>
       </div>
 
       {/* Right form panel */}

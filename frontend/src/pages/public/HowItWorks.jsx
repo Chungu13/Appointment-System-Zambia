@@ -1,14 +1,15 @@
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
-const PRIMARY   = '#6B2737'
-const DARK_CARD = '#6B2737'
-const TEXT      = '#1a0a0d'
-const MUTED     = '#b09090'
-const CREAM     = '#faf7f7'
-const CREAM_ALT = '#fdf8f8'
-const CHIP      = '#d4a8b0'
-const BORDER    = '#ede5e7'
+const PRIMARY    = '#6B2737'
+const DARK_CARD  = '#6B2737'
+const TEXT       = '#1a0a0d'
+const MUTED      = '#b09090'
+const CREAM      = '#faf7f7'
+const CREAM_ALT  = '#fdf8f8'
+const CHIP       = '#d4a8b0'
+const BORDER     = '#d4b8be'
+const LIGHT_CARD = '#f5e4e8'
 
 const serif = "'Cormorant Garamond', Georgia, serif"
 const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
@@ -104,11 +105,12 @@ export default function HowItWorks() {
             <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>For Customers</p>
             <h2 style={{ fontFamily: serif, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 300, color: TEXT, margin: 0, letterSpacing: '-0.3px' }}>Book in 3 easy steps</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3" style={{ border: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ border: `0.5px solid ${BORDER}` }}>
             {CUSTOMER_STEPS.map((step, i) => (
               <div
                 key={step.n}
                 style={{
+                  backgroundColor: LIGHT_CARD,
                   padding: '44px 36px',
                   borderRight: i < 2 ? `0.5px solid ${BORDER}` : 'none',
                 }}
