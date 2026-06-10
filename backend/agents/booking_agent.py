@@ -11,6 +11,20 @@ from agents.log_labels import friendly_tool_label
 logger = logging.getLogger(__name__)
 
 
+def _build_phone_variants(phone: str) -> list[str]:
+    """Return a list of plausible normalised forms of a Zambian phone number."""
+    import re as _re
+    digits = _re.sub(r"\D", "", phone.strip())
+    variants = {phone.strip(), digits}
+    if digits.startswith("260") and len(digits) == 12:
+        variants.add("0" + digits[3:])
+        variants.add("+" + digits)
+    elif digits.startswith("0") and len(digits) == 10:
+        variants.add("260" + digits[1:])
+        variants.add("+260" + digits[1:])
+    return list(filter(None, variants))
+
+
 def _calculate_customer_total(deposit_zmw: float) -> float:
     """
     What the customer pays upfront.
@@ -108,6 +122,64 @@ _TOOLS = [
                     },
                 },
                 "required": ["appointment_id", "mobile_money_phone"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "find_my_appointments",
+            "description": "Look up the customer's upcoming confirmed or pending appointments.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "cancel_appointment",
+            "description": "Cancel one of the customer's appointments. Only call AFTER the customer explicitly confirms they want to cancel.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "appointment_id": {
+                        "type": "integer",
+                        "description": "ID of the appointment to cancel, from find_my_appointments.",
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Brief reason for cancellation (optional).",
+                    },
+                },
+                "required": ["appointment_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "reschedule_appointment",
+            "description": "Move an appointment to a new date and time. Only call AFTER checking availability with check_availability and the customer confirms the new slot.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "appointment_id": {
+                        "type": "integer",
+                        "description": "ID of the appointment to reschedule, from find_my_appointments.",
+                    },
+                    "new_date": {
+                        "type": "string",
+                        "description": "New date in YYYY-MM-DD format.",
+                    },
+                    "new_time": {
+                        "type": "string",
+                        "description": "New start time in HH:MM 24-hour format.",
+                    },
+                },
+                "required": ["appointment_id", "new_date", "new_time"],
             },
         },
     },
@@ -283,6 +355,36 @@ class BookingAgent:
             "  BOOKING_CONFIRMED | service: [service_name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
             "staff: [staff_name] | amount: ZMW 0 | payment_ref: [transaction_ref]\n"
             "  Example: 'Your booking is confirmed! No deposit required — just show up and pay at the salon.'\n\n"
+            "CANCELLATION FLOW — follow exactly:\n"
+            "Step 1 — When a customer mentions cancelling, call find_my_appointments to get their bookings.\n"
+            "Step 2 — Show each appointment clearly:\n"
+            "  [Service] on [Day, Date] at [Time] with [Staff]\n"
+            "  If there are multiple, ask which one they mean.\n"
+            "Step 3 — Confirm: 'Are you sure you want to cancel [service] on [date] at [time]?'\n"
+            "Step 4 — Only after they say yes: call cancel_appointment.\n"
+            "Step 5 — Tell them it's done. If deposit_was_paid is true, add: "
+            "'Please note that deposit refunds are subject to the salon's cancellation policy.'\n"
+            "Step 6 — Append EXACTLY after a blank line:\n"
+            "  BOOKING_CANCELLED | appointment_id: [id] | service: [service] | date: [YYYY-MM-DD] "
+            "| time: [HH:MM] | staff: [staff] | ref: [ref]\n"
+            "  Use 24-hour HH:MM in this line only.\n\n"
+            "RESCHEDULING FLOW — follow exactly:\n"
+            "Step 1 — When a customer mentions rescheduling, call find_my_appointments.\n"
+            "Step 2 — Show the appointment and ask: 'What new date and time would you like?'\n"
+            "Step 3 — Call check_availability with the appointment's service_id and the requested date.\n"
+            "Step 4 — Present available times and confirm: 'Move [service] to [new day, date] at [new time]?'\n"
+            "Step 5 — Only after they confirm: call reschedule_appointment with new_date (YYYY-MM-DD) "
+            "and new_time (HH:MM 24-hour).\n"
+            "Step 6 — Tell them it's done, then append EXACTLY after a blank line:\n"
+            "  BOOKING_RESCHEDULED | appointment_id: [id] | service: [service] "
+            "| old_date: [YYYY-MM-DD] | old_time: [HH:MM] | new_date: [YYYY-MM-DD] | new_time: [HH:MM] "
+            "| staff: [staff] | ref: [ref]\n"
+            "  Use 24-hour HH:MM in this line only.\n\n"
+            "CRITICAL for cancel/reschedule:\n"
+            "- NEVER act without explicit customer confirmation.\n"
+            "- NEVER cancel or reschedule an appointment from find_my_appointments unless the customer "
+            "clearly identified it.\n"
+            "- If find_my_appointments returns no appointments, tell the customer politely.\n\n"
             "Guidelines:\n"
             "- Use simple, friendly English. Write dates as '3rd June 2026' or 'tomorrow, Wednesday 3rd June'. "
             "Write times as '9:00 AM' or '2:30 PM' — never '09:00' or '14:30'. Keep responses short and clear.\n"
@@ -607,6 +709,223 @@ class BookingAgent:
                 "service_name": appt.service.name,
                 "staff_name": appt.staff.full_name,
                 "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
+            }
+
+        elif name == "find_my_appointments":
+            import zoneinfo as _zi
+
+            from bookings.models import Appointment, Customer
+
+            tz = _zi.ZoneInfo("Africa/Lusaka")
+            now = timezone.now()
+
+            # Try exact match, then fallback to digit-normalised variants
+            customer = None
+            for phone_variant in _build_phone_variants(customer_phone):
+                customer = Customer.objects.filter(phone=phone_variant).first()
+                if customer:
+                    break
+
+            if not customer:
+                return {"appointments": [], "message": "No upcoming appointments found for your phone number."}
+
+            qs = (
+                Appointment.objects
+                .filter(customer=customer, status__in=["confirmed", "pending"], starts_at__gte=now)
+                .select_related("service", "staff")
+                .order_by("starts_at")[:10]
+            )
+
+            appointments = []
+            for appt in qs:
+                local_start = appt.starts_at.astimezone(tz)
+                appointments.append({
+                    "appointment_id": appt.pk,
+                    "service":   appt.service.name,
+                    "service_id": appt.service.pk,
+                    "staff":     appt.staff.full_name,
+                    "date":      local_start.strftime("%Y-%m-%d"),
+                    "time":      local_start.strftime("%H:%M"),
+                    "status":    appt.status,
+                    "ref":       f"APPT-{appt.pk}",
+                })
+
+            if not appointments:
+                return {"appointments": [], "message": "You have no upcoming appointments."}
+
+            return {"appointments": appointments}
+
+        elif name == "cancel_appointment":
+            from bookings.models import Appointment, AppointmentHistory, Customer
+
+            try:
+                appt = Appointment.objects.select_related("customer", "service", "staff").get(
+                    pk=inputs["appointment_id"]
+                )
+            except Appointment.DoesNotExist:
+                return {"error": f"Appointment {inputs['appointment_id']} not found."}
+
+            # Ownership check — phone must match any normalised variant
+            owner_phones = _build_phone_variants(customer_phone)
+            if appt.customer.phone not in owner_phones:
+                return {"error": "This appointment does not belong to your account."}
+
+            if appt.status == "cancelled":
+                return {"error": "This appointment is already cancelled."}
+            if appt.status in ("completed", "no_show"):
+                return {"error": "This appointment has already been completed and cannot be cancelled."}
+            if appt.starts_at < timezone.now():
+                return {"error": "This appointment has already passed."}
+
+            # Warn if cancelling within 2 hours
+            hours_until = (appt.starts_at - timezone.now()).total_seconds() / 3600
+            warning = None
+            if hours_until < 2:
+                warning = f"This appointment is less than {int(hours_until * 60)} minutes away."
+
+            reason = inputs.get("reason") or "Customer requested cancellation via chat"
+            old_status = appt.status
+
+            with transaction.atomic():
+                appt.status = "cancelled"
+                appt.cancelled_at = timezone.now()
+                appt.cancellation_reason = reason
+                appt.save(update_fields=["status", "cancelled_at", "cancellation_reason", "updated_at"])
+
+                AppointmentHistory.objects.create(
+                    appointment=appt,
+                    changed_by=None,
+                    changed_by_agent="booking_agent",
+                    old_status=old_status,
+                    new_status="cancelled",
+                    note=reason,
+                )
+
+            deposit_was_paid = float(appt.service.deposit_zmw) > 0
+
+            AgentLog.objects.create(
+                agent_type="booking",
+                action=f"Agent cancelled appointment #{appt.pk} for {appt.customer.full_name}",
+                related_appointment=appt,
+                outcome="success",
+                metadata={
+                    "tenant": self.tenant.schema_name,
+                    "appointment_id": appt.pk,
+                    "reason": reason,
+                },
+            )
+
+            result = {
+                "cancelled": True,
+                "appointment_id": appt.pk,
+                "service":  appt.service.name,
+                "staff":    appt.staff.full_name,
+                "date":     appt.starts_at.strftime("%Y-%m-%d"),
+                "time":     appt.starts_at.strftime("%H:%M"),
+                "ref":      f"APPT-{appt.pk}",
+                "deposit_was_paid": deposit_was_paid,
+            }
+            if warning:
+                result["warning"] = warning
+            return result
+
+        elif name == "reschedule_appointment":
+            from bookings.models import Appointment, AppointmentHistory, Customer
+
+            try:
+                appt = Appointment.objects.select_related("customer", "service", "staff").get(
+                    pk=inputs["appointment_id"]
+                )
+            except Appointment.DoesNotExist:
+                return {"error": f"Appointment {inputs['appointment_id']} not found."}
+
+            # Ownership check
+            owner_phones = _build_phone_variants(customer_phone)
+            if appt.customer.phone not in owner_phones:
+                return {"error": "This appointment does not belong to your account."}
+
+            if appt.status == "cancelled":
+                return {"error": "This appointment is already cancelled and cannot be rescheduled."}
+            if appt.status in ("completed", "no_show"):
+                return {"error": "This appointment has already been completed."}
+
+            # Parse new date + time
+            try:
+                new_date = _dt.date.fromisoformat(inputs["new_date"])
+            except (ValueError, KeyError):
+                return {"error": "Invalid new_date. Use YYYY-MM-DD."}
+
+            try:
+                hour, minute = map(int, inputs["new_time"].split(":"))
+            except (ValueError, KeyError, AttributeError):
+                return {"error": "Invalid new_time. Use HH:MM (24-hour)."}
+
+            tz = timezone.get_current_timezone()
+            new_start = timezone.make_aware(
+                _dt.datetime(new_date.year, new_date.month, new_date.day, hour, minute), tz
+            )
+
+            if new_start < timezone.now():
+                return {"error": "Cannot reschedule to a time that has already passed."}
+
+            new_end = new_start + _dt.timedelta(
+                minutes=appt.service.duration_minutes + appt.service.buffer_minutes
+            )
+
+            with transaction.atomic():
+                conflict = (
+                    Appointment.objects
+                    .select_for_update()
+                    .filter(
+                        staff=appt.staff,
+                        status__in=["confirmed", "in_progress"],
+                        starts_at__lt=new_end,
+                        ends_at__gt=new_start,
+                    )
+                    .exclude(pk=appt.pk)
+                    .exists()
+                )
+                if conflict:
+                    return {"error": "That time slot is no longer available. Please choose another time."}
+
+                old_start = appt.starts_at
+
+                appt.starts_at = new_start
+                appt.ends_at   = new_end
+                appt.save(update_fields=["starts_at", "ends_at", "updated_at"])
+
+                AppointmentHistory.objects.create(
+                    appointment=appt,
+                    changed_by=None,
+                    changed_by_agent="booking_agent",
+                    old_status=appt.status,
+                    new_status=appt.status,
+                    note=f"Rescheduled from {old_start:%Y-%m-%d %H:%M} to {new_start:%Y-%m-%d %H:%M} via chat",
+                )
+
+            AgentLog.objects.create(
+                agent_type="booking",
+                action=f"Agent rescheduled appointment #{appt.pk} for {appt.customer.full_name}",
+                related_appointment=appt,
+                outcome="success",
+                metadata={
+                    "tenant": self.tenant.schema_name,
+                    "appointment_id": appt.pk,
+                    "old_starts_at": old_start.isoformat(),
+                    "new_starts_at": new_start.isoformat(),
+                },
+            )
+
+            return {
+                "rescheduled": True,
+                "appointment_id": appt.pk,
+                "service":   appt.service.name,
+                "staff":     appt.staff.full_name,
+                "old_date":  old_start.strftime("%Y-%m-%d"),
+                "old_time":  old_start.strftime("%H:%M"),
+                "new_date":  new_start.strftime("%Y-%m-%d"),
+                "new_time":  new_start.strftime("%H:%M"),
+                "ref":       f"APPT-{appt.pk}",
             }
 
         return {"error": f"Unknown tool: {name}"}

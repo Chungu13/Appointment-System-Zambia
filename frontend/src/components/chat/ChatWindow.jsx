@@ -82,6 +82,38 @@ function parseBookingConfirmed(text) {
   return { service, date, time, ref, checkoutUrl, amount, staff };
 }
 
+function parseBookingCancelled(text) {
+  if (!/BOOKING_CANCELLED/i.test(text)) return null;
+  const get = (key) => {
+    const m = text.match(new RegExp(`${key}:\\s*([^|\\n]+?)\\s*(?:\\||$)`, "i"));
+    return m ? m[1].trim() : "";
+  };
+  const service = get("service");
+  const date    = get("date");
+  const time    = get("time");
+  const staff   = get("staff");
+  const ref     = get("ref");
+  if (!service || !date) return null;
+  return { service, date, time, staff, ref };
+}
+
+function parseBookingRescheduled(text) {
+  if (!/BOOKING_RESCHEDULED/i.test(text)) return null;
+  const get = (key) => {
+    const m = text.match(new RegExp(`${key}:\\s*([^|\\n]+?)\\s*(?:\\||$)`, "i"));
+    return m ? m[1].trim() : "";
+  };
+  const service  = get("service");
+  const oldDate  = get("old_date");
+  const oldTime  = get("old_time");
+  const newDate  = get("new_date");
+  const newTime  = get("new_time");
+  const staff    = get("staff");
+  const ref      = get("ref");
+  if (!service || !oldDate || !newDate) return null;
+  return { service, oldDate, oldTime, newDate, newTime, staff, ref };
+}
+
 function parseMobilePaymentSent(text) {
   if (!/MOBILE_PAYMENT_SENT/i.test(text)) return null;
   const get = (key) => {
@@ -199,6 +231,60 @@ function MobilePaymentCard({ data }) {
           Enter your PIN when prompted on your phone to confirm this booking.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ── Cancelled card ────────────────────────────────────────────────────────────
+
+function CancelledCard({ data }) {
+  const dateLabel = (() => {
+    try { return new Date(`${data.date}T${data.time || "00:00"}`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }); }
+    catch { return data.date; }
+  })();
+  return (
+    <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: 14, marginTop: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "rgba(239,68,68,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <span style={{ fontSize: 13 }}>✕</span>
+        </div>
+        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: "#f87171", margin: 0 }}>Booking cancelled</p>
+      </div>
+      <p style={{ fontFamily: sans, fontSize: 13, color: "rgba(255,255,255,0.75)", margin: "0 0 2px" }}>{data.service}</p>
+      <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 2px" }}>{dateLabel}{data.time ? ` at ${to12h(data.time)}` : ""}</p>
+      {data.staff && <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 10px" }}>with {data.staff}</p>}
+      <p style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0 }}>Ref: {data.ref}</p>
+    </div>
+  );
+}
+
+// ── Rescheduled card ──────────────────────────────────────────────────────────
+
+function RescheduledCard({ data }) {
+  const fmt = (date, time) => {
+    try { return new Date(`${date}T${time || "00:00"}`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) + (time ? ` at ${to12h(time)}` : ""); }
+    catch { return date; }
+  };
+  return (
+    <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: 14, marginTop: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "rgba(74,222,128,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <span style={{ fontSize: 14 }}>↻</span>
+        </div>
+        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: "#4ade80", margin: 0 }}>Booking rescheduled</p>
+      </div>
+      <p style={{ fontFamily: sans, fontSize: 13, color: "rgba(255,255,255,0.75)", margin: "0 0 10px" }}>{data.service}{data.staff ? ` · ${data.staff}` : ""}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, borderTop: "0.5px solid rgba(255,255,255,0.08)", paddingTop: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.35)", minWidth: 32 }}>Was</span>
+          <span style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.45)", textDecoration: "line-through" }}>{fmt(data.oldDate, data.oldTime)}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.35)", minWidth: 32 }}>Now</span>
+          <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: "#fff" }}>{fmt(data.newDate, data.newTime)}</span>
+        </div>
+      </div>
+      <p style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "10px 0 0" }}>Ref: {data.ref}</p>
     </div>
   );
 }
@@ -340,6 +426,36 @@ function renderMessage(text, onSend, salonName, customerName) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {humanText && <span style={{ whiteSpace: "pre-wrap" }}>{humanText}</span>}
           <PaymentCard data={booking} salonName={salonName} />
+        </div>
+      );
+    }
+  }
+
+  // Cancellation confirmation
+  const cancelIdx = text.search(/BOOKING_CANCELLED\s*\|/i);
+  if (cancelIdx !== -1) {
+    const humanText = text.slice(0, cancelIdx).trim();
+    const cancelData = parseBookingCancelled(text.slice(cancelIdx));
+    if (cancelData) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {humanText && <span style={{ whiteSpace: "pre-wrap" }}>{humanText}</span>}
+          <CancelledCard data={cancelData} />
+        </div>
+      );
+    }
+  }
+
+  // Reschedule confirmation
+  const reschedIdx = text.search(/BOOKING_RESCHEDULED\s*\|/i);
+  if (reschedIdx !== -1) {
+    const humanText = text.slice(0, reschedIdx).trim();
+    const reschedData = parseBookingRescheduled(text.slice(reschedIdx));
+    if (reschedData) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {humanText && <span style={{ whiteSpace: "pre-wrap" }}>{humanText}</span>}
+          <RescheduledCard data={reschedData} />
         </div>
       );
     }
