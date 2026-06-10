@@ -66,7 +66,6 @@ export default function Login() {
         className="hidden lg:flex"
         style={{ width: 280, minWidth: 280, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'flex-start' }}
       >
-        <span style={{ color: '#fff', fontSize: 20, fontWeight: 500 }}>Kimawa</span>
       </div>
 
       {/* Right form panel */}
