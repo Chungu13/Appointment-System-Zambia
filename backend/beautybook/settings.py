@@ -206,6 +206,12 @@ LIPILA_ENV          = config("LIPILA_ENV",          default="sandbox")
 LIPILA_CALLBACK_URL = config("LIPILA_CALLBACK_URL", default="")
 
 # ---------------------------------------------------------------------------
+# n8n outgoing webhooks (booking event notifications)
+# ---------------------------------------------------------------------------
+N8N_WEBHOOK_BASE_URL = config("N8N_WEBHOOK_BASE_URL", default="")
+N8N_WEBHOOK_SECRET   = config("N8N_WEBHOOK_SECRET",   default="")
+
+# ---------------------------------------------------------------------------
 # Vercel API (auto-provision tenant subdomains on registration)
 # ---------------------------------------------------------------------------
 VERCEL_API_TOKEN  = config("VERCEL_API_TOKEN",  default="")

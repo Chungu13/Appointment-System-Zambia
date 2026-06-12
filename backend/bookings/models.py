@@ -79,6 +79,42 @@ class Appointment(models.Model):
             ),
         ]
 
+    def save(self, *args, **kwargs):
+        # Detect status transitions to fire outgoing webhooks.
+        # Query is skipped on INSERT (no pk yet) and when the status field
+        # is not in update_fields (partial saves that don't touch status).
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "status" not in update_fields:
+            super().save(*args, **kwargs)
+            return
+
+        old_status = None
+        if self.pk:
+            old_status = (
+                Appointment.objects.filter(pk=self.pk)
+                .values_list("status", flat=True)
+                .first()
+            )
+
+        super().save(*args, **kwargs)
+
+        if old_status != self.status and self.status in ("confirmed", "cancelled"):
+            try:
+                from django.db import connection as _conn
+                schema_name = _conn.schema_name
+                if self.status == "confirmed":
+                    from notifications.tasks import notify_booking_confirmed
+                    notify_booking_confirmed.delay(self.pk, schema_name)
+                elif self.status == "cancelled":
+                    from notifications.tasks import notify_booking_cancelled
+                    notify_booking_cancelled.delay(self.pk, schema_name)
+            except Exception:
+                import logging as _log
+                _log.getLogger(__name__).exception(
+                    "Appointment.save: failed to enqueue webhook for pk=%s status=%s",
+                    self.pk, self.status,
+                )
+
     def __str__(self):
         return f"{self.customer} with {self.staff} @ {self.starts_at:%Y-%m-%d %H:%M}"
 

@@ -45,21 +45,18 @@ def send_appointment_reminders():
                 .select_related("customer", "staff", "service")
             )
             for appt in appointments:
-                local_time = appt.starts_at.astimezone(local_tz).strftime("%H:%M")
-                msg = (
-                    f"REMINDER SMS to {appt.customer.phone}: "
-                    f"Your {appt.service.name} appointment is tomorrow at "
-                    f"{local_time} with {appt.staff.full_name} "
-                    f"at {tenant.business_name}"
-                )
-                logger.info(msg)
+                from notifications.tasks import notify_booking_reminder
+                notify_booking_reminder.delay(appt.pk, tenant.schema_name)
 
                 appt.reminder_sent_at = now
                 appt.save(update_fields=["reminder_sent_at"])
 
                 AgentLog.objects.create(
                     agent_type="scheduling",
-                    action=msg,
+                    action=(
+                        f"Reminder webhook enqueued for {appt.customer.phone} — "
+                        f"{appt.service.name} with {appt.staff.full_name} tomorrow"
+                    ),
                     related_appointment=appt,
                     outcome="success",
                     metadata={
@@ -80,42 +77,36 @@ def send_appointment_reminders():
 
 @shared_task(name="agents.tasks.fill_cancelled_slots")
 def fill_cancelled_slots():
-    """Notify waitlist customers when a slot opens up. Disabled until SMS infrastructure is ready."""
-    # TODO: re-enable when WhatsApp/SMS delivery is wired up
-    # Waitlist model and data are preserved — just notifications are paused.
-    logger.info("fill_cancelled_slots: slot available — waitlist notifications coming soon")
-    return 0
+    """Notify waitlist customers when a slot opens up via the SchedulingAgent."""
+    import datetime
+    from django_tenants.utils import tenant_context
+    from agents.scheduling_agent import SchedulingAgent
+    from bookings.models import Appointment
 
-    # --- preserved for later ---
-    # import datetime
-    # from django_tenants.utils import tenant_context
-    # from agents.scheduling_agent import SchedulingAgent
-    # from bookings.models import Appointment
-    #
-    # now = timezone.now()
-    # since = now - datetime.timedelta(minutes=10)
-    # total = 0
-    #
-    # for tenant in _active_tenants():
-    #     with tenant_context(tenant):
-    #         recently_cancelled = (
-    #             Appointment.objects
-    #             .filter(status="cancelled", cancelled_at__gte=since)
-    #             .only("id")
-    #         )
-    #         agent = SchedulingAgent(tenant)
-    #         for appt in recently_cancelled:
-    #             try:
-    #                 agent.fill_slot(appt.pk)
-    #                 total += 1
-    #             except Exception:
-    #                 logger.exception(
-    #                     "fill_cancelled_slots: error processing appointment %d for tenant %s",
-    #                     appt.pk, tenant.schema_name,
-    #                 )
-    #
-    # logger.info("fill_cancelled_slots: processed %d cancelled slots", total)
-    # return total
+    now = timezone.now()
+    since = now - datetime.timedelta(minutes=10)
+    total = 0
+
+    for tenant in _active_tenants():
+        with tenant_context(tenant):
+            recently_cancelled = (
+                Appointment.objects
+                .filter(status="cancelled", cancelled_at__gte=since)
+                .only("id")
+            )
+            agent = SchedulingAgent(tenant)
+            for appt in recently_cancelled:
+                try:
+                    agent.fill_slot(appt.pk)
+                    total += 1
+                except Exception:
+                    logger.exception(
+                        "fill_cancelled_slots: error processing appointment %d for tenant %s",
+                        appt.pk, tenant.schema_name,
+                    )
+
+    logger.info("fill_cancelled_slots: processed %d cancelled slots", total)
+    return total
 
 
 # ---------------------------------------------------------------------------
