@@ -44,7 +44,7 @@ export default function LandingNav({ variant = "public" }) {
             textDecoration: "none",
             display: "flex",
             alignItems: "center",
-            gap: 3,
+            gap: 0,
             flexShrink: 0,
           }}
         >
@@ -56,6 +56,7 @@ export default function LandingNav({ variant = "public" }) {
               fontWeight: 400,
               color: "#6B2737",
               letterSpacing: "-0.3px",
+              marginLeft: -18,
             }}
           >
             Kimawa
