@@ -33,7 +33,7 @@ export default function LandingNav({ variant = "public" }) {
           margin: "0 auto",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "20px 24px",
+          padding: "20px 4px",
           position: "relative",
         }}
       >
