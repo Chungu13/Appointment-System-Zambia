@@ -158,7 +158,7 @@ export default function LandingNav({ variant = "public" }) {
             gap: 8,
           }}
         >
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 28 }} />
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 40 }} />
           <span
             style={{
               fontFamily: "Inter, sans-serif",

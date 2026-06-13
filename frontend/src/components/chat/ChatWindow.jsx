@@ -503,7 +503,7 @@ function ChatInputBar({ onSend, loading }) {
   function submit(e) { e.preventDefault(); if (!value.trim() || loading) return; onSend(value.trim()); setValue(""); }
   return (
     <form onSubmit={submit} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderTop: "0.5px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
-      <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Type a message…" disabled={loading} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 13, fontWeight: 300, color: "#fff", outline: "none" }} />
+      <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Type a message…" disabled={loading} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 16, fontWeight: 300, color: "#fff", outline: "none" }} />
       <button type="submit" disabled={!value.trim() || loading} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !value.trim() || loading ? 0.4 : 1 }}>
         {loading ? <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> : <Send size={15} color="#fff" />}
       </button>
@@ -548,7 +548,7 @@ function IntakeForm({ salonName, onSubmit, onClose }) {
     backgroundColor: "rgba(255,255,255,0.07)",
     border: "0.5px solid rgba(255,255,255,0.15)",
     borderRadius: 10, padding: "11px 14px",
-    fontFamily: sans, fontSize: 13, fontWeight: 300,
+    fontFamily: sans, fontSize: 16, fontWeight: 300,
     color: "#fff", outline: "none",
   };
 
