@@ -48,16 +48,18 @@ function Hero() {
         </div>
 
         {/* Buttons */}
-        <div className="justify-start max-sm:justify-center" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+        <div className="justify-start max-sm:justify-center" style={{ display: 'flex', flexWrap: 'nowrap', gap: 12, marginBottom: 16 }}>
           <Link
             to="/signup"
-            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 32px', borderRadius: 3, textDecoration: 'none' }}
+            className="py-3.5 px-8 max-sm:flex-1 max-sm:text-center max-sm:py-3 max-sm:px-3"
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}
           >
             List Your Business Free
           </Link>
           <Link
             to="/how-it-works"
-            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#333', border: `0.5px solid #ddd`, padding: '14px 32px', borderRadius: 3, textDecoration: 'none' }}
+            className="py-3.5 px-8 max-sm:flex-1 max-sm:text-center max-sm:py-3 max-sm:px-3"
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}
           >
             &#9654; See How it Works
           </Link>
