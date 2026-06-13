@@ -79,17 +79,17 @@ function StatsBar() {
   ]
   return (
     <section style={{ borderTop: `0.5px solid ${BORDER}`, borderBottom: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
-      <div className="grid grid-cols-1 sm:grid-cols-3" style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div className="grid grid-cols-2" style={{ maxWidth: 1200, margin: '0 auto' }}>
         {stats.map(({ value, label }, i) => (
           <div
             key={value}
-            className="py-4 px-6 sm:py-8 sm:px-10 text-center"
+            className="py-6 px-4 sm:py-8 sm:px-10 text-center"
             style={{ borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}
           >
-            <p style={{ fontFamily: serif, fontSize: 38, fontWeight: 400, color: PRIMARY, margin: '0 0 6px', letterSpacing: '-1px' }}>
+            <p style={{ fontFamily: sans, fontSize: 'clamp(24px, 5vw, 38px)', fontWeight: 300, color: PRIMARY, margin: '0 0 6px', letterSpacing: '-1px' }}>
               {value}
             </p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', margin: 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 'clamp(10px, 2.5vw, 12px)', fontWeight: 400, color: '#333', margin: 0 }}>
               {label}
             </p>
           </div>
