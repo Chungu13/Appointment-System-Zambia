@@ -11,7 +11,7 @@ const svgSrc = fs.readFileSync(svgPath)
 
 // Embed the SVG (burgundy logo, 1024x559) centred on a white square background.
 async function makeIcon(size) {
-  const padding = Math.round(size * 0.15)
+  const padding = Math.round(size * 0.05)
   const logoW   = size - padding * 2
   const logoH   = Math.round(logoW * (559 / 1024))
   const offsetY = Math.round((size - logoH) / 2)
