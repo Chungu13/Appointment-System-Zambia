@@ -514,11 +514,10 @@ function ChatInputBar({ onSend, loading }) {
 // ── Chat header (shared between intake and chat body) ─────────────────────────
 
 function ChatHeader({ salonName, onClose }) {
-  const initial = (salonName || "K")[0].toUpperCase();
   return (
     <div style={{ padding: "14px 16px", borderBottom: "0.5px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
       <div style={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: PRIMARY, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 600, color: "#fff" }}>{initial}</span>
+        <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 18, width: "auto" }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: "#fff", margin: 0, lineHeight: 1.2, letterSpacing: "-0.3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
