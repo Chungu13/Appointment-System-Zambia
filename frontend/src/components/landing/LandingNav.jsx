@@ -32,7 +32,7 @@ export default function LandingNav({ variant = "public" }) {
           width: "100%",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "20px 32px 20px 0",
+          padding: "20px 32px 20px 20px",
           position: "relative",
         }}
       >
