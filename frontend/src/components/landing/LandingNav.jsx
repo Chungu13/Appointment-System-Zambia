@@ -29,11 +29,10 @@ export default function LandingNav({ variant = "public" }) {
       <div
         className="hidden lg:flex"
         style={{
-          maxWidth: 1200,
-          margin: "0 auto",
+          width: "100%",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "20px 0",
+          padding: "20px 32px 20px 0",
           position: "relative",
         }}
       >
