@@ -101,9 +101,13 @@ _TOOLS = [
                     },
                     "customer_name": {"type": "string"},
                     "customer_phone": {"type": "string"},
+                    "notification_phone": {
+                        "type": "string",
+                        "description": "Phone number for booking confirmation and reminder notifications. May differ from customer_phone/mobile_money_phone. Always pass this — set it to the customer's confirmed notification number from Step 2b.",
+                    },
                     "notes": {"type": "string", "description": "Optional customer notes."},
                 },
-                "required": ["service_id", "staff_id", "starts_at", "customer_name", "customer_phone"],
+                "required": ["service_id", "staff_id", "starts_at", "customer_name", "customer_phone", "notification_phone"],
             },
         },
     },
@@ -300,11 +304,19 @@ class BookingAgent:
             "    Do not call any tools yet. Wait for their reply.\n"
             "  If deposit_zmw == 0:\n"
             "    Call create_booking immediately (EXACT service_id from check_availability).\n"
+            "    Set notification_phone = the customer's phone from intake (customer_phone).\n"
             "    Then call initiate_payment immediately with mobile_money_phone='' — no phone needed.\n"
-            "Step 3 — (Only when deposit_zmw > 0) Once the customer provides their phone number:\n"
-            "  Call create_booking immediately. CRITICAL: use the EXACT service_id you called "
+            "Step 2b — (Only when deposit_zmw > 0) After the customer gives their mobile money number:\n"
+            "  Ask naturally: 'Is [their number] also the number we should send your confirmation and reminders to? (Yes / No — I'll use a different one)'\n"
+            "  Replace [their number] with the actual number they gave — e.g. 'Is 0971234567 also the number...'\n"
+            "  If Yes: notification_phone = mobile money number.\n"
+            "  If No: ask 'What number should we send your updates to?' Validate it starts with +260 or 0 and has 10–12 digits. "
+            "If invalid, ask once more. If still invalid, fall back to mobile money number as notification_phone.\n"
+            "  Do not call any tools yet. Wait for their reply.\n"
+            "Step 3 — (Only when deposit_zmw > 0) Once notification_phone is confirmed:\n"
+            "  Call create_booking immediately with notification_phone. CRITICAL: use the EXACT service_id you called "
             "check_availability with — never a different service.\n"
-            "  Then call initiate_payment immediately with that same phone number as mobile_money_phone.\n"
+            "  Then call initiate_payment immediately with the mobile money number as mobile_money_phone.\n"
             "  In your confirmation message use amount_charged from the initiate_payment result — "
             "not the total from check_availability. These must match; if they differ, tell the customer "
             "the correct amount before they confirm on their phone.\n"
@@ -565,6 +577,7 @@ class BookingAgent:
                     status="confirmed",
                     booked_by="agent",
                     customer_notes=inputs.get("notes", ""),
+                    notification_phone=inputs.get("notification_phone", ""),
                 )
 
             AgentLog.objects.create(

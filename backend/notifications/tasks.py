@@ -26,7 +26,7 @@ def _build_payload(appt, tenant, event: str) -> dict:
         "event":          event,
         "appointment_id": appt.pk,
         "customer_name":  appt.customer.full_name,
-        "customer_phone": appt.customer.phone,
+        "customer_phone": appt.notification_phone or appt.customer.phone,
         "business_name":  tenant.business_name,
         "service_name":   appt.service.name,
         "staff_name":     appt.staff.full_name if appt.staff else None,
