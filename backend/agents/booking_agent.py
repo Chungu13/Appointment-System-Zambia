@@ -11,6 +11,17 @@ from agents.log_labels import friendly_tool_label
 logger = logging.getLogger(__name__)
 
 
+def _normalise_phone(phone: str) -> str:
+    """Normalise a Zambian number to +260XXXXXXXXX. Returns original string if unrecognised."""
+    import re as _re
+    digits = _re.sub(r"\D", "", phone.strip())
+    if digits.startswith("260") and len(digits) == 12:
+        return "+" + digits          # 260971234567  → +260971234567
+    if digits.startswith("0") and len(digits) == 10:
+        return "+260" + digits[1:]   # 0971234567    → +260971234567
+    return phone.strip()             # already +260XXXXXXXXX or unknown — leave as-is
+
+
 def _build_phone_variants(phone: str) -> list[str]:
     """Return a list of plausible normalised forms of a Zambian phone number."""
     import re as _re
@@ -306,7 +317,11 @@ class BookingAgent:
             "    Ask ONE question: 'What number should we send your booking confirmation and reminders to? (e.g. 0971234567)'\n"
             "    Do not call any tools yet. Wait for their reply.\n"
             "Step 2b — After the customer provides their number (applies to BOTH deposit and no-deposit paths):\n"
-            "  Validate: the number must start with +260 or 0 and have 10–12 digits total.\n"
+            "  Validate — accept any of these three formats ONLY:\n"
+            "    0XXXXXXXXX   — exactly 10 digits, starts with 0 (e.g. 0971234567)\n"
+            "    +260XXXXXXXXX — + then exactly 12 digits, starts with +260 (e.g. +260971234567)\n"
+            "    260XXXXXXXXX  — exactly 12 digits, starts with 260 (e.g. 260971234567)\n"
+            "  All three formats are valid — do NOT reject a number just because it starts with 0.\n"
             "  If invalid: ask once more — 'That doesn't look like a valid Zambian number. Could you double-check it?'\n"
             "  If still invalid: proceed without a notification number — set both customer_phone and notification_phone to '' and continue.\n"
             "  If deposit_zmw > 0 (valid number collected):\n"
@@ -558,9 +573,11 @@ class BookingAgent:
             ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
 
             # Resolve phone: prefer what the AI collected, fall back to intake phone,
-            # log a warning if neither is available (never hallucinate).
+            # normalise to +260XXXXXXXXX, log a warning if neither is available.
             resolved_phone = (inputs.get("customer_phone") or "").strip() or customer_phone.strip()
-            if not resolved_phone:
+            if resolved_phone:
+                resolved_phone = _normalise_phone(resolved_phone)
+            else:
                 logger.warning(
                     "create_booking: no customer_phone for %s — saving empty string",
                     inputs.get("customer_name", "unknown"),
