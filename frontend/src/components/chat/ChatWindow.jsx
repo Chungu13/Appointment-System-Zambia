@@ -481,10 +481,11 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
 
   const isUser = message.role === "user";
   if (isUser) {
+    const displayText = message.content.replace(/\s*\[service_id:\d+\]/gi, "").trim();
     return (
       <div className="animate-chat-fade-in" style={{ display: "flex", justifyContent: "flex-end" }}>
         <div style={{ maxWidth: "78%", padding: "9px 14px", backgroundColor: PRIMARY, borderRadius: "12px 12px 2px 12px", fontFamily: sans, fontSize: 13, fontWeight: 400, color: "#fff", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-          {message.content}
+          {displayText}
         </div>
       </div>
     );
