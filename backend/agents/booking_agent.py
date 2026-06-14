@@ -303,23 +303,31 @@ class BookingAgent:
             "    Ask ONE question: 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
             "    Do not call any tools yet. Wait for their reply.\n"
             "  If deposit_zmw == 0:\n"
-            "    Call create_booking immediately (EXACT service_id from check_availability).\n"
-            "    Set notification_phone = the customer's phone from intake (customer_phone).\n"
-            "    Then call initiate_payment immediately with mobile_money_phone='' — no phone needed.\n"
-            "Step 2b — (Only when deposit_zmw > 0) After the customer gives their mobile money number:\n"
-            "  Ask naturally: 'Is [their number] also the number we should send your confirmation and reminders to? (Yes / No — I'll use a different one)'\n"
-            "  Replace [their number] with the actual number they gave — e.g. 'Is 0971234567 also the number...'\n"
-            "  If Yes: notification_phone = mobile money number.\n"
-            "  If No: ask 'What number should we send your updates to?' Validate it starts with +260 or 0 and has 10–12 digits. "
-            "If invalid, ask once more. If still invalid, fall back to mobile money number as notification_phone.\n"
-            "  Do not call any tools yet. Wait for their reply.\n"
-            "Step 3 — (Only when deposit_zmw > 0) Once notification_phone is confirmed:\n"
-            "  Call create_booking immediately with notification_phone. CRITICAL: use the EXACT service_id you called "
-            "check_availability with — never a different service.\n"
-            "  Then call initiate_payment immediately with the mobile money number as mobile_money_phone.\n"
-            "  In your confirmation message use amount_charged from the initiate_payment result — "
+            "    Ask ONE question: 'What number should we send your booking confirmation and reminders to? (e.g. 0971234567)'\n"
+            "    Do not call any tools yet. Wait for their reply.\n"
+            "Step 2b — After the customer provides their number (applies to BOTH deposit and no-deposit paths):\n"
+            "  Validate: the number must start with +260 or 0 and have 10–12 digits total.\n"
+            "  If invalid: ask once more — 'That doesn't look like a valid Zambian number. Could you double-check it?'\n"
+            "  If still invalid: proceed without a notification number — set both customer_phone and notification_phone to '' and continue.\n"
+            "  If deposit_zmw > 0 (valid number collected):\n"
+            "    Ask naturally: 'Is [their number] also the number we should send your confirmation and reminders to? (Yes / No — I'll use a different one)'\n"
+            "    If Yes: notification_phone = mobile money number.\n"
+            "    If No: ask 'What number should we send your updates to?' Validate same way. One retry, then fall back to mobile money number.\n"
+            "  If deposit_zmw == 0 (valid number collected):\n"
+            "    Set customer_phone = notification_phone = the number they gave.\n"
+            "    Do not call any tools yet. Proceed to Step 3.\n"
+            "Step 3 — Once all numbers are confirmed:\n"
+            "  If deposit_zmw > 0:\n"
+            "    Call create_booking with customer_phone = mobile money number and notification_phone = confirmed notification number.\n"
+            "    CRITICAL: use the EXACT service_id you called check_availability with — never a different service.\n"
+            "    Then call initiate_payment immediately with the mobile money number as mobile_money_phone.\n"
+            "    In your confirmation message use amount_charged from the initiate_payment result — "
             "not the total from check_availability. These must match; if they differ, tell the customer "
             "the correct amount before they confirm on their phone.\n"
+            "  If deposit_zmw == 0:\n"
+            "    Call create_booking with customer_phone = notification_phone = the number collected in Step 2.\n"
+            "    CRITICAL: use the EXACT service_id you called check_availability with.\n"
+            "    Then call initiate_payment immediately with mobile_money_phone='' — no payment needed.\n"
             "  Do NOT ask anything else.\n\n"
             "DATE AND AVAILABILITY RULES — FOLLOW STRICTLY:\n"
             f"- The current time in Zambia is {current_time_str} (CAT, UTC+2). "
@@ -548,10 +556,21 @@ class BookingAgent:
                 return {"error": f"Invalid datetime '{inputs['starts_at']}'."}
 
             ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
+
+            # Resolve phone: prefer what the AI collected, fall back to intake phone,
+            # log a warning if neither is available (never hallucinate).
+            resolved_phone = (inputs.get("customer_phone") or "").strip() or customer_phone.strip()
+            if not resolved_phone:
+                logger.warning(
+                    "create_booking: no customer_phone for %s — saving empty string",
+                    inputs.get("customer_name", "unknown"),
+                )
+
             customer, _ = Customer.objects.get_or_create(
-                phone=inputs["customer_phone"],
+                phone=resolved_phone,
                 defaults={"full_name": inputs["customer_name"]},
             )
+            inputs["customer_phone"] = resolved_phone
 
             with transaction.atomic():
                 conflict = (
