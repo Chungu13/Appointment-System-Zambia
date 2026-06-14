@@ -133,8 +133,31 @@ function parseMobilePaymentSent(text) {
 
 // ── Rich components ───────────────────────────────────────────────────────────
 
+function ConfirmedCard({ data }) {
+  const dateLabel = (() => {
+    try { return new Date(`${data.date}T${data.time}`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }); }
+    catch { return data.date; }
+  })();
+  return (
+    <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: 14, marginTop: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "rgba(74,222,128,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <span style={{ fontSize: 14 }}>✓</span>
+        </div>
+        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: "#4ade80", margin: 0 }}>Booking confirmed</p>
+      </div>
+      <p style={{ fontFamily: serif, fontSize: 16, fontWeight: 400, color: "#fff", margin: "0 0 4px", lineHeight: 1.2 }}>{data.service}</p>
+      <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 2px" }}>{dateLabel} at {to12h(data.time)}</p>
+      {data.staff && <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 12px" }}>with {data.staff}</p>}
+      <div style={{ backgroundColor: "rgba(74,222,128,0.08)", border: "0.5px solid rgba(74,222,128,0.15)", borderRadius: 6, padding: "8px 12px", marginTop: 4 }}>
+        <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.7)", margin: 0 }}>No deposit required — pay at the salon.</p>
+      </div>
+      {data.ref && <p style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "8px 0 0" }}>Ref: {data.ref}</p>}
+    </div>
+  );
+}
+
 function PaymentCard({ data, salonName }) {
-  // checkoutUrl comes directly from Lipila (or the mock-pay backend in dev)
   const payUrl = data.checkoutUrl || "";
 
   const dateLabel = (() => {
@@ -416,16 +439,17 @@ function renderMessage(text, onSend, salonName, customerName) {
     }
   }
 
-  // Redirect-based payment (mock / card)
+  // Booking confirmed — no-deposit shows green confirmed card, deposit shows pay button
   const bookingIdx = text.search(/BOOKING_CONFIRMED\s*\|/i);
   if (bookingIdx !== -1) {
     const humanText = text.slice(0, bookingIdx).trim();
     const booking = parseBookingConfirmed(text.slice(bookingIdx));
     if (booking) {
+      const isNoDeposit = !booking.amount || parseFloat(booking.amount) === 0;
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {humanText && <span style={{ whiteSpace: "pre-wrap" }}>{humanText}</span>}
-          <PaymentCard data={booking} salonName={salonName} />
+          {isNoDeposit ? <ConfirmedCard data={booking} /> : <PaymentCard data={booking} salonName={salonName} />}
         </div>
       );
     }
