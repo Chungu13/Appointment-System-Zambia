@@ -482,6 +482,37 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
   const isUser = message.role === "user";
   if (isUser) {
     const displayText = message.content.replace(/\s*\[service_id:\d+\]/gi, "").trim();
+
+    // Render booking-request messages as a styled card
+    const bookMatch = displayText.match(/^I want to book (.+)$/i);
+    if (bookMatch) {
+      const parts = bookMatch[1].split(/\s*—\s*/);
+      const category    = parts.length > 1 ? parts[0] : null;
+      const serviceName = parts.length > 1 ? parts[1] : parts[0];
+      return (
+        <div className="animate-chat-fade-in" style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ maxWidth: "82%", backgroundColor: PRIMARY, borderRadius: "12px 12px 2px 12px", overflow: "hidden" }}>
+            <div style={{ backgroundColor: "rgba(0,0,0,0.22)", padding: "7px 14px", display: "flex", alignItems: "center", gap: 6 }}>
+              <Sparkles size={10} color="rgba(255,255,255,0.45)" />
+              <span style={{ fontFamily: sans, fontSize: 9, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
+                Booking Request
+              </span>
+            </div>
+            <div style={{ padding: "10px 14px 14px" }}>
+              {category && (
+                <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", margin: "0 0 5px" }}>
+                  {category}
+                </p>
+              )}
+              <p style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: "#fff", margin: 0, lineHeight: 1.25, letterSpacing: "-0.2px" }}>
+                {serviceName}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="animate-chat-fade-in" style={{ display: "flex", justifyContent: "flex-end" }}>
         <div style={{ maxWidth: "78%", padding: "9px 14px", backgroundColor: PRIMARY, borderRadius: "12px 12px 2px 12px", fontFamily: sans, fontSize: 13, fontWeight: 400, color: "#fff", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
