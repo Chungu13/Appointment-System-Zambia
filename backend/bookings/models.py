@@ -88,13 +88,14 @@ class Appointment(models.Model):
             super().save(*args, **kwargs)
             return
 
-        old_status = None
         if self.pk:
             old_status = (
                 Appointment.objects.filter(pk=self.pk)
                 .values_list("status", flat=True)
                 .first()
-            )
+            ) or "pending"
+        else:
+            old_status = "pending"
 
         super().save(*args, **kwargs)
 
