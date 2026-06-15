@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client/react'
 import { useNavigate } from 'react-router-dom'
 import { Check, CheckCheck, ChevronRight, Copy } from 'lucide-react'
@@ -96,6 +96,14 @@ export default function GettingStarted() {
   const flags     = [hasService, hasStaff, hasAssigned, hasHours, hasLink]
   const doneCount = flags.filter(Boolean).length
   const allDone   = doneCount === flags.length
+
+  // When all steps are done, persist dismissal so the banner doesn't
+  // reappear on every navigation — user only needs to see it once.
+  useEffect(() => {
+    if (allDone) {
+      localStorage.setItem(getDismissedKey(), '1')
+    }
+  }, [allDone])
 
   function copyLink() {
     if (!bookingUrl) return

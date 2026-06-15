@@ -28,10 +28,13 @@ export default function Badge({ color, status, className = '', children }) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        fontSize: 11,
-        fontWeight: 500,
-        padding: '2px 8px',
-        borderRadius: 999,
+        fontFamily: "'Inter', sans-serif",
+        fontSize: 10,
+        fontWeight: 300,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        padding: '3px 8px',
+        borderRadius: 0,
         ...style,
       }}
     >

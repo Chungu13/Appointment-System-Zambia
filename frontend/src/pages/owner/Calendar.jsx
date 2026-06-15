@@ -10,10 +10,15 @@ import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { toDateInputValue, formatTime, formatZMW, addDays, classNames } from '../../lib/utils'
 
 // ── Config ───────────────────────────────────────────────────────────────────
-const PRIMARY    = '#6B2737'
-const MUTED      = '#6B4A50'
-const BORDER     = '#E8D8DC'
-const NEAR_BLACK = '#1A0A0D'
+const BURG       = '#6B2737'
+const MUTED      = '#b09090'
+const HINT       = '#c0a8a8'
+const BORDER     = '#ede5e7'
+const TEXT       = '#1a0a0d'
+const NAV_MUTED  = '#9a8080'
+
+const sans  = "'Inter', sans-serif"
+const serif = "'Cormorant Garamond', Georgia, serif"
 
 const DAY_START = 8
 const DAY_END   = 20
@@ -30,9 +35,6 @@ const PALETTES = [
   { bg: '#B5451B', border: '#7A2E0D', text: '#fff' },
   { bg: '#1A6B6B', border: '#0D4040', text: '#fff' },
 ]
-
-// Left-border hex colors for list cards
-const BORDER_COLORS = ['#6B2737','#2D6A4F','#1D4E89','#7B5E2A','#5C3D6E','#B5451B','#1A6B6B']
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 function weekStart(date) {
@@ -58,6 +60,12 @@ function heightPx(start, end) {
   return Math.max(SLOT_H * 0.6, (mins / 30) * SLOT_H)
 }
 
+// ── Status label (plain text, no badge pill) ──────────────────────────────────
+const STATUS_LABELS = {
+  pending: 'Pending', confirmed: 'Confirmed', in_progress: 'In progress',
+  completed: 'Done', cancelled: 'Cancelled', no_show: 'No show',
+}
+
 // ── Time ruler ────────────────────────────────────────────────────────────────
 function TimeRuler() {
   return (
@@ -71,7 +79,7 @@ function TimeRuler() {
         return (
           <div key={i} style={{ position: 'relative', flexShrink: 0, height: SLOT_H }}>
             {label && (
-              <span style={{ position: 'absolute', top: -7, right: 6, fontSize: 10, color: MUTED, lineHeight: 1 }}>
+              <span style={{ position: 'absolute', top: -7, right: 6, fontSize: 10, fontFamily: sans, fontWeight: 300, color: MUTED, lineHeight: 1 }}>
                 {label}
               </span>
             )}
@@ -90,13 +98,13 @@ function DayCol({ day, appointments, colorMap, isToday, onSelect }) {
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
       <div style={{
         height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', borderRadius: 8, marginBottom: 1,
-        backgroundColor: isToday ? PRIMARY : 'transparent',
+        justifyContent: 'center', marginBottom: 1,
+        backgroundColor: isToday ? BURG : 'transparent',
         color: isToday ? '#fff' : MUTED,
-        fontSize: 11, fontWeight: 500, lineHeight: 1,
+        fontSize: 11, fontFamily: sans, fontWeight: 300, lineHeight: 1,
       }}>
         <span>{day.toLocaleDateString('en-ZM', { weekday: 'short' })}</span>
-        <span style={{ fontSize: 14, fontWeight: 700, marginTop: 2, color: isToday ? '#fff' : NEAR_BLACK }}>
+        <span style={{ fontSize: 14, fontWeight: 400, marginTop: 2, color: isToday ? '#fff' : TEXT }}>
           {day.getDate()}
         </span>
       </div>
@@ -107,7 +115,7 @@ function DayCol({ day, appointments, colorMap, isToday, onSelect }) {
             key={i}
             style={{
               position: 'absolute', left: 0, right: 0,
-              borderTop: `1px solid ${i % 2 === 0 ? BORDER : BORDER + '55'}`,
+              borderTop: `0.5px solid ${i % 2 === 0 ? BORDER : BORDER + '80'}`,
               top: i * SLOT_H,
             }}
           />
@@ -128,22 +136,22 @@ function DayCol({ day, appointments, colorMap, isToday, onSelect }) {
                 position: 'absolute', left: 2, right: 2, top: t + 1, height: h - 2,
                 backgroundColor: palette.bg,
                 borderLeft: `3px solid ${palette.border}`,
-                borderRadius: 5, padding: '3px 6px',
+                borderRadius: 0, padding: '3px 6px',
                 textAlign: 'left', cursor: 'pointer', overflow: 'hidden',
                 zIndex: 10, border: 'none', transition: 'opacity 0.1s',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              <p style={{ fontSize: 11, fontWeight: 600, color: palette.text, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+              <p style={{ fontSize: 11, fontFamily: sans, fontWeight: 400, color: palette.text, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                 {appt.customer.fullName}
               </p>
               {!compact && (
                 <>
-                  <p style={{ fontSize: 10, color: palette.text, opacity: 0.8, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                  <p style={{ fontSize: 10, fontFamily: sans, fontWeight: 300, color: palette.text, opacity: 0.8, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                     {appt.service.name}
                   </p>
-                  <p style={{ fontSize: 10, color: palette.text, opacity: 0.7, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                  <p style={{ fontSize: 10, fontFamily: sans, fontWeight: 300, color: palette.text, opacity: 0.7, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                     {appt.staff.fullName}
                   </p>
                 </>
@@ -157,10 +165,10 @@ function DayCol({ day, appointments, colorMap, isToday, onSelect }) {
 }
 
 // ── List view ─────────────────────────────────────────────────────────────────
-function ListView({ days, appointments, borderColorMap, today, onSelect }) {
+function ListView({ days, appointments, today, onSelect }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {days.map((day) => {
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {days.map((day, di) => {
         const isToday    = sameDay(day, today)
         const isTomorrow = sameDay(day, addDays(today, 1))
         const dayAppts   = appointments
@@ -172,61 +180,68 @@ function ListView({ days, appointments, borderColorMap, today, onSelect }) {
 
         return (
           <div key={day.toISOString()}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-              <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: isToday ? PRIMARY : NEAR_BLACK, margin: 0 }}>
+            {/* Day header */}
+            <div style={{
+              display: 'flex', alignItems: 'baseline', gap: 8,
+              padding: '12px 20px',
+              borderBottom: `0.5px solid ${BORDER}`,
+              backgroundColor: isToday ? '#fdf8f8' : '#faf7f7',
+            }}>
+              <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.08em', color: isToday ? BURG : TEXT, margin: 0 }}>
                 {label}
               </h3>
-              <span style={{ fontSize: 12, color: MUTED }}>{sublabel}</span>
+              <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>{sublabel}</span>
               {dayAppts.length > 0 && (
-                <span style={{ fontSize: 12, color: MUTED, marginLeft: 'auto' }}>
+                <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, marginLeft: 'auto' }}>
                   {dayAppts.length} appt{dayAppts.length !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
 
             {dayAppts.length === 0 ? (
-              <p style={{ fontSize: 13, color: MUTED, fontStyle: 'italic', padding: '6px 0 6px 14px', borderLeft: `2px solid ${BORDER}`, margin: 0 }}>
-                No appointments
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {dayAppts.map((appt) => {
-                  const borderColor = borderColorMap[appt.staff.id] ?? '#9B7A80'
-                  return (
-                    <button
-                      key={appt.id}
-                      onClick={() => onSelect(appt)}
-                      style={{
-                        width: '100%', textAlign: 'left', backgroundColor: '#fff',
-                        border: `1px solid ${BORDER}`, borderLeft: `4px solid ${borderColor}`,
-                        borderRadius: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background-color 0.1s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FAF8F6')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 16, fontWeight: 600, color: PRIMARY }}>
-                              {formatTime(appt.startsAt)}
-                            </span>
-                            <span style={{ fontSize: 11, color: MUTED }}>
-                              {appt.service.durationMinutes} min
-                            </span>
-                          </div>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 2px', lineHeight: 1.3 }}>
-                            {appt.customer.fullName}
-                          </p>
-                          <p style={{ fontSize: 12, color: MUTED, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {appt.service.name} · {appt.staff.fullName}
-                          </p>
-                        </div>
-                        <Badge status={appt.status} />
-                      </div>
-                    </button>
-                  )
-                })}
+              <div style={{ padding: '14px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
+                <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, fontStyle: 'italic', margin: 0 }}>
+                  No appointments
+                </p>
               </div>
+            ) : (
+              dayAppts.map((appt) => (
+                <button
+                  key={appt.id}
+                  onClick={() => onSelect(appt)}
+                  style={{
+                    width: '100%', textAlign: 'left', backgroundColor: '#fff',
+                    border: 'none', borderBottom: `0.5px solid ${BORDER}`,
+                    borderLeft: `2px solid ${BURG}`,
+                    padding: '16px 20px', cursor: 'pointer',
+                    transition: 'background-color 0.1s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fdf8f8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                        <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
+                          {formatTime(appt.startsAt)}
+                        </span>
+                        <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>
+                          {appt.service.durationMinutes} min
+                        </span>
+                      </div>
+                      <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: '0 0 2px', lineHeight: 1.3 }}>
+                        {appt.customer.fullName}
+                      </p>
+                      <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: NAV_MUTED, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {appt.service.name} · {appt.staff.fullName}
+                      </p>
+                    </div>
+                    <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, flexShrink: 0, paddingTop: 2 }}>
+                      {STATUS_LABELS[appt.status] ?? appt.status}
+                    </span>
+                  </div>
+                </button>
+              ))
             )}
           </div>
         )
@@ -236,8 +251,8 @@ function ListView({ days, appointments, borderColorMap, today, onSelect }) {
 }
 
 // ── Appointment modal ─────────────────────────────────────────────────────────
-const detailLabel = { fontSize: 11, color: MUTED, margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }
-const detailValue = { fontSize: 13, fontWeight: 500, color: NEAR_BLACK, margin: 0 }
+const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#b09090', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
+const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 400, color: '#1a0a0d', margin: 0 }
 
 function ApptModal({ appt, onClose, onAction, loading }) {
   return (
@@ -245,9 +260,9 @@ function ApptModal({ appt, onClose, onAction, loading }) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.12)', width: '100%', maxWidth: 380 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: NEAR_BLACK, margin: 0 }}>Appointment</h2>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 380 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
+          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: 0 }}>Appointment</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
             <X size={18} />
           </button>
@@ -256,8 +271,8 @@ function ApptModal({ appt, onClose, onAction, loading }) {
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 2px' }}>{appt.customer.fullName}</p>
-              <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>{appt.customer.phone}</p>
+              <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>{appt.customer.fullName}</p>
+              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>{appt.customer.phone}</p>
             </div>
             <Badge status={appt.status} />
           </div>
@@ -272,7 +287,7 @@ function ApptModal({ appt, onClose, onAction, loading }) {
           </div>
 
           {appt.customerNotes && (
-            <div style={{ backgroundColor: '#FAF8F6', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '8px 12px', fontSize: 13, color: MUTED }}>
+            <div style={{ backgroundColor: '#faf7f7', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>
               {appt.customerNotes}
             </div>
           )}
@@ -345,17 +360,15 @@ export default function Calendar() {
 
   const appointments = data?.myAppointments ?? []
 
-  // Staff → palette/border color maps (stable per week's data)
-  const { colorMap, borderColorMap } = useMemo(() => {
+  const { colorMap } = useMemo(() => {
     const ids = [...new Set(appointments.map((a) => a.staff.id))]
     return {
-      colorMap:       Object.fromEntries(ids.map((id, i) => [id, PALETTES[i % PALETTES.length]])),
-      borderColorMap: Object.fromEntries(ids.map((id, i) => [id, BORDER_COLORS[i % BORDER_COLORS.length]])),
+      colorMap: Object.fromEntries(ids.map((id, i) => [id, PALETTES[i % PALETTES.length]])),
     }
   }, [appointments])
 
-  const displayDays  = view === 'week' ? days : [selDay]
-  const rangeLabel   = `${days[0].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric' })} - ${days[6].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  const displayDays = view === 'week' ? days : [selDay]
+  const rangeLabel  = `${days[0].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric' })} – ${days[6].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric', year: 'numeric' })}`
 
   return (
     <PageWrapper maxWidth="full">
@@ -366,42 +379,53 @@ export default function Calendar() {
         action={
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
             {/* Week / Day / List toggle */}
-            <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', border: `1px solid ${BORDER}` }}>
+            <div style={{ display: 'flex', border: `0.5px solid ${BORDER}` }}>
               {VIEW_OPTIONS.map(({ key, icon: Icon, label }) => (
                 <button
                   key={key}
                   onClick={() => setView(key)}
                   title={label}
                   style={{
-                    padding: '6px 12px', fontSize: 13, fontWeight: 500, border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 6, transition: 'background-color 0.12s',
-                    backgroundColor: view === key ? PRIMARY : '#fff',
+                    padding: '8px 16px', fontFamily: sans, fontSize: 10, fontWeight: 300,
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    border: 'none', borderRight: key !== 'list' ? `0.5px solid ${BORDER}` : 'none',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    transition: 'background-color 0.1s',
+                    backgroundColor: view === key ? BURG : '#fff',
                     color: view === key ? '#fff' : MUTED,
                   }}
                 >
-                  <Icon size={13} />
+                  <Icon size={12} />
                   <span className="hidden sm:inline">{label}</span>
                 </button>
               ))}
             </div>
 
             {/* Prev / Next */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <button
                 onClick={() => setWkStart((d) => addDays(d, -7))}
-                style={{ padding: 6, borderRadius: 8, border: 'none', background: 'none', cursor: 'pointer', color: MUTED }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FAF8F6')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                style={{
+                  width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: `0.5px solid ${BORDER}`, background: '#fff', cursor: 'pointer', color: MUTED,
+                  transition: 'background-color 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#faf7f7')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
               >
-                <ChevronLeft size={17} />
+                <ChevronLeft size={14} />
               </button>
               <button
                 onClick={() => setWkStart((d) => addDays(d, 7))}
-                style={{ padding: 6, borderRadius: 8, border: 'none', background: 'none', cursor: 'pointer', color: MUTED }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FAF8F6')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                style={{
+                  width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: `0.5px solid ${BORDER}`, background: '#fff', cursor: 'pointer', color: MUTED,
+                  transition: 'background-color 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#faf7f7')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
               >
-                <ChevronRight size={17} />
+                <ChevronRight size={14} />
               </button>
             </div>
 
@@ -414,8 +438,12 @@ export default function Calendar() {
                 setWkStart(weekStart(d))
                 setSelDay(d)
               }}
-              style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, color: NEAR_BLACK, backgroundColor: '#fff', outline: 'none' }}
-              onFocus={(e) => (e.target.style.borderColor = PRIMARY)}
+              style={{
+                border: `0.5px solid ${BORDER}`, padding: '6px 10px',
+                fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
+                backgroundColor: '#fff', outline: 'none',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = BURG)}
               onBlur={(e) => (e.target.style.borderColor = BORDER)}
             />
           </div>
@@ -424,7 +452,7 @@ export default function Calendar() {
 
       {/* ── Day pills (day view only) ── */}
       {view === 'day' && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
           {days.map((d) => {
             const active  = sameDay(d, selDay)
             const isToday = sameDay(d, today)
@@ -434,16 +462,16 @@ export default function Calendar() {
                 onClick={() => setSelDay(d)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '8px 12px', borderRadius: 10, flexShrink: 0, border: 'none', cursor: 'pointer',
-                  transition: 'background-color 0.12s',
-                  backgroundColor: active ? PRIMARY : isToday ? '#FDF0F2' : 'transparent',
-                  color: active ? '#fff' : isToday ? PRIMARY : MUTED,
+                  padding: '8px 12px', flexShrink: 0, border: 'none', cursor: 'pointer',
+                  transition: 'background-color 0.1s',
+                  backgroundColor: active ? BURG : isToday ? '#fdf8f8' : 'transparent',
+                  color: active ? '#fff' : isToday ? BURG : MUTED,
                 }}
               >
-                <span style={{ fontSize: 11, fontWeight: 500 }}>
+                <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   {d.toLocaleDateString('en-ZM', { weekday: 'short' })}
                 </span>
-                <span style={{ fontSize: 16, fontWeight: 700 }}>{d.getDate()}</span>
+                <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 400, marginTop: 2 }}>{d.getDate()}</span>
               </button>
             )
           })}
@@ -455,11 +483,10 @@ export default function Calendar() {
 
       {/* ── List view ── */}
       {view === 'list' && !loading && (
-        <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20 }}>
+        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
           <ListView
             days={days}
             appointments={appointments}
-            borderColorMap={borderColorMap}
             today={today}
             onSelect={setSelAppt}
           />
@@ -468,7 +495,7 @@ export default function Calendar() {
 
       {/* ── Grid (week / day) ── */}
       {view !== 'list' && (
-        <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'auto' }}>
+        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, overflow: 'auto' }}>
           <div style={{ display: 'flex', minWidth: view === 'week' ? 620 : 0 }}>
             <TimeRuler />
             <div style={{ display: 'flex', flex: 1, gap: 1, padding: '0 2px 16px' }}>
@@ -489,13 +516,13 @@ export default function Calendar() {
 
       {/* ── Staff legend (grid views only) ── */}
       {view !== 'list' && appointments.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 12 }}>
           {[...new Set(appointments.map((a) => a.staff.id))].map((id) => {
             const staff = appointments.find((a) => a.staff.id === id)?.staff
             const palette = colorMap[id] ?? PALETTES[0]
             return (
-              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: MUTED }}>
-                <span style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: palette.bg, display: 'inline-block' }} />
+              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>
+                <span style={{ width: 10, height: 10, backgroundColor: palette.bg, display: 'inline-block' }} />
                 {staff?.fullName}
               </div>
             )

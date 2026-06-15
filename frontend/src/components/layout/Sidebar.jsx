@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Activity, Scissors,
   Users, UserCircle, User, Settings, HelpCircle, Images, Compass, LogOut,
@@ -11,13 +11,15 @@ import { MY_PROFILE } from '../../graphql/queries/staff'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { startTour, resetTour } from '../../lib/tour'
 
-// ── Palette ───────────────────────────────────────────────────────────────────
-const BG          = '#4A1A25'
-const TEXT        = '#ffffff'
-const ACTIVE_BG   = '#6B2737'
-const HOVER_BG    = 'rgba(255,255,255,0.08)'
-const MUTED       = 'rgba(255,255,255,0.6)'
-const DIVIDER     = 'rgba(255,255,255,0.12)'
+const BURG    = '#6B2737'
+const TEXT    = '#1a0a0d'
+const MUTED   = '#b09090'
+const BORDER  = '#ede5e7'
+const BLUSH   = '#fdf8f8'
+const NAV_MUTED = '#9a8080'
+
+const sans = "'Inter', sans-serif"
+const serif = "'Cormorant Garamond', serif"
 
 const mainLinks = [
   { to: '/owner',           icon: LayoutDashboard, label: 'Dashboard',  end: true, id: 'tour-dashboard' },
@@ -30,10 +32,20 @@ const mainLinks = [
 ]
 
 const bottomLinks = [
-  { to: '/owner/settings', icon: Settings,    label: 'Settings',  id: 'tour-settings' },
-  { to: '/owner/profile',  icon: User,        label: 'Profile',   id: 'tour-profile'  },
-  { to: '/how-it-works',   icon: HelpCircle,  label: 'Support' },
+  { to: '/owner/settings', icon: Settings,   label: 'Settings', id: 'tour-settings' },
+  { to: '/owner/profile',  icon: User,       label: 'Profile',  id: 'tour-profile'  },
+  { to: '/how-it-works',   icon: HelpCircle, label: 'Support' },
 ]
+
+const BUSINESS_TYPE_LABELS = {
+  salon:         'Salon',
+  barbershop:    'Barbershop',
+  nail_tech:     'Nail Studio',
+  spa:           'Spa',
+  lash_studio:   'Lash Studio',
+  makeup_artist: 'Makeup Artist',
+  other:         'Beauty Business',
+}
 
 function NavItem({ to, end, icon: Icon, label, id }) {
   const [hovered, setHovered] = useState(false)
@@ -50,39 +62,31 @@ function NavItem({ to, end, icon: Icon, label, id }) {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        padding: '8px 12px',
-        borderRadius: '10px',
-        fontSize: '0.875rem',
-        fontWeight: isActive ? 600 : 400,
+        gap: 10,
+        padding: isActive ? '9px 12px 9px 10px' : '9px 12px',
+        borderLeft: isActive ? `2px solid ${BURG}` : '2px solid transparent',
+        fontSize: 11,
+        fontWeight: 300,
+        fontFamily: sans,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
         textDecoration: 'none',
-        transition: 'background-color 0.12s',
-        color: isActive ? TEXT : MUTED,
-        backgroundColor: isActive ? ACTIVE_BG : hovered ? HOVER_BG : 'transparent',
+        transition: 'background-color 0.1s, color 0.1s',
+        color: isActive ? BURG : hovered ? BURG : NAV_MUTED,
+        backgroundColor: isActive ? BLUSH : hovered ? BLUSH : 'transparent',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
+      <Icon size={13} strokeWidth={isActive ? 1.8 : 1.4} />
       {label}
     </NavLink>
   )
 }
 
-const BUSINESS_TYPE_LABELS = {
-  salon:        'Salon',
-  barbershop:   'Barbershop',
-  nail_tech:    'Nail Studio',
-  spa:          'Spa',
-  lash_studio:  'Lash Studio',
-  makeup_artist:'Makeup Artist',
-  other:        'Beauty Business',
-}
-
 export default function Sidebar() {
   const { profile, setProfile } = useAuth()
   const logout = useLogout()
-  const navigate = useNavigate()
 
   const { data: profileData } = useQuery(MY_PROFILE, {
     skip: !!profile,
@@ -96,73 +100,66 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="hidden sm:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col z-40 border-r"
-      style={{ backgroundColor: BG, borderColor: DIVIDER }}
+      className="hidden sm:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col z-40"
+      style={{ backgroundColor: '#fff', borderRight: `0.5px solid ${BORDER}` }}
     >
-      {/* Logo */}
-      <div className="px-5 pt-7 pb-5 shrink-0">
+      {/* Brand */}
+      <div style={{ padding: '28px 20px 20px' }}>
         <Link to="/owner" style={{ textDecoration: 'none' }}>
-          <p
-            className="font-display text-xl font-bold leading-tight"
-            style={{ color: TEXT }}
-          >
+          <p style={{ fontFamily: serif, fontSize: 16, fontWeight: 400, color: TEXT, margin: 0, lineHeight: 1.3 }}>
             {businessName ?? 'My Salon'}
           </p>
           {businessType && (
-            <p className="text-xs mt-0.5" style={{ color: MUTED }}>
+            <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED, margin: '4px 0 0', letterSpacing: '0.04em' }}>
               {BUSINESS_TYPE_LABELS[businessType] ?? businessType}
             </p>
           )}
         </Link>
-        <p className="text-xs mt-2 truncate" style={{ color: MUTED }}>
-          {ownerName || 'Loading…'}
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED, margin: '6px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
+          {ownerName || ''}
         </p>
       </div>
 
-      {/* Book Appointment CTA */}
-      <div className="px-4 pb-5 shrink-0">
-        <button
-          onClick={() => navigate('/book')}
-          className="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
-          style={{ backgroundColor: TEXT, color: BG }}
-        >
-          + Book Appointment
-        </button>
-      </div>
-
-      {/* Divider */}
-      <div className="mx-4 mb-3 shrink-0" style={{ height: 1, backgroundColor: DIVIDER }} />
+      <div style={{ height: '0.5px', backgroundColor: BORDER }} />
 
       {/* Main nav */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+      <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {mainLinks.map(({ to, end, icon, label, id }) => (
           <NavItem key={to} to={to} end={end} icon={icon} label={label} id={id} />
         ))}
       </nav>
 
       {/* Bottom nav */}
-      <div className="px-3 pb-4 pt-3 space-y-0.5 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
+      <div style={{ borderTop: `0.5px solid ${BORDER}`, padding: '8px 0 16px' }}>
         {bottomLinks.map(({ to, icon, label, id }) => (
           <NavItem key={to} to={to} icon={icon} label={label} id={id} />
         ))}
 
-        {/* Take the tour */}
         <button
           onClick={() => { resetTour(); startTour() }}
-          className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-white/10"
-          style={{ color: MUTED }}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: sans, fontSize: 11, fontWeight: 300,
+            letterSpacing: '0.06em', textTransform: 'uppercase', color: NAV_MUTED,
+            textAlign: 'left',
+          }}
         >
-          <Compass size={15} strokeWidth={1.8} />
+          <Compass size={13} strokeWidth={1.4} />
           Take the tour
         </button>
 
-        {/* Logout */}
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-white/10"
-          style={{ color: MUTED }}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: sans, fontSize: 11, fontWeight: 300,
+            letterSpacing: '0.06em', textTransform: 'uppercase', color: NAV_MUTED,
+            textAlign: 'left',
+          }}
         >
-          <LogOut size={15} strokeWidth={1.8} />
+          <LogOut size={13} strokeWidth={1.4} />
           Log out
         </button>
       </div>

@@ -25,10 +25,10 @@ export function PageHeader({ title, subtitle, action, className = '' }) {
   return (
     <div className={classNames('flex items-start justify-between gap-4 mb-8', className)}>
       <div>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 400, color: '#1A0A0D', margin: 0, lineHeight: 1.15 }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 300, color: '#1a0a0d', margin: 0, lineHeight: 1.15 }}>
           {title}
         </h1>
-        {subtitle && <p style={{ color: '#6B4A50', fontSize: 14, marginTop: 4, margin: '4px 0 0' }}>{subtitle}</p>}
+        {subtitle && <p style={{ fontFamily: "'Inter', sans-serif", color: '#b09090', fontSize: 12, fontWeight: 300, letterSpacing: '0.04em', margin: '4px 0 0' }}>{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

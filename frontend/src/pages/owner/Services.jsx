@@ -8,23 +8,28 @@ import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { CATEGORY_CHIPS, DURATIONS } from '../../lib/services'
 
-const PRIMARY = '#6B2737'
-const MUTED   = '#8B4A5A'
-const BORDER  = '#D4B0B8'
+const BURG    = '#6B2737'
+const TEXT    = '#1a0a0d'
+const MUTED   = '#b09090'
+const HINT    = '#c0a8a8'
+const BORDER  = '#ede5e7'
+
+const sans = "'Inter', sans-serif"
 
 function chipStyle(active) {
   return {
-    border: `1px solid ${PRIMARY}`,
-    borderRadius: 999,
-    padding: '5px 14px',
-    fontSize: 12,
-    fontWeight: 500,
+    border: active ? '0.5px solid #d4a8b0' : '0.5px solid #ede5e7',
+    padding: '7px 16px',
+    fontSize: 11,
+    fontFamily: sans,
+    fontWeight: 300,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
     cursor: 'pointer',
-    transition: 'all 0.12s',
-    backgroundColor: active ? PRIMARY : 'transparent',
-    color: active ? '#fff' : PRIMARY,
+    transition: 'all 0.1s',
+    backgroundColor: active ? '#EDD5D8' : 'transparent',
+    color: active ? BURG : MUTED,
     whiteSpace: 'nowrap',
-    background: active ? PRIMARY : 'transparent',
   }
 }
 
@@ -46,20 +51,22 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
 
   const inputBase = {
     border: 'none',
-    borderBottom: '1px solid transparent',
+    borderBottom: '0.5px solid transparent',
     padding: '2px 4px',
-    fontSize: 13,
+    fontFamily: sans,
+    fontSize: 12,
+    fontWeight: 300,
     outline: 'none',
     background: 'transparent',
-    color: '#1a1a1a',
+    color: TEXT,
     transition: 'border-color 0.1s',
   }
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px',
-      borderBottom: `0.5px solid ${BORDER}44`,
-      opacity: service.isActive ? 1 : 0.45,
+      display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px',
+      borderBottom: `0.5px solid ${BORDER}`,
+      opacity: service.isActive ? 1 : 0.4,
     }}>
       <input
         value={name}
@@ -71,12 +78,12 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
       <select
         value={duration}
         onChange={e => { const v = Number(e.target.value); setDuration(v); save({ duration: v }) }}
-        style={{ ...inputBase, fontSize: 12, color: MUTED, cursor: 'pointer' }}
+        style={{ ...inputBase, fontSize: 11, color: MUTED, cursor: 'pointer' }}
       >
         {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
       </select>
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-        <span style={{ fontSize: 11, color: MUTED }}>ZMW</span>
+        <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>ZMW</span>
         <input
           type="number"
           min="0"
@@ -94,8 +101,8 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
         disabled={toggling}
         style={{
           fontSize: 14, lineHeight: 1, padding: '2px 6px', border: 'none',
-          background: 'none', cursor: 'pointer', borderRadius: 4, flexShrink: 0,
-          color: service.isActive ? '#dc2626' : '#16a34a',
+          background: 'none', cursor: 'pointer', flexShrink: 0,
+          color: service.isActive ? '#d4a8b0' : '#16a34a',
         }}
       >
         {service.isActive ? '×' : '↺'}
@@ -128,14 +135,25 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
     )
   }
 
+  const fieldStyle = {
+    border: `0.5px solid ${BORDER}`,
+    padding: '6px 10px',
+    fontFamily: sans,
+    fontSize: 12,
+    fontWeight: 300,
+    outline: 'none',
+    background: '#fff',
+    color: TEXT,
+  }
+
   return (
-    <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>
+    <div style={{ border: `0.5px solid ${BORDER}`, marginBottom: 12, backgroundColor: '#fff' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', backgroundColor: '#FDF5F6', borderBottom: `0.5px solid ${BORDER}` }}>
-        <p style={{ fontWeight: 500, fontSize: 14, color: PRIMARY, margin: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
+        <p style={{ fontFamily: sans, fontWeight: 400, fontSize: 12, color: TEXT, margin: 0 }}>
           {category || 'Uncategorised'}
         </p>
-        <span style={{ fontSize: 11, color: MUTED }}>
+        <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>
           {services.length} service{services.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -147,7 +165,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
 
       {/* Draft / add-service row */}
       {showDraft ? (
-        <div style={{ padding: '12px 16px', borderTop: `0.5px solid ${BORDER}44`, backgroundColor: '#fdf5f688' }}>
+        <div style={{ padding: '12px 20px', borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fdf8f8' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
             <input
               autoFocus
@@ -155,12 +173,12 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               value={draft.name}
               onChange={e => setD('name', e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submitDraft()}
-              style={{ flex: 1, minWidth: 130, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none' }}
+              style={{ ...fieldStyle, flex: 1, minWidth: 130 }}
             />
             <select
               value={draft.durationMinutes}
               onChange={e => setD('durationMinutes', Number(e.target.value))}
-              style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none', background: '#fff' }}
+              style={{ ...fieldStyle, cursor: 'pointer' }}
             >
               {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
             </select>
@@ -170,7 +188,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               min="0"
               value={draft.priceZmw}
               onChange={e => setD('priceZmw', e.target.value)}
-              style={{ width: 90, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none' }}
+              style={{ ...fieldStyle, width: 90 }}
             />
             <input
               placeholder="Deposit"
@@ -178,7 +196,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               min="0"
               value={draft.depositZmw}
               onChange={e => setD('depositZmw', e.target.value)}
-              style={{ width: 80, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px', fontSize: 13, outline: 'none' }}
+              style={{ ...fieldStyle, width: 80 }}
             />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -187,9 +205,10 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               onClick={submitDraft}
               disabled={creating || !draft.name || !draft.priceZmw}
               style={{
-                fontSize: 12, fontWeight: 500, color: '#fff', backgroundColor: PRIMARY,
-                border: 'none', borderRadius: 6, padding: '5px 16px', cursor: 'pointer',
-                opacity: (!draft.name || !draft.priceZmw) ? 0.5 : 1,
+                fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em',
+                textTransform: 'uppercase', color: '#fff', backgroundColor: BURG,
+                border: 'none', padding: '7px 18px', cursor: 'pointer',
+                opacity: (!draft.name || !draft.priceZmw) ? 0.4 : 1,
               }}
             >
               {creating ? 'Saving…' : 'Save'}
@@ -197,7 +216,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
             <button
               type="button"
               onClick={() => { setDraft(blank); setShowDraft(false) }}
-              style={{ fontSize: 12, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}
             >
               Cancel
             </button>
@@ -209,12 +228,12 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
           onClick={() => setShowDraft(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-            padding: '9px 16px', background: 'none', border: 'none',
-            borderTop: `0.5px solid ${BORDER}44`,
-            fontSize: 12, color: PRIMARY, cursor: 'pointer', fontWeight: 500,
+            padding: '12px 20px', background: 'none', border: 'none',
+            borderTop: `0.5px solid ${BORDER}`,
+            fontFamily: sans, fontSize: 11, fontWeight: 300, color: BURG, cursor: 'pointer',
           }}
         >
-          <Plus size={12} /> Add service
+          <Plus size={11} /> Add service
         </button>
       )}
     </div>
@@ -228,7 +247,6 @@ export default function Services() {
   const businessType = settingsData?.salonSettings?.businessType ?? 'other'
   const chips = CATEGORY_CHIPS[businessType] ?? CATEGORY_CHIPS.other
 
-  // Categories: from server data + any user-added ones not yet backed by services
   const serverCategories = useMemo(() =>
     [...new Set((data?.services ?? []).map(s => s.category).filter(Boolean))].sort(),
     [data],
@@ -272,10 +290,10 @@ export default function Services() {
 
       {/* Category chip row */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: 12, fontWeight: 500, color: MUTED, marginBottom: 10 }}>
-          Add a category to get started:
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, marginBottom: 10 }}>
+          Add a category to get started
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {chips.map(chip => (
             <button key={chip} type="button" onClick={() => addCategory(chip)} style={chipStyle(categories.includes(chip))}>
               {chip}
@@ -294,12 +312,12 @@ export default function Services() {
                   if (e.key === 'Escape') { setShowCustom(false); setCustomInput('') }
                 }}
                 placeholder="Category name…"
-                style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '5px 12px', fontSize: 12, outline: 'none', width: 140 }}
+                style={{ border: `0.5px solid ${BORDER}`, padding: '7px 12px', fontFamily: sans, fontSize: 11, fontWeight: 300, outline: 'none', width: 140 }}
               />
-              <button onClick={() => addCategory(customInput)} type="button" style={{ fontSize: 12, fontWeight: 500, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => addCategory(customInput)} type="button" style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: BURG, background: 'none', border: 'none', cursor: 'pointer' }}>
                 Add
               </button>
-              <button onClick={() => { setShowCustom(false); setCustomInput('') }} type="button" style={{ fontSize: 12, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => { setShowCustom(false); setCustomInput('') }} type="button" style={{ fontFamily: sans, fontSize: 12, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}>
                 ×
               </button>
             </div>
@@ -307,7 +325,7 @@ export default function Services() {
             <button
               type="button"
               onClick={() => setShowCustom(true)}
-              style={{ ...chipStyle(false), border: `1px dashed ${PRIMARY}` }}
+              style={{ ...chipStyle(false), border: `0.5px dashed ${BORDER}` }}
             >
               + Add your own
             </button>
@@ -316,7 +334,7 @@ export default function Services() {
       </div>
 
       {/* Category sections */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
         {categories.map(cat => (
           <CategorySection
             key={cat}
@@ -345,7 +363,7 @@ export default function Services() {
       </div>
 
       {!loading && categories.length === 0 && uncategorised.length === 0 && (
-        <p style={{ textAlign: 'center', color: MUTED, fontSize: 14, padding: '32px 0' }}>
+        <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, padding: '40px 0' }}>
           Select a category above to start adding services.
         </p>
       )}
