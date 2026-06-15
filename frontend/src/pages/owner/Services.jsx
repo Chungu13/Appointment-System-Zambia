@@ -38,6 +38,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
   const [name, setName] = useState(service.name)
   const [duration, setDuration] = useState(service.durationMinutes)
   const [price, setPrice] = useState(Number(service.priceZmw).toString())
+  const [customDur, setCustomDur] = useState(!DURATIONS.some((d) => d.value === service.durationMinutes))
 
   function save(overrides = {}) {
     onSave({
@@ -75,13 +76,39 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
         onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ name: e.target.value }) }}
         style={{ ...inputBase, flex: 1, minWidth: 80 }}
       />
-      <select
-        value={duration}
-        onChange={e => { const v = Number(e.target.value); setDuration(v); save({ duration: v }) }}
-        style={{ ...inputBase, fontSize: 11, color: MUTED, cursor: 'pointer' }}
-      >
-        {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-      </select>
+      {customDur ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <input
+            type="number"
+            min="5"
+            step="5"
+            value={duration}
+            onChange={e => setDuration(Number(e.target.value))}
+            onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+            onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ duration: Number(e.target.value) }) }}
+            style={{ ...inputBase, width: 48, textAlign: 'center', fontSize: 11 }}
+          />
+          <span style={{ fontFamily: sans, fontSize: 10, color: MUTED }}>min</span>
+          <button
+            type="button"
+            title="Back to presets"
+            onClick={() => setCustomDur(false)}
+            style={{ fontFamily: sans, fontSize: 10, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
+          >↩</button>
+        </div>
+      ) : (
+        <select
+          value={duration}
+          onChange={e => {
+            if (e.target.value === 'custom') { setCustomDur(true); return }
+            const v = Number(e.target.value); setDuration(v); save({ duration: v })
+          }}
+          style={{ ...inputBase, fontSize: 11, color: MUTED, cursor: 'pointer' }}
+        >
+          {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+          <option value="custom">Custom…</option>
+        </select>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
         <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>ZMW</span>
         <input

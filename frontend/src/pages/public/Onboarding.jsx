@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { ApolloClient, InMemoryCache, ApolloLink, createHttpLink } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { Check, Plus, ChevronLeft, ChevronRight, Camera, X, Trash2 } from 'lucide-react'
-import { CATEGORY_CHIPS, DURATIONS } from '../../lib/services'
+import { CATEGORY_CHIPS, DURATIONS, formatDuration } from '../../lib/services'
 import { useAuth } from '../../context/AuthContext'
 import { setTokens, saveRole, getToken, getRefreshToken } from '../../lib/auth'
 import { CREATE_SERVICE } from '../../graphql/mutations/services'
@@ -218,6 +218,7 @@ function chipStyle(active) {
 function OnboardingCategorySection({ category, services, drafts, setDrafts, onAddService, onRemoveService, onRemoveCategory }) {
   const catServices = services.filter((s) => s.category === category)
   const draft = { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '', ...(drafts[category] || {}) }
+  const [customDur, setCustomDur] = useState(false)
 
   function setD(k, v) {
     setDrafts((d) => ({ ...d, [category]: { ...draft, [k]: v } }))
@@ -233,6 +234,7 @@ function OnboardingCategorySection({ category, services, drafts, setDrafts, onAd
       depositZmw: parseFloat(draft.depositZmw) || 0,
     })
     setDrafts((d) => ({ ...d, [category]: { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '' } }))
+    setCustomDur(false)
   }
 
   return (
@@ -252,7 +254,7 @@ function OnboardingCategorySection({ category, services, drafts, setDrafts, onAd
             <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ borderTop: i > 0 ? '0.5px solid #f0f0f0' : 'none' }}>
               <p className="flex-1 text-sm font-medium truncate" style={{ color: TEXT }}>{svc.name}</p>
               <p className="text-xs shrink-0" style={{ color: MUTED }}>
-                ZMW {svc.priceZmw.toFixed(0)} · {DURATIONS.find((d) => d.value === svc.durationMinutes)?.label ?? `${svc.durationMinutes}min`}
+                ZMW {svc.priceZmw.toFixed(0)} · {formatDuration(svc.durationMinutes)}
               </p>
               <button type="button" onClick={() => onRemoveService(svc)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
                 <X size={13} />
@@ -272,14 +274,40 @@ function OnboardingCategorySection({ category, services, drafts, setDrafts, onAd
             className="col-span-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
             style={{ color: TEXT }}
           />
-          <select
-            value={draft.durationMinutes}
-            onChange={(e) => setD('durationMinutes', Number(e.target.value))}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
-            style={{ color: TEXT }}
-          >
-            {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-          </select>
+          {customDur ? (
+            <div className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 bg-white">
+              <input
+                type="number"
+                min="5"
+                step="5"
+                value={draft.durationMinutes}
+                onChange={(e) => setD('durationMinutes', Number(e.target.value))}
+                className="w-14 text-sm outline-none bg-transparent"
+                style={{ color: TEXT }}
+              />
+              <span className="text-xs shrink-0" style={{ color: TEXT }}>min</span>
+              <button
+                type="button"
+                onClick={() => { setCustomDur(false); setD('durationMinutes', 60) }}
+                className="text-xs ml-1 shrink-0"
+                style={{ color: '#9a8080', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                title="Back to presets"
+              >↩</button>
+            </div>
+          ) : (
+            <select
+              value={draft.durationMinutes}
+              onChange={(e) => {
+                if (e.target.value === 'custom') { setCustomDur(true); return }
+                setD('durationMinutes', Number(e.target.value))
+              }}
+              className="rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white outline-none"
+              style={{ color: TEXT }}
+            >
+              {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+              <option value="custom">Custom…</option>
+            </select>
+          )}
           <input
             placeholder="Price (ZMW)"
             type="number"
