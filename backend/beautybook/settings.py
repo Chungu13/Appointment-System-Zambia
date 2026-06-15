@@ -44,6 +44,9 @@ SHARED_APPS = [
     # staff lives in SHARED_APPS so the custom User table exists in the public
     # schema (needed for Django admin / session auth) AND in each tenant schema.
     "staff",
+
+    # Outgoing webhook notifications — no models, shared across all tenants
+    "notifications",
 ]
 
 TENANT_APPS = [
