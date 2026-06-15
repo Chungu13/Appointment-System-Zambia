@@ -92,7 +92,7 @@ function FieldRow({ label, value, note, isLast }) {
     }}>
       <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0, width: 140, flexShrink: 0 }}>{label}</p>
       <div style={{ flex: 1 }}>
-        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{value || '-'}</p>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: TEXT, margin: 0 }}>{value || '-'}</p>
         {note && <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '3px 0 0' }}>{note}</p>}
       </div>
     </div>
@@ -189,7 +189,7 @@ function PersonalDetailsCard({ profile }) {
           <input ref={fileRef} type="file" accept="image/jpeg,image/png" style={{ display: 'none' }} onChange={handleAvatarFile} />
         </div>
         <div>
-          <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: '0 0 2px' }}>{profile.fullName}</p>
+          <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>{profile.fullName}</p>
           <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0, textTransform: 'capitalize' }}>{profile.role?.toLowerCase()}</p>
         </div>
       </div>

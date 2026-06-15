@@ -92,19 +92,19 @@ function CustomerRow({ customer, isLast }) {
       <CustomerAvatar name={customer.fullName} />
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: TEXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {displayName}
         </p>
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0 }}>{customer.phone}</p>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: MUTED, margin: 0 }}>{customer.phone}</p>
       </div>
 
       <div style={{ textAlign: 'center', minWidth: 44, flexShrink: 0 }}>
-        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{customer.visitCount}</p>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 600, color: TEXT, margin: 0 }}>{customer.visitCount}</p>
         <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT, margin: 0 }}>visits</p>
       </div>
 
       <div style={{ textAlign: 'right', minWidth: 72, flexShrink: 0 }}>
-        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{timeAgo(customer.lastVisitAt)}</p>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: TEXT, margin: 0 }}>{timeAgo(customer.lastVisitAt)}</p>
         <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT, margin: 0 }}>last visit</p>
       </div>
 

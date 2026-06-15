@@ -433,7 +433,7 @@ function PolicyRadio({ label, value, current, onChange, children }) {
         }}>
           {selected && <div style={{ width: 4, height: 4, backgroundColor: '#fff' }} />}
         </div>
-        <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT }}>{label}</span>
+        <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT }}>{label}</span>
       </button>
       {selected && children}
     </div>

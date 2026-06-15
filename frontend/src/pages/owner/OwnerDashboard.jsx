@@ -40,7 +40,7 @@ function StatCard({ label, value, sub }) {
       <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTED, margin: '0 0 8px' }}>
         {label}
       </p>
-      <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: TEXT, margin: '0 0 4px', lineHeight: 1 }}>
+      <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 500, color: TEXT, margin: '0 0 4px', lineHeight: 1 }}>
         {value ?? '—'}
       </p>
       {sub && (
@@ -109,10 +109,10 @@ function WeeklySchedule({ isAlsoStaff }) {
                   </p>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: TEXT, margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {appt.service.name}
                   </p>
-                  <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0 }}>
+                  <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: MUTED, margin: 0 }}>
                     {appt.customer.fullName}
                   </p>
                 </div>
@@ -152,11 +152,11 @@ function AIInsightCard({ bookedByAgent, slotsRecovered }) {
       <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>
         AI Insight
       </p>
-      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, lineHeight: 1.7, color: MUTED, margin: '0 0 16px' }}>
+      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, lineHeight: 1.7, color: TEXT, margin: '0 0 16px' }}>
         Your AI agent booked{' '}
-        <span style={{ fontWeight: 400, color: TEXT }}>{bookedByAgent ?? '—'}</span>{' '}
+        <span style={{ fontWeight: 600, color: BURG }}>{bookedByAgent ?? '—'}</span>{' '}
         appointments and recovered{' '}
-        <span style={{ fontWeight: 400, color: TEXT }}>{slotsRecovered ?? '—'}</span>{' '}
+        <span style={{ fontWeight: 600, color: BURG }}>{slotsRecovered ?? '—'}</span>{' '}
         cancelled slots this week.
       </p>
       <button
@@ -197,7 +197,7 @@ export default function OwnerDashboard() {
 
       {/* Greeting */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 300, color: TEXT, margin: '0 0 4px', lineHeight: 1.2 }}>
+        <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 400, color: TEXT, margin: '0 0 4px', lineHeight: 1.2 }}>
           {greeting()}{firstName ? `, ${firstName}` : ''}
         </h1>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, letterSpacing: '0.04em' }}>
@@ -211,7 +211,7 @@ export default function OwnerDashboard() {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', margin: '0 0 4px' }}>
             Revenue Today
           </p>
-          <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: '#fff', margin: 0, lineHeight: 1 }}>
+          <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 500, color: '#fff', margin: 0, lineHeight: 1 }}>
             {loading ? '—' : stats ? formatZMW(stats.todayRevenue) : '—'}
           </p>
         </div>

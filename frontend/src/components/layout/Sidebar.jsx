@@ -16,7 +16,7 @@ const TEXT    = '#1a0a0d'
 const MUTED   = '#b09090'
 const BORDER  = '#ede5e7'
 const BLUSH   = '#fdf8f8'
-const NAV_MUTED = '#9a8080'
+const NAV_MUTED = '#5c4848'
 
 const sans = "'Inter', sans-serif"
 const serif = "'Cormorant Garamond', serif"
@@ -66,7 +66,7 @@ function NavItem({ to, end, icon: Icon, label, id }) {
         padding: isActive ? '9px 12px 9px 10px' : '9px 12px',
         borderLeft: isActive ? `2px solid ${BURG}` : '2px solid transparent',
         fontSize: 11,
-        fontWeight: 300,
+        fontWeight: 400,
         fontFamily: sans,
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
@@ -115,7 +115,7 @@ export default function Sidebar() {
             </p>
           )}
         </Link>
-        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED, margin: '6px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, color: '#7a5a5e', margin: '6px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
           {ownerName || ''}
         </p>
       </div>
@@ -140,7 +140,7 @@ export default function Sidebar() {
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 10,
             padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: sans, fontSize: 11, fontWeight: 300,
+            fontFamily: sans, fontSize: 11, fontWeight: 400,
             letterSpacing: '0.06em', textTransform: 'uppercase', color: NAV_MUTED,
             textAlign: 'left',
           }}
@@ -154,7 +154,7 @@ export default function Sidebar() {
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 10,
             padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: sans, fontSize: 11, fontWeight: 300,
+            fontFamily: sans, fontSize: 11, fontWeight: 400,
             letterSpacing: '0.06em', textTransform: 'uppercase', color: NAV_MUTED,
             textAlign: 'left',
           }}

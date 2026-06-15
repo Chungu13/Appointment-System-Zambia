@@ -55,7 +55,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
     padding: '2px 4px',
     fontFamily: sans,
     fontSize: 12,
-    fontWeight: 300,
+    fontWeight: 400,
     outline: 'none',
     background: 'transparent',
     color: TEXT,

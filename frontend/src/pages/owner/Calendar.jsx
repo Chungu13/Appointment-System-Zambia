@@ -232,7 +232,7 @@ function ListView({ days, appointments, today, onSelect }) {
                       <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: '0 0 2px', lineHeight: 1.3 }}>
                         {appt.customer.fullName}
                       </p>
-                      <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: NAV_MUTED, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#7a6060', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {appt.service.name} · {appt.staff.fullName}
                       </p>
                     </div>
@@ -252,7 +252,7 @@ function ListView({ days, appointments, today, onSelect }) {
 
 // ── Appointment modal ─────────────────────────────────────────────────────────
 const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#b09090', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
-const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 400, color: '#1a0a0d', margin: 0 }
+const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#1a0a0d', margin: 0 }
 
 function ApptModal({ appt, onClose, onAction, loading }) {
   return (
@@ -262,7 +262,7 @@ function ApptModal({ appt, onClose, onAction, loading }) {
     >
       <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 380 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
-          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: 0 }}>Appointment</h2>
+          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: 0 }}>Appointment</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
             <X size={18} />
           </button>
@@ -271,8 +271,8 @@ function ApptModal({ appt, onClose, onAction, loading }) {
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>{appt.customer.fullName}</p>
-              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>{appt.customer.phone}</p>
+              <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 600, color: TEXT, margin: '0 0 2px' }}>{appt.customer.fullName}</p>
+              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: MUTED, margin: 0 }}>{appt.customer.phone}</p>
             </div>
             <Badge status={appt.status} />
           </div>
@@ -287,7 +287,7 @@ function ApptModal({ appt, onClose, onAction, loading }) {
           </div>
 
           {appt.customerNotes && (
-            <div style={{ backgroundColor: '#faf7f7', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>
+            <div style={{ backgroundColor: '#faf7f7', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
               {appt.customerNotes}
             </div>
           )}

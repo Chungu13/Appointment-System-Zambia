@@ -40,7 +40,7 @@ export default function Analytics() {
           style={{
             fontFamily: serif,
             fontSize: 24,
-            fontWeight: 300,
+            fontWeight: 400,
             color: '#1a0a0d',
             margin: '0 0 12px',
           }}
@@ -48,7 +48,7 @@ export default function Analytics() {
           Detailed analytics coming soon
         </h2>
 
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 auto', maxWidth: 340, lineHeight: 1.7 }}>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#5c4848', margin: '0 auto', maxWidth: 340, lineHeight: 1.7 }}>
           Revenue trends, booking patterns, and peak-hour insights — powered by the Insights Agent.
           Check your weekly digest in the dashboard for now.
         </p>
