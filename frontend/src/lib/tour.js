@@ -15,8 +15,8 @@ export function startTour() {
     allowClose: true,
     overlayClickBehavior: 'close',
     progressText: '{{current}} of {{total}}',
-    nextBtnText: 'Next →',
-    prevBtnText: '← Back',
+    nextBtnText: 'Next',
+    prevBtnText: 'Back',
     doneBtnText: 'Done',
     onDestroyed: () => {
       localStorage.setItem(TOUR_KEY, '1')

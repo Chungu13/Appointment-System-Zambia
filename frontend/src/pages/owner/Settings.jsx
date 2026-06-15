@@ -5,9 +5,89 @@ import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
-import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
+
+const BURG      = '#6B2737'
+const TEXT      = '#1a0a0d'
+const MUTED     = '#b09090'
+const HINT      = '#c0a8a8'
+const BORDER    = '#ede5e7'
+const BLUSH     = '#fdf8f8'
+const OFF_WHITE = '#faf7f7'
+
+const sans  = "'Inter', sans-serif"
+const serif = "'Cormorant Garamond', Georgia, serif"
+
+const cardStyle = {
+  backgroundColor: '#fff',
+  border: `0.5px solid ${BORDER}`,
+  padding: 28,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
+}
+
+const headingStyle = {
+  fontFamily: serif,
+  fontSize: 20,
+  fontWeight: 300,
+  color: TEXT,
+  margin: 0,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+}
+
+const labelStyle = {
+  fontFamily: sans,
+  fontSize: 10,
+  fontWeight: 300,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  color: MUTED,
+  display: 'block',
+  marginBottom: 6,
+}
+
+const fieldStyle = {
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '9px 12px',
+  border: `0.5px solid ${BORDER}`,
+  fontFamily: sans,
+  fontSize: 13,
+  fontWeight: 300,
+  color: TEXT,
+  backgroundColor: '#fff',
+  outline: 'none',
+}
+
+const savedSpan = { fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#2d6a4f' }
+
+function SaveBtn({ onClick, disabled, loading, children }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      style={{
+        padding: '9px 24px',
+        backgroundColor: disabled || loading ? '#d4a8b0' : BURG,
+        color: '#fff',
+        border: 'none',
+        fontFamily: sans,
+        fontSize: 10,
+        fontWeight: 300,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        cursor: disabled || loading ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {loading ? 'Saving…' : children}
+    </button>
+  )
+}
+
+// ── Business profile photo ────────────────────────────────────────────────────
 
 function BusinessProfileCard({ currentImageUrl }) {
   const [preview, setPreview] = useState(currentImageUrl || null)
@@ -41,9 +121,7 @@ function BusinessProfileCard({ currentImageUrl }) {
     reader.readAsDataURL(file)
   }
 
-  function handleFileChange(e) {
-    processFile(e.target.files?.[0])
-  }
+  function handleFileChange(e) { processFile(e.target.files?.[0]) }
 
   function handleDrop(e) {
     e.preventDefault()
@@ -58,37 +136,37 @@ function BusinessProfileCard({ currentImageUrl }) {
   }
 
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={cardStyle}>
       <div>
-        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Camera size={18} className="text-primary" />
+        <h2 style={headingStyle}>
+          <Camera size={18} color={BURG} />
           Business profile photo
         </h2>
-        <p className="text-sm text-on-surface-variant mt-1">
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
           This photo appears on your public salon listing in the directory.
         </p>
       </div>
 
       {validationError && (
-        <p className="text-sm text-error font-medium">{validationError}</p>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', margin: 0 }}>{validationError}</p>
       )}
 
       {preview ? (
-        <div className="relative w-full max-w-sm">
+        <div style={{ position: 'relative', maxWidth: 360 }}>
           <img
             src={preview}
             alt="Business cover"
-            className="w-full h-48 object-cover rounded-xl border border-outline-variant"
+            style={{ width: '100%', height: 192, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }}
           />
           <button
             onClick={removePhoto}
-            className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
+            style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
-            <X size={16} />
+            <X size={14} />
           </button>
           {loading && (
-            <div className="absolute inset-0 bg-black/30 rounded-xl flex items-center justify-center">
-              <span className="text-white text-sm font-medium">Saving…</span>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#fff' }}>Saving…</span>
             </div>
           )}
         </div>
@@ -98,39 +176,36 @@ function BusinessProfileCard({ currentImageUrl }) {
           onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          className={`w-full max-w-sm h-40 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
-            dragging
-              ? 'border-primary bg-primary/5'
-              : 'border-outline-variant hover:border-primary/50 hover:bg-surface-container'
-          }`}
+          style={{
+            maxWidth: 360, height: 160,
+            border: `0.5px solid ${dragging ? BURG : BORDER}`,
+            backgroundColor: dragging ? BLUSH : '#fff',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', gap: 8, cursor: 'pointer',
+            transition: 'border-color 0.1s, background-color 0.1s',
+          }}
         >
-          <Camera size={28} className="text-on-surface-variant" />
-          <span className="text-sm text-on-surface-variant">
-            Click or drag a photo here
-          </span>
-          <span className="text-xs text-on-surface-variant/70">JPG or PNG, max 5 MB</span>
+          <Camera size={28} color={HINT} />
+          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>Click or drag a photo here</span>
+          <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT }}>JPG or PNG, max 5 MB</span>
         </div>
       )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png" style={{ display: 'none' }} onChange={handleFileChange} />
 
-      {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+      {saved && <span style={savedSpan}>Saved ✓</span>}
     </div>
   )
 }
 
+// ── Location ──────────────────────────────────────────────────────────────────
+
 function LocationCard({ currentCity, currentArea, currentAddress }) {
-  const [city, setCity]         = useState(currentCity || 'Lusaka')
-  const [area, setArea]         = useState(currentArea || '')
+  const [city, setCity]           = useState(currentCity || 'Lusaka')
+  const [area, setArea]           = useState(currentArea || '')
   const [areaOther, setAreaOther] = useState('')
-  const [address, setAddress]   = useState(currentAddress || '')
-  const [saved, setSaved]       = useState(false)
+  const [address, setAddress]     = useState(currentAddress || '')
+  const [saved, setSaved]         = useState(false)
 
   const [updateProfile, { loading, error }] = useMutation(UPDATE_TENANT_PROFILE, {
     refetchQueries: [SALON_SETTINGS],
@@ -150,28 +225,27 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
     updateProfile({ variables: { city, area: effectiveArea, address: address.trim() } })
   }
 
+  const onFocus = (e) => (e.target.style.borderColor = BURG)
+  const onBlur  = (e) => (e.target.style.borderColor = BORDER)
+
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={cardStyle}>
       <div>
-        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MapPin size={18} className="text-primary" />
+        <h2 style={headingStyle}>
+          <MapPin size={18} color={BURG} />
           Location
         </h2>
-        <p className="text-sm text-on-surface-variant mt-1">
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
           Shown on your public listing so customers can find you.
         </p>
       </div>
 
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
 
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <label className="block text-sm font-medium text-on-surface mb-1.5">City</label>
-          <select
-            value={city}
-            onChange={handleCityChange}
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
-          >
+          <label style={labelStyle}>City</label>
+          <select value={city} onChange={handleCityChange} style={fieldStyle} onFocus={onFocus} onBlur={onBlur}>
             {CITIES.filter((c) => c !== 'Other').map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -179,15 +253,15 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-on-surface mb-1.5">
-            {isLusaka ? 'Area (Lusaka neighbourhood)' : 'Area / suburb'}
-          </label>
+          <label style={labelStyle}>{isLusaka ? 'Area (Lusaka neighbourhood)' : 'Area / suburb'}</label>
           {isLusaka ? (
             <>
               <select
                 value={area}
                 onChange={(e) => { setArea(e.target.value); setAreaOther('') }}
-                className="w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+                style={fieldStyle}
+                onFocus={onFocus}
+                onBlur={onBlur}
               >
                 <option value="">Select area…</option>
                 {LUSAKA_AREAS.map((a) => (
@@ -200,7 +274,9 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
                   value={areaOther}
                   onChange={(e) => setAreaOther(e.target.value)}
                   placeholder="Enter your area"
-                  className="mt-2 w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+                  style={{ ...fieldStyle, marginTop: 8 }}
+                  onFocus={onFocus}
+                  onBlur={onBlur}
                 />
               )}
             </>
@@ -210,32 +286,36 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
               value={area}
               onChange={(e) => setArea(e.target.value)}
               placeholder="e.g. Riverside, CBD"
-              className="w-full px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
+              style={fieldStyle}
+              onFocus={onFocus}
+              onBlur={onBlur}
             />
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-on-surface mb-1.5">
-            Detailed address / directions
-          </label>
+          <label style={labelStyle}>Detailed address / directions</label>
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="e.g. Shop 4, Cairo Road, next to Game"
             rows={2}
-            className="w-full rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-4 py-3 focus:outline-none focus:border-primary transition-colors resize-none"
+            style={{ ...fieldStyle, resize: 'none' }}
+            onFocus={onFocus}
+            onBlur={onBlur}
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <Button onClick={save} loading={loading}>Save location</Button>
-        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <SaveBtn onClick={save} loading={loading}>Save location</SaveBtn>
+        {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
     </div>
   )
 }
+
+// ── Staff access key ──────────────────────────────────────────────────────────
 
 function generateKey() {
   const words = ['GLOW', 'SALON', 'BEAUTY', 'SHINE', 'STYLE', 'GRACE']
@@ -245,9 +325,9 @@ function generateKey() {
 }
 
 function StaffKeyCard({ currentKey }) {
-  const [key, setKey] = useState(currentKey || '')
+  const [key, setKey]       = useState(currentKey || '')
   const [copied, setCopied] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved]   = useState(false)
 
   const [setStaffKey, { loading, error }] = useMutation(SET_STAFF_ACCESS_KEY, {
     refetchQueries: [SALON_SETTINGS],
@@ -266,60 +346,65 @@ function StaffKeyCard({ currentKey }) {
     setStaffKey({ variables: { key: key.trim() } })
   }
 
+  const iconBtn = {
+    padding: '0 12px',
+    border: `0.5px solid ${BORDER}`,
+    backgroundColor: '#fff',
+    color: MUTED,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={cardStyle}>
       <div>
-        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <KeyRound size={18} className="text-primary" />
+        <h2 style={headingStyle}>
+          <KeyRound size={18} color={BURG} />
           Staff access key
         </h2>
-        <p className="text-sm text-on-surface-variant mt-1">
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
           Share this key with your staff. They enter it at{' '}
-          <span className="font-mono text-xs bg-surface-container px-1.5 py-0.5 rounded">
+          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, backgroundColor: OFF_WHITE, padding: '1px 6px', border: `0.5px solid ${BORDER}` }}>
             {window.location.origin}/staff
           </span>{' '}
-          to see today's schedule. No individual accounts needed.
+          to see today's schedule.
         </p>
       </div>
 
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
 
-      <div className="flex gap-2">
+      <div style={{ display: 'flex', gap: 8 }}>
         <input
           type="text"
           value={key}
           onChange={(e) => setKey(e.target.value.toUpperCase())}
           placeholder="e.g. GLOW2024"
-          className="flex-1 px-4 py-2.5 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-lg font-bold tracking-widest uppercase focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+          style={{ flex: 1, ...fieldStyle, fontSize: 16, fontWeight: 400, letterSpacing: '0.2em', textTransform: 'uppercase' }}
+          onFocus={(e) => (e.target.style.borderColor = BURG)}
+          onBlur={(e) => (e.target.style.borderColor = BORDER)}
         />
-        <button
-          onClick={copy}
-          title="Copy key"
-          className="px-3 rounded-xl border-2 border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
-        >
-          {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+        <button onClick={copy} title="Copy key" style={iconBtn}>
+          {copied ? <Check size={16} color="#2d6a4f" /> : <Copy size={16} />}
         </button>
-        <button
-          onClick={() => setKey(generateKey())}
-          title="Generate new key"
-          className="px-3 rounded-xl border-2 border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
-        >
-          <RefreshCw size={18} />
+        <button onClick={() => setKey(generateKey())} title="Generate new key" style={iconBtn}>
+          <RefreshCw size={16} />
         </button>
       </div>
 
-      <div className="flex items-center gap-3">
-        <Button onClick={save} loading={loading} disabled={!key.trim() || key.trim() === currentKey}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <SaveBtn onClick={save} loading={loading} disabled={!key.trim() || key.trim() === currentKey}>
           Save key
-        </Button>
-        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+        </SaveBtn>
+        {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
 
-      <div className="rounded-xl bg-primary-container/30 border border-primary/20 p-4 text-sm">
-        <p className="font-semibold text-on-surface mb-1">How to share with staff</p>
-        <ol className="text-on-surface-variant space-y-1 list-decimal list-inside">
-          <li>Tell all staff: "Go to <span className="font-medium text-on-surface">{window.location.origin}/staff</span>"</li>
-          <li>Enter the key: <span className="font-mono font-bold text-primary">{key || '-'}</span></li>
+      <div style={{ backgroundColor: OFF_WHITE, border: `0.5px solid ${BORDER}`, padding: '14px 18px' }}>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>How to share with staff</p>
+        <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2 }}>
+          <li>Tell all staff: "Go to <span style={{ color: TEXT }}>{window.location.origin}/staff</span>"</li>
+          <li>Enter the key: <span style={{ fontFamily: "'Courier New', monospace", color: BURG, fontWeight: 400 }}>{key || '-'}</span></li>
           <li>Type your name to filter to just your appointments</li>
         </ol>
       </div>
@@ -327,7 +412,8 @@ function StaffKeyCard({ currentKey }) {
   )
 }
 
-// ── Radio helper ──────────────────────────────────────────────────────────────
+// ── Policy helpers ────────────────────────────────────────────────────────────
+
 function PolicyRadio({ label, value, current, onChange, children }) {
   const selected = current === value
   return (
@@ -335,14 +421,19 @@ function PolicyRadio({ label, value, current, onChange, children }) {
       <button
         type="button"
         onClick={() => onChange(value)}
-        className="flex items-center gap-3 text-left w-full"
+        style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
-        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-          selected ? 'border-primary' : 'border-outline-variant'
-        }`}>
-          {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
+        <div style={{
+          width: 14, height: 14,
+          border: `1.5px solid ${selected ? BURG : BORDER}`,
+          backgroundColor: selected ? BURG : 'transparent',
+          flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'border-color 0.1s, background-color 0.1s',
+        }}>
+          {selected && <div style={{ width: 4, height: 4, backgroundColor: '#fff' }} />}
         </div>
-        <span className="text-sm text-on-surface">{label}</span>
+        <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT }}>{label}</span>
       </button>
       {selected && children}
     </div>
@@ -354,14 +445,19 @@ function CheckItem({ label, checked, onChange }) {
     <button
       type="button"
       onClick={onChange}
-      className="flex items-center gap-3 text-left w-full"
+      style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
     >
-      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-        checked ? 'border-primary bg-primary' : 'border-outline-variant'
-      }`}>
-        {checked && <Check size={10} className="text-white" />}
+      <div style={{
+        width: 14, height: 14,
+        border: `1.5px solid ${checked ? BURG : BORDER}`,
+        backgroundColor: checked ? BURG : 'transparent',
+        flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'border-color 0.1s, background-color 0.1s',
+      }}>
+        {checked && <Check size={9} color="#fff" />}
       </div>
-      <span className="text-sm text-on-surface">{label}</span>
+      <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT }}>{label}</span>
     </button>
   )
 }
@@ -373,24 +469,27 @@ function OtherTextInput({ value, onChange }) {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="Describe your policy…"
-      className="mt-2 ml-7 w-full rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-3 py-2 focus:outline-none focus:border-primary transition-colors"
+      style={{ ...fieldStyle, marginTop: 8, marginLeft: 26, width: 'calc(100% - 26px)', boxSizing: 'border-box' }}
+      onFocus={(e) => (e.target.style.borderColor = BURG)}
+      onBlur={(e) => (e.target.style.borderColor = BORDER)}
     />
   )
 }
 
 function PolicyGroup({ title, children }) {
   return (
-    <div className="space-y-2.5">
-      <p className="text-sm font-semibold text-on-surface">{title}</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, margin: 0 }}>{title}</p>
       {children}
     </div>
   )
 }
 
+// ── AI assistant policies ─────────────────────────────────────────────────────
+
 function BusinessPoliciesCard({ current }) {
   const [saved, setSaved] = useState(false)
 
-  // Flatten DB policies into local state
   const init = (p) => ({
     cancellationPolicy: p?.cancellationPolicy || '',
     cancellationOther: '',
@@ -464,30 +563,31 @@ function BusinessPoliciesCard({ current }) {
     })
   }
 
-  const isCancOther = form.cancellationPolicy === 'other'
-  const isLateOther = form.lateArrivalPolicy === 'other'
-  const isFeeOther  = form.lateFee === 'other'
-  const isWaitOther = form.waitingTime === 'other'
+  const isCancOther  = form.cancellationPolicy === 'other'
+  const isLateOther  = form.lateArrivalPolicy === 'other'
+  const isFeeOther   = form.lateFee === 'other'
+  const isWaitOther  = form.waitingTime === 'other'
   const isBringOther = form.whatToBring.includes('other')
   const isParkOther  = form.parking === 'other'
   const isContOther  = form.contactPreference === 'other'
 
+  const divider = { borderTop: `0.5px solid ${BORDER}`, paddingTop: 20 }
+
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div style={{ ...cardStyle, gap: 24 }}>
       <div>
-        <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Bot size={18} className="text-primary" />
+        <h2 style={headingStyle}>
+          <Bot size={18} color={BURG} />
           AI assistant policies
         </h2>
-        <p className="text-sm text-on-surface-variant mt-1">
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
           These policies help your AI booking assistant answer common customer questions accurately.
         </p>
       </div>
 
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
 
-      <div className="space-y-6 divide-y divide-outline-variant/40">
-        {/* Cancellation */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <PolicyGroup title="Cancellation policy">
           {['Free cancellation anytime', 'Free cancellation up to 24hrs before', 'Deposit non-refundable on cancellation'].map((opt) => (
             <PolicyRadio key={opt} label={opt} value={opt} current={form.cancellationPolicy} onChange={(v) => set('cancellationPolicy', v)} />
@@ -497,8 +597,7 @@ function BusinessPoliciesCard({ current }) {
           </PolicyRadio>
         </PolicyGroup>
 
-        {/* Late arrival */}
-        <div className="pt-5">
+        <div style={divider}>
           <PolicyGroup title="Late arrival policy">
             {['We allow up to 15 minutes late', 'We allow up to 30 minutes late', 'No late arrivals — appointment cancelled if late'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)} />
@@ -509,20 +608,21 @@ function BusinessPoliciesCard({ current }) {
           </PolicyGroup>
         </div>
 
-        {/* Late fee */}
-        <div className="pt-5">
+        <div style={divider}>
           <PolicyGroup title="Late fee">
             <PolicyRadio label="No charge — we accommodate late arrivals" value="no_charge" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
             <PolicyRadio label="Yes — a late fee applies" value="fee_applies" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
-              <div className="mt-2 ml-7 flex items-center gap-2">
-                <span className="text-sm text-on-surface-variant">ZMW</span>
+              <div style={{ marginTop: 8, marginLeft: 26, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>ZMW</span>
                 <input
                   type="number"
                   min="0"
                   value={form.lateFeeAmount}
                   onChange={(e) => set('lateFeeAmount', e.target.value)}
                   placeholder="Amount"
-                  className="w-28 rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-3 py-2 focus:outline-none focus:border-primary transition-colors"
+                  style={{ width: 100, padding: '7px 10px', border: `0.5px solid ${BORDER}`, fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+                  onFocus={(e) => (e.target.style.borderColor = BURG)}
+                  onBlur={(e) => (e.target.style.borderColor = BORDER)}
                 />
               </div>
             </PolicyRadio>
@@ -533,8 +633,7 @@ function BusinessPoliciesCard({ current }) {
           </PolicyGroup>
         </div>
 
-        {/* Waiting time */}
-        <div className="pt-5">
+        <div style={divider}>
           <PolicyGroup title="How long should customers expect to wait if running behind?">
             {['We run on time — no waiting', 'Allow up to 15 minutes waiting time', 'Allow up to 30 minutes waiting time'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.waitingTime} onChange={(v) => set('waitingTime', v)} />
@@ -545,8 +644,7 @@ function BusinessPoliciesCard({ current }) {
           </PolicyGroup>
         </div>
 
-        {/* What to bring */}
-        <div className="pt-5">
+        <div style={divider}>
           <PolicyGroup title="What should customers bring? (select all that apply)">
             {['Reference photos', 'Their own hair extensions', 'Their own nail polish colour', 'Nothing — we provide everything'].map((opt) => (
               <CheckItem key={opt} label={opt} checked={form.whatToBring.includes(opt)} onChange={() => toggleBring(opt)} />
@@ -558,8 +656,7 @@ function BusinessPoliciesCard({ current }) {
           </PolicyGroup>
         </div>
 
-        {/* Parking */}
-        <div className="pt-5">
+        <div style={divider}>
           <PolicyGroup title="Parking">
             {['Free parking on site', 'Paid parking nearby', 'Street parking available', 'No parking — public transport recommended'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.parking} onChange={(v) => set('parking', v)} />
@@ -570,8 +667,7 @@ function BusinessPoliciesCard({ current }) {
           </PolicyGroup>
         </div>
 
-        {/* Contact preference */}
-        <div className="pt-5">
+        <div style={divider}>
           <PolicyGroup title="Customer contact preference">
             {['Kimawa only', 'WhatsApp also welcome', 'Call us anytime'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.contactPreference} onChange={(v) => set('contactPreference', v)} />
@@ -582,26 +678,29 @@ function BusinessPoliciesCard({ current }) {
           </PolicyGroup>
         </div>
 
-        {/* Additional info */}
-        <div className="pt-5">
-          <p className="text-sm font-semibold text-on-surface mb-2">Additional info (optional)</p>
+        <div style={divider}>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, margin: '0 0 8px' }}>Additional info (optional)</p>
           <textarea
             value={form.additionalInfo}
             onChange={(e) => set('additionalInfo', e.target.value)}
             placeholder="e.g. We specialise in natural African hair, by appointment only, etc."
             rows={3}
-            className="w-full rounded-xl border-2 border-outline-variant bg-background text-on-surface text-sm px-4 py-3 focus:outline-none focus:border-primary transition-colors resize-none"
+            style={{ ...fieldStyle, resize: 'none' }}
+            onFocus={(e) => (e.target.style.borderColor = BURG)}
+            onBlur={(e) => (e.target.style.borderColor = BORDER)}
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={save} loading={loading}>Save policies</Button>
-        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 4 }}>
+        <SaveBtn onClick={save} loading={loading}>Save policies</SaveBtn>
+        {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
     </div>
   )
 }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Settings() {
   const { data, loading, error } = useQuery(SALON_SETTINGS)

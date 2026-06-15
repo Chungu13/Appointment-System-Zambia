@@ -7,10 +7,99 @@ import { UPDATE_MY_PROFILE, CHANGE_PASSWORD } from '../../graphql/mutations/staf
 import { UPDATE_TENANT_PROFILE, DELETE_TENANT } from '../../graphql/mutations/tenant'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
-import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
 import { getInitials } from '../../lib/utils'
+
+const BURG   = '#6B2737'
+const TEXT   = '#1a0a0d'
+const MUTED  = '#b09090'
+const HINT   = '#c0a8a8'
+const BORDER = '#ede5e7'
+
+const sans  = "'Inter', sans-serif"
+const serif = "'Cormorant Garamond', Georgia, serif"
+
+const cardStyle = {
+  backgroundColor: '#fff',
+  border: `0.5px solid ${BORDER}`,
+  padding: 28,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 24,
+}
+
+const headingStyle = {
+  fontFamily: serif,
+  fontSize: 20,
+  fontWeight: 300,
+  color: TEXT,
+  margin: 0,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+}
+
+const savedSpan = { fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#2d6a4f' }
+
+const primaryBtn = (disabled) => ({
+  padding: '9px 24px',
+  backgroundColor: disabled ? '#d4a8b0' : BURG,
+  color: '#fff',
+  border: 'none',
+  fontFamily: sans,
+  fontSize: 10,
+  fontWeight: 300,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+})
+
+const outlineBtn = {
+  padding: '7px 20px',
+  backgroundColor: 'transparent',
+  color: BURG,
+  border: `0.5px solid ${BORDER}`,
+  fontFamily: sans,
+  fontSize: 10,
+  fontWeight: 300,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+}
+
+const ghostBtn = {
+  background: 'none',
+  border: 'none',
+  fontFamily: sans,
+  fontSize: 12,
+  fontWeight: 300,
+  color: MUTED,
+  cursor: 'pointer',
+  padding: 0,
+}
+
+function FieldRow({ label, value, note, isLast }) {
+  return (
+    <div style={{
+      display: 'flex',
+      paddingBottom: isLast ? 0 : 14,
+      marginBottom: isLast ? 0 : 14,
+      borderBottom: isLast ? 'none' : `0.5px solid ${BORDER}`,
+    }}>
+      <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0, width: 140, flexShrink: 0 }}>{label}</p>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{value || '-'}</p>
+        {note && <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '3px 0 0' }}>{note}</p>}
+      </div>
+    </div>
+  )
+}
+
+// ── Personal details ──────────────────────────────────────────────────────────
 
 function PersonalDetailsCard({ profile }) {
   const { setProfile } = useAuth()
@@ -60,128 +149,95 @@ function PersonalDetailsCard({ profile }) {
   }
 
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <User size={17} color="#6B2737" />
+    <div style={cardStyle}>
+      <h2 style={headingStyle}>
+        <User size={17} color={BURG} />
         Personal details
       </h2>
 
       {/* Avatar */}
-      <div className="flex items-center gap-4">
-        <div className="relative shrink-0">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           {profile.avatarUrl ? (
             <img
               src={profile.avatarUrl}
               alt={profile.fullName}
-              className="w-16 h-16 rounded-full object-cover border-2 border-outline-variant"
+              style={{ width: 64, height: 64, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }}
             />
           ) : (
-            <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: '#E8C4CC', display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none' }}>
-              <span style={{ fontSize: 20, fontWeight: 600, color: '#6B2737' }}>{getInitials(profile.fullName)}</span>
+            <div style={{ width: 64, height: 64, backgroundColor: BURG, display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none' }}>
+              <span style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: '#fff' }}>{getInitials(profile.fullName)}</span>
             </div>
           )}
           <button
             type="button"
             disabled={loading}
             onClick={() => fileRef.current?.click()}
-            className="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-1.5 shadow hover:opacity-90 transition-opacity disabled:opacity-50"
+            style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 20, height: 20,
+              backgroundColor: '#000',
+              border: 'none',
+              color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1,
+            }}
           >
             <Camera size={11} />
           </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png"
-            className="hidden"
-            onChange={handleAvatarFile}
-          />
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png" style={{ display: 'none' }} onChange={handleAvatarFile} />
         </div>
         <div>
-          <p className="font-medium text-on-surface">{profile.fullName}</p>
-          <p className="text-sm text-on-surface-variant capitalize">{profile.role?.toLowerCase()}</p>
+          <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: '0 0 2px' }}>{profile.fullName}</p>
+          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0, textTransform: 'capitalize' }}>{profile.role?.toLowerCase()}</p>
         </div>
       </div>
 
-      {fileError && <p className="text-sm text-error font-medium">{fileError}</p>}
+      {fileError && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', margin: 0 }}>{fileError}</p>}
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
 
-      {/* Fields */}
       {editing ? (
-        <div className="space-y-4">
-          <Input
-            label="Full name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            autoComplete="name"
-          />
-          <Input
-            label="Phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+260 97 000 0000"
-            autoComplete="tel"
-          />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+          <Input label="Phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+260 97 000 0000" autoComplete="tel" />
         </div>
       ) : (
-        <div className="space-y-3 text-sm">
-          <div className="grid grid-cols-[130px_1fr] gap-2">
-            <span className="text-on-surface-variant">Full name</span>
-            <span className="text-on-surface font-medium">{profile.fullName}</span>
-          </div>
-          <div className="grid grid-cols-[130px_1fr] gap-2">
-            <span className="text-on-surface-variant">Phone</span>
-            <span className="text-on-surface font-medium">{profile.phone || '-'}</span>
-          </div>
+        <div>
+          <FieldRow label="Full name" value={profile.fullName} />
+          <FieldRow label="Phone" value={profile.phone} />
+          <FieldRow label="Email" value={profile.email} note="Contact support to change your email." isLast />
         </div>
       )}
 
-      {/* Email — always read-only */}
-      <div className="text-sm">
-        <div className="grid grid-cols-[130px_1fr] gap-2">
-          <span className="text-on-surface-variant">Email</span>
-          <div>
-            <span className="text-on-surface font-medium">{profile.email}</span>
-            <p className="text-xs text-on-surface-variant mt-0.5">
-              Contact support to change your email.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {editing ? (
           <>
-            <Button onClick={save} loading={loading}>Save changes</Button>
-            <button
-              type="button"
-              onClick={cancel}
-              className="text-sm text-on-surface-variant hover:text-on-surface transition-colors"
-            >
-              Cancel
+            <button onClick={save} disabled={loading} style={primaryBtn(loading)}>
+              {loading ? 'Saving…' : 'Save changes'}
             </button>
+            <button type="button" onClick={cancel} style={ghostBtn}>Cancel</button>
           </>
         ) : (
-          <Button variant="secondary" onClick={() => setEditing(true)}>
-            <Pencil size={13} className="mr-1.5 inline-block" />
+          <button style={outlineBtn} onClick={() => setEditing(true)}>
+            <Pencil size={11} />
             Edit
-          </Button>
+          </button>
         )}
-        {saved && (
-          <span className="text-sm text-green-700 font-medium">Profile updated ✓</span>
-        )}
+        {saved && <span style={savedSpan}>Profile updated ✓</span>}
       </div>
     </div>
   )
 }
 
+// ── Contact & payments ────────────────────────────────────────────────────────
+
 function ContactPaymentsCard({ settings, refetchSettings }) {
-  const [editing, setEditing]             = useState(false)
-  const [phone, setPhone]                 = useState(settings.phone || '')
-  const [payoutPhone, setPayoutPhone]     = useState(settings.payoutPhone || '')
-  const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber || '')
-  const [saved, setSaved]                 = useState(false)
+  const [editing, setEditing]                   = useState(false)
+  const [phone, setPhone]                       = useState(settings.phone || '')
+  const [payoutPhone, setPayoutPhone]           = useState(settings.payoutPhone || '')
+  const [whatsappNumber, setWhatsappNumber]     = useState(settings.whatsappNumber || '')
+  const [saved, setSaved]                       = useState(false)
 
   const [updateTenantProfile, { loading, error }] = useMutation(UPDATE_TENANT_PROFILE, {
     onCompleted: () => {
@@ -209,92 +265,63 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
     setEditing(false)
   }
 
-  const row = (label, value) => (
-    <div className="grid grid-cols-[160px_1fr] gap-2">
-      <span className="text-on-surface-variant">{label}</span>
-      <span className="text-on-surface font-medium">{value || '-'}</span>
-    </div>
-  )
-
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Smartphone size={17} color="#6B2737" />
+    <div style={cardStyle}>
+      <h2 style={headingStyle}>
+        <Smartphone size={17} color={BURG} />
         Contact & Payments
       </h2>
 
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
 
       {editing ? (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Input label="Contact number" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+260 97 000 0000" />
           <div>
-            <Input
-              label="Contact number"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+260 97 000 0000"
-            />
+            <Input label="Mobile money number" type="tel" value={payoutPhone} onChange={(e) => setPayoutPhone(e.target.value)} placeholder="+260 97 000 0000" />
+            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '4px 0 0' }}>Kimawa sends your earnings to this number.</p>
           </div>
           <div>
-            <Input
-              label="Mobile money number"
-              type="tel"
-              value={payoutPhone}
-              onChange={(e) => setPayoutPhone(e.target.value)}
-              placeholder="+260 97 000 0000"
-            />
-            <p className="text-xs text-on-surface-variant mt-1">Kimawa sends your earnings to this number.</p>
-          </div>
-          <div>
-            <Input
-              label="WhatsApp number"
-              type="tel"
-              value={whatsappNumber}
-              onChange={(e) => setWhatsappNumber(e.target.value)}
-              placeholder="+260 97 000 0000"
-            />
-            <p className="text-xs text-on-surface-variant mt-1">We send booking notifications to this number.</p>
+            <Input label="WhatsApp number" type="tel" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="+260 97 000 0000" />
+            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '4px 0 0' }}>We send booking notifications to this number.</p>
           </div>
         </div>
       ) : (
-        <div className="space-y-3 text-sm">
-          {row('Contact number', settings.phone)}
-          {row('Mobile money number', settings.payoutPhone)}
-          {row('WhatsApp number', settings.whatsappNumber)}
+        <div>
+          <FieldRow label="Contact number" value={settings.phone} />
+          <FieldRow label="Mobile money" value={settings.payoutPhone} />
+          <FieldRow label="WhatsApp" value={settings.whatsappNumber} isLast />
         </div>
       )}
 
-      <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {editing ? (
           <>
-            <Button onClick={save} loading={loading}>Save changes</Button>
-            <button
-              type="button"
-              onClick={cancel}
-              className="text-sm text-on-surface-variant hover:text-on-surface transition-colors"
-            >
-              Cancel
+            <button onClick={save} disabled={loading} style={primaryBtn(loading)}>
+              {loading ? 'Saving…' : 'Save changes'}
             </button>
+            <button type="button" onClick={cancel} style={ghostBtn}>Cancel</button>
           </>
         ) : (
-          <Button variant="secondary" onClick={() => setEditing(true)}>
-            <Pencil size={13} className="mr-1.5 inline-block" />
+          <button style={outlineBtn} onClick={() => setEditing(true)}>
+            <Pencil size={11} />
             Edit
-          </Button>
+          </button>
         )}
-        {saved && <span className="text-sm text-green-700 font-medium">Saved ✓</span>}
+        {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
     </div>
   )
 }
 
+// ── Change password ───────────────────────────────────────────────────────────
+
 function ChangePasswordCard() {
-  const [currentPassword, setCurrentPassword]   = useState('')
-  const [newPassword, setNewPassword]           = useState('')
-  const [confirmPassword, setConfirmPassword]   = useState('')
-  const [validationError, setValidationError]   = useState(null)
-  const [saved, setSaved]                       = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword]         = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [validationError, setValidationError] = useState(null)
+  const [saved, setSaved]                     = useState(false)
 
   const [changePassword, { loading, error }] = useMutation(CHANGE_PASSWORD, {
     onCompleted: () => {
@@ -321,56 +348,35 @@ function ChangePasswordCard() {
   }
 
   return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Lock size={17} color="#6B2737" />
+    <div style={cardStyle}>
+      <h2 style={headingStyle}>
+        <Lock size={17} color={BURG} />
         Change password
       </h2>
 
       {validationError && <ErrorMessage message={validationError} />}
-      {error && (
-        <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not change password.'} />
-      )}
+      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not change password.'} />}
 
-      <form onSubmit={submit} className="space-y-4">
-        <Input
-          label="Current password"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          autoComplete="current-password"
-          required
-        />
-        <Input
-          label="New password"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          autoComplete="new-password"
-          required
-        />
-        <Input
-          label="Confirm new password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          autoComplete="new-password"
-          required
-        />
-        <div className="flex items-center gap-3 pt-1">
-          <Button type="submit" loading={loading}>Change password</Button>
-          {saved && (
-            <span className="text-sm text-green-700 font-medium">Password changed ✓</span>
-          )}
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <Input label="Current password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" required />
+        <Input label="New password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" required />
+        <Input label="Confirm new password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" required />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 4 }}>
+          <button type="submit" disabled={loading} style={primaryBtn(loading)}>
+            {loading ? 'Changing…' : 'Change password'}
+          </button>
+          {saved && <span style={savedSpan}>Password changed ✓</span>}
         </div>
       </form>
     </div>
   )
 }
 
+// ── Danger zone ───────────────────────────────────────────────────────────────
+
 function DangerZoneCard() {
   const [confirm, setConfirm] = useState('')
-  const [open, setOpen] = useState(false)
+  const [open, setOpen]       = useState(false)
 
   const { data: settingsData } = useQuery(SALON_SETTINGS)
   const businessName = settingsData?.salonSettings?.businessName ?? ''
@@ -388,12 +394,12 @@ function DangerZoneCard() {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFF8F8', border: '1px solid #F0C8C8', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#8B1A1A', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ backgroundColor: '#FFF8F8', border: '0.5px solid #F0C8C8', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <h2 style={{ ...headingStyle, color: '#8B1A1A' }}>
         <AlertTriangle size={17} />
         Danger zone
       </h2>
-      <p className="text-sm text-red-600">
+      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', margin: 0 }}>
         Permanently delete your business account and all associated data. This cannot be undone.
       </p>
 
@@ -401,39 +407,42 @@ function DangerZoneCard() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="text-sm font-medium text-red-600 underline underline-offset-2 hover:text-red-800 transition-colors"
+          style={{ background: 'none', border: 'none', fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', cursor: 'pointer', padding: 0, textDecoration: 'underline', textAlign: 'left' }}
         >
           Delete my account
         </button>
       )}
 
       {open && (
-        <form onSubmit={submit} className="space-y-4">
-          <p className="text-sm text-red-700">
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#b91c1c', margin: 0 }}>
             Type <strong>{businessName}</strong> to confirm deletion.
           </p>
-          <Input
-            label="Business name"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            placeholder={businessName}
-          />
-          {error && (
-            <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not delete account.'} />
-          )}
-          <div className="flex items-center gap-3">
-            <Button
+          <Input label="Business name" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder={businessName} />
+          {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not delete account.'} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
               type="submit"
-              loading={loading}
-              disabled={confirm !== businessName}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={loading || confirm !== businessName}
+              style={{
+                padding: '9px 24px',
+                backgroundColor: loading || confirm !== businessName ? '#fca5a5' : '#dc2626',
+                color: '#fff',
+                border: 'none',
+                fontFamily: sans,
+                fontSize: 10,
+                fontWeight: 300,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                cursor: loading || confirm !== businessName ? 'not-allowed' : 'pointer',
+              }}
             >
-              Delete permanently
-            </Button>
+              {loading ? 'Deleting…' : 'Delete permanently'}
+            </button>
             <button
               type="button"
               onClick={() => { setOpen(false); setConfirm('') }}
-              className="text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+              style={ghostBtn}
             >
               Cancel
             </button>
@@ -443,6 +452,8 @@ function DangerZoneCard() {
     </div>
   )
 }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Profile() {
   const { data, loading, error } = useQuery(MY_PROFILE)
