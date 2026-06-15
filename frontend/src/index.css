@@ -50,6 +50,10 @@ body {
   color: rgba(255, 255, 255, 0.28);
 }
 
+.customer-search::placeholder {
+  color: #c0a8a8;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

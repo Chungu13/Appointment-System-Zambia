@@ -5,9 +5,15 @@ import { CUSTOMERS } from '../../graphql/queries/bookings'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import { ErrorMessage } from '../../components/ui/Spinner'
 
-const PRIMARY = '#6B2737'
-const MUTED   = '#8B4A5A'
-const BORDER  = '#D4B0B8'
+const BURG    = '#6B2737'
+const TEXT    = '#1a0a0d'
+const MUTED   = '#b09090'
+const HINT    = '#c0a8a8'
+const BORDER  = '#ede5e7'
+const BLUSH   = '#fdf8f8'
+
+const sans  = "'Inter', sans-serif"
+const serif = "'Cormorant Garamond', Georgia, serif"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -40,25 +46,25 @@ function initials(name) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function Avatar({ name }) {
+function CustomerAvatar({ name }) {
   return (
     <div style={{
-      width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-      backgroundColor: name?.trim() ? PRIMARY : '#9ca3af',
+      width: 36, height: 36, flexShrink: 0,
+      backgroundColor: '#EDD5D8',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{initials(name)}</span>
+      <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: BURG }}>{initials(name)}</span>
     </div>
   )
 }
 
 function SkeletonRow() {
   const bar = (w) => (
-    <div style={{ height: 12, backgroundColor: '#f3f4f6', borderRadius: 4, width: w }} />
+    <div style={{ height: 11, backgroundColor: '#f3f4f6', width: w }} />
   )
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `0.5px solid ${BORDER}44` }}>
-      <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: '#f3f4f6', flexShrink: 0 }} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
+      <div style={{ width: 36, height: 36, backgroundColor: '#f3f4f6', flexShrink: 0 }} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {bar('42%')}
         {bar('26%')}
@@ -70,54 +76,47 @@ function SkeletonRow() {
   )
 }
 
-function CustomerRow({ customer }) {
+function CustomerRow({ customer, isLast }) {
   const displayName = customer.fullName?.trim() || 'Unknown'
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `0.5px solid ${BORDER}44`, transition: 'background 0.1s' }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#faf8f6')}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '14px 20px',
+        borderBottom: isLast ? 'none' : `0.5px solid ${BORDER}`,
+        transition: 'background 0.1s',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BLUSH)}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
     >
-      <Avatar name={customer.fullName} />
+      <CustomerAvatar name={customer.fullName} />
 
-      {/* Name + phone */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {displayName}
         </p>
-        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{customer.phone}</p>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0 }}>{customer.phone}</p>
       </div>
 
-      {/* Visits */}
       <div style={{ textAlign: 'center', minWidth: 44, flexShrink: 0 }}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: 0 }}>{customer.visitCount}</p>
-        <p style={{ fontSize: 10, color: MUTED, margin: 0 }}>visits</p>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{customer.visitCount}</p>
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT, margin: 0 }}>visits</p>
       </div>
 
-      {/* Last visit */}
       <div style={{ textAlign: 'right', minWidth: 72, flexShrink: 0 }}>
-        <p style={{ fontSize: 12, color: '#1a1a1a', margin: 0 }}>{timeAgo(customer.lastVisitAt)}</p>
-        <p style={{ fontSize: 10, color: MUTED, margin: 0 }}>last visit</p>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{timeAgo(customer.lastVisitAt)}</p>
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT, margin: 0 }}>last visit</p>
       </div>
 
-      {/* No-shows — only rendered when > 0, otherwise spacer */}
       <div style={{ minWidth: 44, textAlign: 'center', flexShrink: 0 }}>
         {customer.noShowCount > 0 && (
           <>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#dc2626', margin: 0 }}>{customer.noShowCount}</p>
-            <p style={{ fontSize: 10, color: '#dc262688', margin: 0 }}>no-show{customer.noShowCount > 1 ? 's' : ''}</p>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#dc2626', margin: 0 }}>{customer.noShowCount}</p>
+            <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: '#dc262688', margin: 0 }}>no-show{customer.noShowCount > 1 ? 's' : ''}</p>
           </>
         )}
       </div>
     </div>
-  )
-}
-
-function ColHeader({ children, style }) {
-  return (
-    <p style={{ fontSize: 11, fontWeight: 500, color: MUTED, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>
-      {children}
-    </p>
   )
 }
 
@@ -151,51 +150,52 @@ export default function Customers() {
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: MUTED, pointerEvents: 'none' }} />
+        <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: HINT, pointerEvents: 'none' }} />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name or phone…"
+          className="customer-search"
           style={{
             width: '100%', boxSizing: 'border-box',
-            padding: '10px 14px 10px 36px',
-            border: `1px solid ${BORDER}`,
-            borderRadius: 10, fontSize: 13, color: '#1a1a1a',
+            padding: '11px 14px 11px 38px',
+            border: `0.5px solid ${BORDER}`,
+            fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
             outline: 'none', backgroundColor: '#fff',
           }}
-          onFocus={(e) => (e.target.style.borderColor = PRIMARY)}
+          onFocus={(e) => (e.target.style.borderColor = BURG)}
           onBlur={(e) => (e.target.style.borderColor = BORDER)}
         />
       </div>
 
       {/* Table */}
-      <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
         {/* Column headers */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', backgroundColor: '#faf8f6', borderBottom: `0.5px solid ${BORDER}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', backgroundColor: '#faf7f7', borderBottom: `0.5px solid ${BORDER}` }}>
           <div style={{ width: 36, flexShrink: 0 }} />
-          <ColHeader style={{ flex: 1 }}>Customer</ColHeader>
-          <ColHeader style={{ minWidth: 44, textAlign: 'center' }}>Visits</ColHeader>
-          <ColHeader style={{ minWidth: 72, textAlign: 'right' }}>Last seen</ColHeader>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED, margin: 0, flex: 1 }}>Customer</p>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED, margin: 0, minWidth: 44, textAlign: 'center' }}>Visits</p>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED, margin: 0, minWidth: 72, textAlign: 'right' }}>Last seen</p>
           <div style={{ minWidth: 44 }} />
         </div>
 
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
         ) : customers.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <Users size={32} style={{ color: BORDER, marginBottom: 12 }} />
-            <p style={{ fontSize: 14, fontWeight: 500, color: '#1a1a1a', margin: '0 0 4px' }}>
+          <div style={{ textAlign: 'center', padding: '60px 24px' }}>
+            <Users size={28} style={{ color: '#d4a8b0', marginBottom: 12 }} />
+            <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: '0 0 6px' }}>
               {debouncedSearch ? 'No customers match your search' : 'No customers yet'}
             </p>
-            <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>
               {debouncedSearch
                 ? 'Try a different name or phone number.'
                 : 'Customers appear here automatically after their first booking.'}
             </p>
           </div>
         ) : (
-          customers.map((c) => <CustomerRow key={c.id} customer={c} />)
+          customers.map((c, i) => <CustomerRow key={c.id} customer={c} isLast={i === customers.length - 1} />)
         )}
       </div>
     </PageWrapper>

@@ -13,19 +13,28 @@ import {
 } from '../../graphql/mutations/staff'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
-import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 
-const PRIMARY = '#6B2737'
-const MUTED   = '#6B4A50'
-const BORDER  = '#E8D8DC'
-const NEAR_BLACK = '#1A0A0D'
+const BURG     = '#6B2737'
+const TEXT     = '#1a0a0d'
+const MUTED    = '#b09090'
+const HINT     = '#c0a8a8'
+const BORDER   = '#ede5e7'
+const BLUSH    = '#fdf8f8'
+const NAV_MUTED = '#9a8080'
+
+const sans  = "'Inter', sans-serif"
 const serif = "'Cormorant Garamond', Georgia, serif"
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+function initials(name) {
+  if (!name?.trim()) return '?'
+  return name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+}
 
 // ── Create staff modal ────────────────────────────────────────────────────────
 function CreateStaffModal({ onClose, onCreated }) {
@@ -64,25 +73,24 @@ function CreateStaffModal({ onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.12)', width: '100%', maxWidth: 400 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
-          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: NEAR_BLACK, margin: 0 }}>Add staff member</h2>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 400 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
+          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: 0 }}>Add staff member</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}><X size={18} /></button>
         </div>
         <form onSubmit={submit} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Error'} />}
 
-          {/* "This is me" toggle */}
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, borderRadius: 10, border: `1px solid ${BORDER}`, backgroundColor: '#FDF0F2', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, border: `0.5px solid ${BORDER}`, backgroundColor: BLUSH, cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={isMe}
               onChange={(e) => toggleIsMe(e.target.checked)}
-              style={{ marginTop: 2, accentColor: PRIMARY }}
+              style={{ marginTop: 2, accentColor: BURG }}
             />
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 2px' }}>This is me (I also do the work)</p>
-              <p style={{ fontSize: 12, color: MUTED, margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>This is me (I also do the work)</p>
+              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, lineHeight: 1.5 }}>
                 Tick this if you're the sole operator. Your appointments will show on the dashboard.
               </p>
             </div>
@@ -90,8 +98,8 @@ function CreateStaffModal({ onClose, onCreated }) {
 
           {isMe ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ borderRadius: 10, border: `1px solid ${BORDER}`, padding: 12, fontSize: 13, color: MUTED }}>
-                <p style={{ fontWeight: 600, color: NEAR_BLACK, margin: '0 0 2px' }}>{profile?.fullName}</p>
+              <div style={{ border: `0.5px solid ${BORDER}`, padding: 12, fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED }}>
+                <p style={{ fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>{profile?.fullName}</p>
                 <p style={{ margin: 0 }}>{profile?.phone}</p>
               </div>
               <Input
@@ -132,7 +140,6 @@ function CreateStaffModal({ onClose, onCreated }) {
 
 // ── Working hours row ─────────────────────────────────────────────────────────
 function HoursRow({ staffId, day, wh }) {
-  // wh may be undefined if not set yet
   const existing = wh ?? { isDayOff: false, startTime: '', endTime: '' }
   const [isDayOff, setIsDayOff] = useState(existing.isDayOff)
   const [start, setStart] = useState(existing.startTime ?? '')
@@ -143,7 +150,6 @@ function HoursRow({ staffId, day, wh }) {
     onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
   })
 
-  // Ensure HH:MM:SS format — time inputs return "HH:MM", Strawberry needs seconds
   function toTimeStr(val) {
     if (!val) return null
     const p = val.split(':')
@@ -162,33 +168,36 @@ function HoursRow({ staffId, day, wh }) {
     })
   }
 
-  const timeInput = { border: `1px solid ${BORDER}`, borderRadius: 8, padding: '4px 8px', fontSize: 13, color: NEAR_BLACK, backgroundColor: '#fff', outline: 'none', width: 112 }
+  const timeInput = {
+    border: `0.5px solid ${BORDER}`, padding: '4px 8px',
+    fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
+    backgroundColor: '#fff', outline: 'none', width: 112,
+  }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 8, borderBottom: `1px solid ${BORDER}44` }} className="last:border-b-0">
-      <span style={{ width: 88, fontSize: 13, fontWeight: 500, color: NEAR_BLACK, flexShrink: 0 }}>{DAYS[day]}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 8, borderBottom: `0.5px solid ${BORDER}44` }} className="last:border-b-0">
+      <span style={{ width: 88, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, flexShrink: 0 }}>{DAYS[day]}</span>
 
-      {/* Day off toggle */}
       <button
         type="button"
         onClick={() => setIsDayOff((v) => !v)}
-        style={{ width: 32, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: isDayOff ? '#C8A8B0' : PRIMARY, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
+        style={{ width: 32, height: 18, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: isDayOff ? HINT : BURG, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
       >
-        <span style={{ position: 'absolute', top: 3, left: isDayOff ? 3 : 13, width: 12, height: 12, borderRadius: '50%', backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
+        <span style={{ position: 'absolute', top: 3, left: isDayOff ? 3 : 13, width: 12, height: 12, backgroundColor: '#fff', transition: 'left 0.15s' }} />
       </button>
-      <span style={{ fontSize: 11, color: MUTED, width: 44, flexShrink: 0 }}>{isDayOff ? 'Day off' : 'Open'}</span>
+      <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, width: 44, flexShrink: 0 }}>{isDayOff ? 'Day off' : 'Open'}</span>
 
       {!isDayOff && (
         <>
           <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={timeInput} />
-          <span style={{ fontSize: 12, color: MUTED }}>–</span>
+          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>–</span>
           <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={timeInput} />
         </>
       )}
 
       <div style={{ marginLeft: 'auto' }}>
         {saved ? (
-          <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 500 }}>Saved ✓</span>
+          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#16a34a' }}>Saved ✓</span>
         ) : (
           <Button size="sm" variant="ghost" loading={loading} onClick={save}>Save</Button>
         )}
@@ -210,7 +219,7 @@ function ServiceAssignment({ staffId, assignedIds, services }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
       {services.map((s) => {
         const on = assignedIds.includes(s.id)
         return (
@@ -219,14 +228,14 @@ function ServiceAssignment({ staffId, assignedIds, services }) {
             onClick={() => toggle(s.id)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              borderRadius: 10, padding: '8px 12px', fontSize: 13, textAlign: 'left',
-              border: `1px solid ${on ? PRIMARY : BORDER}`,
-              backgroundColor: on ? '#FDF0F2' : '#fff',
-              color: on ? PRIMARY : MUTED,
-              cursor: 'pointer', transition: 'all 0.12s',
+              padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, textAlign: 'left',
+              border: `0.5px solid ${on ? '#d4a8b0' : BORDER}`,
+              backgroundColor: on ? '#fdf8f8' : '#fff',
+              color: on ? BURG : MUTED,
+              cursor: 'pointer', transition: 'all 0.1s',
             }}
           >
-            <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, backgroundColor: on ? PRIMARY : BORDER }} />
+            <span style={{ width: 8, height: 8, flexShrink: 0, backgroundColor: on ? BURG : BORDER }} />
             {s.name}
           </button>
         )
@@ -263,13 +272,13 @@ function PinSetter({ staffId }) {
       >
         <KeyRound size={14} /> Set PIN
       </Button>
-      {done && <span className="text-sm text-green-700 font-medium mb-1">PIN updated ✓</span>}
-      {error && <span className="text-sm text-red-600 mb-1">{error.graphQLErrors?.[0]?.message}</span>}
+      {done && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#16a34a', marginBottom: 1 }}>PIN updated ✓</span>}
+      {error && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', marginBottom: 1 }}>{error.graphQLErrors?.[0]?.message}</span>}
     </div>
   )
 }
 
-// ── Public profile editor (photo + bio + visibility) ─────────────────────────
+// ── Public profile editor ─────────────────────────────────────────────────────
 function StaffProfileEditor({ member }) {
   const [avatarPreview, setAvatarPreview] = useState(member.avatarUrl || null)
   const [bio, setBio] = useState(member.bio || '')
@@ -307,18 +316,18 @@ function StaffProfileEditor({ member }) {
 
   return (
     <div>
-      <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, marginBottom: 12, marginTop: 0 }}>Public profile</h3>
+      <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>Public profile</h3>
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
         {/* Avatar upload */}
         <div style={{ flexShrink: 0 }}>
           {avatarPreview ? (
             <div style={{ position: 'relative', width: 72, height: 72 }}>
-              <img src={avatarPreview} alt="Avatar" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${BORDER}` }} />
+              <img src={avatarPreview} alt="Avatar" style={{ width: 72, height: 72, objectFit: 'cover', border: `0.5px solid ${BORDER}`, display: 'block' }} />
               <button
                 onClick={() => fileRef.current?.click()}
-                style={{ position: 'absolute', bottom: -2, right: -2, width: 24, height: 24, borderRadius: '50%', backgroundColor: PRIMARY, color: '#fff', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, backgroundColor: BURG, color: '#fff', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
-                <Camera size={12} />
+                <Camera size={11} />
               </button>
             </div>
           ) : (
@@ -327,10 +336,10 @@ function StaffProfileEditor({ member }) {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); processFile(e.dataTransfer.files?.[0]) }}
-              style={{ width: 72, height: 72, borderRadius: '50%', border: `2px dashed ${dragOver ? PRIMARY : BORDER}`, backgroundColor: dragOver ? '#FDF0F2' : '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.12s' }}
+              style={{ width: 72, height: 72, border: `0.5px solid ${dragOver ? BURG : BORDER}`, backgroundColor: dragOver ? BLUSH : '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.1s' }}
             >
               <Camera size={16} color={MUTED} />
-              <span style={{ fontSize: 11, color: MUTED }}>Photo</span>
+              <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>Photo</span>
             </button>
           )}
           <input ref={fileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => processFile(e.target.files?.[0])} />
@@ -339,33 +348,33 @@ function StaffProfileEditor({ member }) {
         {/* Bio + visibility */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 500, color: MUTED, display: 'block', marginBottom: 4 }}>Short bio</label>
+            <label style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 6 }}>Short bio</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={2}
               placeholder="e.g. 5 years experience in braiding and natural hair"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, color: NEAR_BLACK, backgroundColor: '#fff', resize: 'none', outline: 'none', fontFamily: 'Inter, sans-serif' }}
-              onFocus={(e) => (e.target.style.borderColor = PRIMARY)}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', border: `0.5px solid ${BORDER}`, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', resize: 'none', outline: 'none' }}
+              onFocus={(e) => (e.target.style.borderColor = BURG)}
               onBlur={(e) => (e.target.style.borderColor = BORDER)}
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <button
               onClick={togglePublic}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, border: `1px solid ${isPublic ? PRIMARY : BORDER}`, backgroundColor: isPublic ? '#FDF0F2' : '#fff', color: isPublic ? PRIMARY : MUTED, cursor: 'pointer', transition: 'all 0.12s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 11, fontWeight: 300, padding: '6px 12px', border: `0.5px solid ${isPublic ? '#d4a8b0' : BORDER}`, backgroundColor: isPublic ? BLUSH : '#fff', color: isPublic ? BURG : MUTED, cursor: 'pointer', transition: 'all 0.1s' }}
             >
               {isPublic ? <Eye size={13} /> : <EyeOff size={13} />}
               {isPublic ? 'Shown on public page' : 'Hidden from public page'}
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {saved && <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 500 }}>Saved ✓</span>}
+              {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#16a34a' }}>Saved ✓</span>}
               <button
                 onClick={save}
                 disabled={loading}
-                style={{ fontSize: 13, fontWeight: 500, padding: '6px 14px', borderRadius: 8, backgroundColor: PRIMARY, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+                style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 16px', backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
               >
                 {loading ? 'Saving…' : 'Save bio'}
               </button>
@@ -380,41 +389,63 @@ function StaffProfileEditor({ member }) {
 // ── Staff member panel ────────────────────────────────────────────────────────
 function StaffPanel({ member, allServices }) {
   const [open, setOpen] = useState(false)
-
-  // Build a map of dayOfWeek → wh object from existing working hours
-  const whByDay = Object.fromEntries((member.workingHours ?? []).map((wh) => [wh.dayOfWeek, wh]))
-
   const [hovered, setHovered] = useState(false)
 
+  const whByDay = Object.fromEntries((member.workingHours ?? []).map((wh) => [wh.dayOfWeek, wh]))
+  const isOwner = member.role === 'OWNER'
+
   return (
-    <div style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
+    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
       {/* Card header */}
       <button
-        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: 16, backgroundColor: hovered ? '#FAF8F6' : '#fff', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background-color 0.12s' }}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', backgroundColor: hovered ? BLUSH : '#fff', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background-color 0.1s' }}
         onClick={() => setOpen((v) => !v)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <Avatar name={member.fullName} src={member.avatarUrl} />
+        {/* Avatar — square */}
+        {member.avatarUrl ? (
+          <img
+            src={member.avatarUrl}
+            alt={member.fullName}
+            style={{ width: 40, height: 40, objectFit: 'cover', flexShrink: 0, display: 'block' }}
+          />
+        ) : (
+          <div style={{ width: 40, height: 40, flexShrink: 0, backgroundColor: isOwner ? BURG : '#EDD5D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: isOwner ? '#fff' : BURG }}>
+              {initials(member.fullName)}
+            </span>
+          </div>
+        )}
+
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: NEAR_BLACK, margin: 0 }}>{member.fullName}</p>
-          <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>{member.phone}</p>
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{member.fullName}</p>
+          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0 }}>{member.phone}</p>
         </div>
-        <Badge color={member.role === 'OWNER' ? 'primary' : 'gray'}>
+
+        {/* Role badge — sharp rectangle */}
+        <span style={{
+          fontFamily: sans, fontSize: 10, fontWeight: 300,
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          padding: '4px 10px', flexShrink: 0,
+          border: `0.5px solid ${isOwner ? '#d4a8b0' : BORDER}`,
+          color: isOwner ? BURG : NAV_MUTED,
+        }}>
           {member.role}
-        </Badge>
-        {open ? <ChevronUp size={16} color={MUTED} style={{ flexShrink: 0 }} /> : <ChevronDown size={16} color={MUTED} style={{ flexShrink: 0 }} />}
+        </span>
+
+        {open
+          ? <ChevronUp size={14} color={HINT} style={{ flexShrink: 0 }} />
+          : <ChevronDown size={14} color={HINT} style={{ flexShrink: 0 }} />}
       </button>
 
       {/* Expanded panel */}
       {open && (
-        <div style={{ borderTop: `1px solid ${BORDER}`, padding: 16, backgroundColor: '#FDFAFB', display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* Public profile */}
+        <div style={{ borderTop: `0.5px solid ${BORDER}`, padding: 20, backgroundColor: BLUSH, display: 'flex', flexDirection: 'column', gap: 24 }}>
           <StaffProfileEditor member={member} />
 
-          {/* Working hours */}
           <div>
-            <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 12px' }}>Working hours</h3>
+            <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>Working hours</h3>
             <div>
               {DAYS.map((_, day) => (
                 <HoursRow key={day} staffId={member.id} day={day} wh={whByDay[day]} />
@@ -422,10 +453,9 @@ function StaffPanel({ member, allServices }) {
             </div>
           </div>
 
-          {/* Services */}
           {allServices.length > 0 && (
             <div>
-              <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 12px' }}>Assigned services</h3>
+              <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>Assigned services</h3>
               <ServiceAssignment
                 staffId={member.id}
                 assignedIds={member.assignedServiceIds ?? []}
@@ -434,10 +464,9 @@ function StaffPanel({ member, allServices }) {
             </div>
           )}
 
-          {/* PIN */}
           {(member.role !== 'OWNER' || member.isAlsoStaff) && (
             <div>
-              <h3 style={{ fontSize: 13, fontWeight: 600, color: NEAR_BLACK, margin: '0 0 12px' }}>PIN login</h3>
+              <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>PIN login</h3>
               <PinSetter staffId={member.id} />
             </div>
           )}
@@ -462,16 +491,24 @@ export default function Staff() {
         title="Staff"
         subtitle="Manage your team, hours, and services"
         action={
-          <Button size="sm" onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> Add staff
-          </Button>
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{
+              background: BURG, color: '#fff', padding: '10px 20px',
+              fontFamily: sans, fontSize: 10, fontWeight: 300,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              border: 'none', cursor: 'pointer',
+            }}
+          >
+            Add Staff
+          </button>
         }
       />
 
       {staffLoading && <PageSpinner />}
       {staffError && <ErrorMessage message={staffError.message} />}
 
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {members.map((member) => (
           <StaffPanel key={member.id} member={member} allServices={services} />
         ))}

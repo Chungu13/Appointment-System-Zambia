@@ -8,6 +8,16 @@ import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 
+const BURG    = '#6B2737'
+const TEXT    = '#1a0a0d'
+const MUTED   = '#b09090'
+const HINT    = '#c0a8a8'
+const BORDER  = '#ede5e7'
+const BLUSH   = '#fdf8f8'
+
+const sans  = "'Inter', sans-serif"
+const serif = "'Cormorant Garamond', Georgia, serif"
+
 // ── Upload modal ──────────────────────────────────────────────────────────────
 
 function UploadModal({ services, onClose, onSave }) {
@@ -52,27 +62,34 @@ function UploadModal({ services, onClose, onSave }) {
     onSave({ imageUrl: dataUrl, caption, serviceId: serviceId ? parseInt(serviceId) : null })
   }
 
+  const fieldStyle = {
+    width: '100%', boxSizing: 'border-box',
+    padding: '9px 12px', border: `0.5px solid ${BORDER}`,
+    fontFamily: sans, fontSize: 12, fontWeight: 300,
+    color: TEXT, backgroundColor: '#fff', outline: 'none',
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.12)', width: '100%', maxWidth: 440 }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
-          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: '#1A0A0D', margin: 0 }}>Add portfolio photo</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-container transition-colors">
-            <X size={18} className="text-on-surface-variant" />
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 440 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
+          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: 0 }}>Add portfolio photo</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
-          {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+        <div style={{ padding: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {error && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', margin: 0 }}>{error}</p>}
 
           {preview ? (
-            <div className="relative">
-              <img src={preview} alt="Preview" className="w-full aspect-square object-cover rounded-xl border border-outline-variant" />
+            <div style={{ position: 'relative' }}>
+              <img src={preview} alt="Preview" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }} />
               <button
                 onClick={() => { setPreview(null); setDataUrl(null) }}
-                className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
+                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
-                <X size={15} />
+                <X size={14} />
               </button>
             </div>
           ) : (
@@ -81,36 +98,46 @@ function UploadModal({ services, onClose, onSave }) {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
-              className={`h-44 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
-                dragOver ? 'border-primary bg-primary/5' : 'border-outline-variant hover:border-primary/50 hover:bg-surface-container'
-              }`}
+              style={{
+                height: 160, border: `0.5px solid ${dragOver ? BURG : BORDER}`,
+                backgroundColor: dragOver ? BLUSH : '#fff',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 8, cursor: 'pointer',
+                transition: 'border-color 0.1s, background-color 0.1s',
+              }}
             >
-              <Camera size={26} className="text-on-surface-variant" />
-              <span className="text-sm text-on-surface-variant">Click or drag a photo here</span>
-              <span className="text-xs text-on-surface-variant/60">JPG or PNG, max 5 MB</span>
+              <Camera size={24} color={MUTED} />
+              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>Click or drag a photo here</span>
+              <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT }}>JPG or PNG, max 5 MB</span>
             </div>
           )}
 
           <input ref={inputRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => processFile(e.target.files?.[0])} />
 
           <div>
-            <label className="text-xs font-medium text-on-surface-variant block mb-1.5">Caption (optional)</label>
+            <label style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 6 }}>
+              Caption (optional)
+            </label>
             <input
               type="text"
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="e.g. Knotless box braids"
-              className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              style={fieldStyle}
+              onFocus={(e) => (e.target.style.borderColor = BURG)}
+              onBlur={(e) => (e.target.style.borderColor = BORDER)}
             />
           </div>
 
           {services?.length > 0 && (
             <div>
-              <label className="text-xs font-medium text-on-surface-variant block mb-1.5">Tag a service (optional)</label>
+              <label style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 6 }}>
+                Tag a service (optional)
+              </label>
               <select
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-background text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                style={fieldStyle}
               >
                 <option value="">No tag</option>
                 {services.map((s) => (
@@ -121,7 +148,7 @@ function UploadModal({ services, onClose, onSave }) {
           )}
         </div>
 
-        <div className="flex gap-3 px-6 pb-6">
+        <div style={{ display: 'flex', gap: 12, padding: 20 }}>
           <Button variant="ghost" onClick={onClose} className="flex-1">Cancel</Button>
           <Button onClick={submit} disabled={!dataUrl} className="flex-1">Add photo</Button>
         </div>
@@ -134,52 +161,69 @@ function UploadModal({ services, onClose, onSave }) {
 
 function PhotoCard({ image, isFirst, isLast, onDelete, onMoveUp, onMoveDown }) {
   const [confirm, setConfirm] = useState(false)
+  const [hovered, setHovered] = useState(false)
 
   return (
-    <div className="relative group rounded-2xl overflow-hidden border border-outline-variant bg-surface-container-lowest">
-      <img src={image.imageUrl} alt={image.caption || 'Portfolio'} className="w-full aspect-square object-cover" />
+    <div
+      style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setConfirm(false) }}
+    >
+      <img src={image.imageUrl} alt={image.caption || 'Portfolio'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(107,39,55,0.75)',
+        opacity: hovered ? 1 : 0,
+        transition: 'opacity 0.2s',
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        padding: 10,
+        pointerEvents: hovered ? 'auto' : 'none',
+      }}>
         {/* Top: reorder */}
-        <div className="flex justify-end gap-1">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
           <button
             onClick={onMoveUp}
             disabled={isFirst}
-            className="p-1.5 bg-black/50 text-white rounded-lg disabled:opacity-30 hover:bg-black/70 transition-colors"
+            style={{ width: 24, height: 24, background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isFirst ? 'default' : 'pointer', opacity: isFirst ? 0.3 : 1 }}
           >
-            <ChevronUp size={15} />
+            <ChevronUp size={14} />
           </button>
           <button
             onClick={onMoveDown}
             disabled={isLast}
-            className="p-1.5 bg-black/50 text-white rounded-lg disabled:opacity-30 hover:bg-black/70 transition-colors"
+            style={{ width: 24, height: 24, background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isLast ? 'default' : 'pointer', opacity: isLast ? 0.3 : 1 }}
           >
-            <ChevronDown size={15} />
+            <ChevronDown size={14} />
           </button>
         </div>
 
         {/* Bottom: caption + delete */}
-        <div className="flex items-end justify-between gap-2">
-          <div className="min-w-0">
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ minWidth: 0 }}>
             {image.caption && (
-              <p className="text-white text-xs font-medium truncate">{image.caption}</p>
+              <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {image.caption}
+              </p>
             )}
             {image.serviceName && (
-              <p className="text-white/70 text-xs truncate">{image.serviceName}</p>
+              <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: 'rgba(255,255,255,0.7)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {image.serviceName}
+              </p>
             )}
           </div>
           {confirm ? (
-            <div className="flex gap-1 shrink-0">
+            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
               <button
                 onClick={() => setConfirm(false)}
-                className="px-2 py-1 text-xs bg-white/20 text-white rounded-lg hover:bg-white/30"
+                style={{ padding: '3px 8px', fontFamily: sans, fontSize: 10, fontWeight: 300, background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', cursor: 'pointer' }}
               >
                 Cancel
               </button>
               <button
                 onClick={onDelete}
-                className="px-2 py-1 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700"
+                style={{ padding: '3px 8px', fontFamily: sans, fontSize: 10, fontWeight: 300, background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer' }}
               >
                 Delete
               </button>
@@ -187,9 +231,9 @@ function PhotoCard({ image, isFirst, isLast, onDelete, onMoveUp, onMoveDown }) {
           ) : (
             <button
               onClick={() => setConfirm(true)}
-              className="p-1.5 bg-black/50 text-white rounded-lg hover:bg-red-600/80 transition-colors shrink-0"
+              style={{ width: 24, height: 24, background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
             >
-              <Trash2 size={14} />
+              <Trash2 size={13} />
             </button>
           )}
         </div>
@@ -238,10 +282,19 @@ export default function Portfolio() {
         title="Portfolio"
         subtitle={images.length > 0 ? `${images.length} photo${images.length === 1 ? '' : 's'}` : 'Showcase your work to attract more customers'}
         action={
-          <Button onClick={() => setShowModal(true)} loading={adding}>
-            <Plus size={16} />
-            Add Photo
-          </Button>
+          <button
+            onClick={() => setShowModal(true)}
+            disabled={adding}
+            style={{
+              background: BURG, color: '#fff', padding: '10px 20px',
+              fontFamily: sans, fontSize: 10, fontWeight: 300,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              border: 'none', cursor: adding ? 'not-allowed' : 'pointer',
+              opacity: adding ? 0.7 : 1,
+            }}
+          >
+            {adding ? 'Uploading…' : 'Add Photo'}
+          </button>
         }
       />
 
@@ -249,23 +302,25 @@ export default function Portfolio() {
       {error && <ErrorMessage message={error.message} />}
 
       {!loading && images.length === 0 && (
-        <div style={{ backgroundColor: '#fff', border: '1px solid #E8D8DC', borderRadius: 16, padding: '64px 32px', textAlign: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: '#FDF0F2', border: '1px solid #E8D8DC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-            <Images size={22} color="#6B2737" />
+        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: '60px 40px', textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, backgroundColor: BLUSH, border: `0.5px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <Images size={20} color="#d4a8b0" />
           </div>
-          <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 400, color: '#1A0A0D', margin: '0 0 10px' }}>No photos yet</h3>
-          <p style={{ fontSize: 13, color: '#6B4A50', maxWidth: 300, margin: '0 auto 24px', lineHeight: 1.6 }}>
+          <h3 style={{ fontFamily: serif, fontSize: 22, fontWeight: 300, color: TEXT, margin: '0 0 10px' }}>No photos yet</h3>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, maxWidth: 300, margin: '0 auto 24px', lineHeight: 1.7 }}>
             Upload photos of your best work. Customers will see these on your public page before booking.
           </p>
-          <Button onClick={() => setShowModal(true)}>
-            <Plus size={16} />
+          <button
+            onClick={() => setShowModal(true)}
+            style={{ background: BURG, color: '#fff', padding: '10px 20px', fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', border: 'none', cursor: 'pointer' }}
+          >
             Add your first photo
-          </Button>
+          </button>
         </div>
       )}
 
       {images.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {images.map((img, i) => (
             <PhotoCard
               key={img.id}
@@ -280,10 +335,17 @@ export default function Portfolio() {
 
           <button
             onClick={() => setShowModal(true)}
-            className="aspect-square rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-2 text-on-surface-variant hover:border-primary/50 hover:bg-surface-container hover:text-primary transition-colors"
+            style={{
+              aspectRatio: '1', border: `0.5px solid ${BORDER}`, background: '#fff',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', gap: 8, cursor: 'pointer',
+              transition: 'background-color 0.1s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BLUSH)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
           >
-            <Plus size={24} />
-            <span className="text-sm font-medium">Add photo</span>
+            <Plus size={20} color="#d4a8b0" />
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>Add photo</span>
           </button>
         </div>
       )}
