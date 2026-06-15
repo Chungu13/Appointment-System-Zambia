@@ -38,6 +38,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
   const [name, setName] = useState(service.name)
   const [duration, setDuration] = useState(service.durationMinutes)
   const [price, setPrice] = useState(Number(service.priceZmw).toString())
+  const [deposit, setDeposit] = useState(Number(service.depositZmw ?? 0).toString())
   const [customDur, setCustomDur] = useState(!DURATIONS.some((d) => d.value === service.durationMinutes))
 
   function save(overrides = {}) {
@@ -46,7 +47,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
       name: (overrides.name ?? name).trim() || service.name,
       durationMinutes: overrides.duration ?? duration,
       priceZmw: parseFloat(overrides.price ?? price) || 0,
-      depositZmw: service.depositZmw,
+      depositZmw: parseFloat(overrides.deposit ?? deposit) || 0,
     })
   }
 
@@ -121,6 +122,18 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
           style={{ ...inputBase, width: 60, textAlign: 'right' }}
         />
       </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT }}>dep.</span>
+        <input
+          type="number"
+          min="0"
+          value={deposit}
+          onChange={e => setDeposit(e.target.value)}
+          onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+          onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ deposit: e.target.value }) }}
+          style={{ ...inputBase, width: 55, textAlign: 'right', color: MUTED }}
+        />
+      </div>
       <button
         type="button"
         title={service.isActive ? 'Deactivate' : 'Restore'}
@@ -143,6 +156,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
   const [showDraft, setShowDraft] = useState(false)
   const blank = { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '' }
   const [draft, setDraft] = useState(blank)
+  const [customDraftDur, setCustomDraftDur] = useState(false)
 
   function setD(k, v) { setDraft(d => ({ ...d, [k]: v })) }
 
@@ -158,7 +172,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
         description: '',
         bufferMinutes: 0,
       },
-      () => { setDraft(blank); setShowDraft(false) },
+      () => { setDraft(blank); setShowDraft(false); setCustomDraftDur(false) },
     )
   }
 
@@ -202,13 +216,37 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               onKeyDown={e => e.key === 'Enter' && submitDraft()}
               style={{ ...fieldStyle, flex: 1, minWidth: 130 }}
             />
-            <select
-              value={draft.durationMinutes}
-              onChange={e => setD('durationMinutes', Number(e.target.value))}
-              style={{ ...fieldStyle, cursor: 'pointer' }}
-            >
-              {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-            </select>
+            {customDraftDur ? (
+              <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="number"
+                  min="5"
+                  step="5"
+                  value={draft.durationMinutes}
+                  onChange={e => setD('durationMinutes', Number(e.target.value))}
+                  style={{ width: 52, border: 'none', outline: 'none', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, background: 'transparent' }}
+                />
+                <span style={{ fontFamily: sans, fontSize: 11, color: MUTED }}>min</span>
+                <button
+                  type="button"
+                  title="Back to presets"
+                  onClick={() => { setCustomDraftDur(false); setD('durationMinutes', 60) }}
+                  style={{ fontFamily: sans, fontSize: 11, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >↩</button>
+              </div>
+            ) : (
+              <select
+                value={draft.durationMinutes}
+                onChange={e => {
+                  if (e.target.value === 'custom') { setCustomDraftDur(true); return }
+                  setD('durationMinutes', Number(e.target.value))
+                }}
+                style={{ ...fieldStyle, cursor: 'pointer' }}
+              >
+                {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                <option value="custom">Custom…</option>
+              </select>
+            )}
             <input
               placeholder="Price ZMW"
               type="number"
