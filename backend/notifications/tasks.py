@@ -38,19 +38,19 @@ def _build_payload(appt, tenant, event: str) -> dict:
 @shared_task(name="notifications.tasks.notify_booking_confirmed")
 def notify_booking_confirmed(appointment_id: int, schema_name: str) -> None:
     """Fire the booking_confirmed webhook to n8n."""
-    _fire("booking_confirmed", appointment_id, schema_name)
+    _fire("booking-confirmed", appointment_id, schema_name)
 
 
 @shared_task(name="notifications.tasks.notify_booking_reminder")
 def notify_booking_reminder(appointment_id: int, schema_name: str) -> None:
     """Fire the booking_reminder webhook to n8n."""
-    _fire("booking_reminder", appointment_id, schema_name)
+    _fire("booking-reminder", appointment_id, schema_name)
 
 
 @shared_task(name="notifications.tasks.notify_booking_cancelled")
 def notify_booking_cancelled(appointment_id: int, schema_name: str) -> None:
     """Fire the booking_cancelled webhook to n8n."""
-    _fire("booking_cancelled", appointment_id, schema_name)
+    _fire("booking-cancelled", appointment_id, schema_name)
 
 
 def _fire(event: str, appointment_id: int, schema_name: str) -> None:
