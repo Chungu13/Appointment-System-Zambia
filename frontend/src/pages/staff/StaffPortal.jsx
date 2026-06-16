@@ -1,13 +1,23 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Search, X, ChevronDown } from 'lucide-react'
+import { Search, X, ChevronDown } from 'lucide-react'
 import { ALL_APPOINTMENTS_TODAY } from '../../graphql/queries/tenant'
 import { VERIFY_STAFF_KEY } from '../../graphql/mutations/tenant'
 import { toDateInputValue, addDays, formatTime } from '../../lib/utils'
 
+const BURG      = '#6B2737'
+const DARK_BURG = '#4A1A25'
+const TEXT      = '#1a0a0d'
+const MUTED     = '#b09090'
+const HINT      = '#c0a8a8'
+const BORDER    = '#ede5e7'
+const OFF_WHITE = '#faf7f7'
+
+const serif = "'Cormorant Garamond', Georgia, serif"
+const sans  = "'Inter', sans-serif"
+
 const SESSION_KEY = 'beautybook_staff_key'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 function getStoredKey() {
   try { return sessionStorage.getItem(SESSION_KEY) || '' } catch { return '' }
 }
@@ -18,9 +28,14 @@ function clearStoredKey() {
   try { sessionStorage.removeItem(SESSION_KEY) } catch {}
 }
 
+function splitTime(str) {
+  const parts = (str || '').split(' ')
+  return { t: parts[0] || '', period: parts[1] || '' }
+}
+
 // ── Step 1: Key entry ─────────────────────────────────────────────────────────
 function KeyEntry({ onVerified }) {
-  const [key, setKey] = useState('')
+  const [key, setKey]     = useState('')
   const [error, setError] = useState('')
   const [verifyKey, { loading }] = useMutation(VERIFY_STAFF_KEY)
 
@@ -41,66 +56,157 @@ function KeyEntry({ onVerified }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#FAF8F6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-      <div style={{ width: '100%', maxWidth: 320 }}>
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: '#E8C4CC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
-            <KeyRound size={26} color="#6B2737" />
-          </div>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 400, color: '#1A0A0D', margin: '0 0 8px' }}>Staff portal</h1>
-          <p style={{ fontSize: 13, color: '#6B4A50', margin: 0, lineHeight: 1.5 }}>
-            Enter your salon's staff access key to see today's schedule
+    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#fff' }}>
+
+      {/* Left panel — brand */}
+      <div
+        className="hidden sm:flex"
+        style={{
+          width: 260,
+          flexShrink: 0,
+          backgroundColor: DARK_BURG,
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '48px 32px',
+        }}
+      >
+        <div>
+          <p style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: '#fff', margin: 0, letterSpacing: '0.02em' }}>
+            Kimawa
+          </p>
+          <div style={{ width: 24, height: 1, backgroundColor: 'rgba(255,255,255,0.3)', margin: '16px 0 20px' }} />
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7, letterSpacing: '0.02em' }}>
+            Your salon,<br />always open.
           </p>
         </div>
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: 'rgba(255,255,255,0.25)', margin: 0, letterSpacing: '0.06em' }}>
+          kimawa.pro
+        </p>
+      </div>
 
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <input
-            type="text"
-            value={key}
-            onChange={(e) => setKey(e.target.value.toUpperCase())}
-            placeholder="e.g. GLOW2024"
-            autoFocus
-            style={{ width: '100%', boxSizing: 'border-box', padding: '14px 16px', border: '1px solid #D4B0B8', borderRadius: 12, fontSize: 20, fontWeight: 700, textAlign: 'center', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1A0A0D', backgroundColor: '#fff', outline: 'none' }}
-            onFocus={(e) => (e.target.style.borderColor = '#6B2737')}
-            onBlur={(e) => (e.target.style.borderColor = '#D4B0B8')}
-          />
-          {error && (
-            <p style={{ fontSize: 13, color: '#b91c1c', textAlign: 'center', margin: 0 }}>{error}</p>
-          )}
-          <button
-            type="submit"
-            disabled={!key.trim() || loading}
-            style={{ width: '100%', padding: '13px 0', borderRadius: 10, backgroundColor: '#1A0A0D', color: '#fff', border: 'none', fontSize: 14, fontWeight: 500, cursor: (!key.trim() || loading) ? 'not-allowed' : 'pointer', opacity: (!key.trim() || loading) ? 0.45 : 1 }}
-          >
-            {loading ? 'Checking…' : 'Enter'}
-          </button>
-        </form>
+      {/* Right panel — form */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
+        <div style={{ width: '100%', maxWidth: 340 }}>
+
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUTED, margin: '0 0 12px' }}>
+            Staff portal
+          </p>
+          <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 400, color: TEXT, margin: '0 0 6px', lineHeight: 1.1 }}>
+            Staff access
+          </h1>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 32px', lineHeight: 1.6 }}>
+            Enter your salon's access key to view today's schedule.
+          </p>
+
+          <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input
+              type="text"
+              value={key}
+              onChange={(e) => setKey(e.target.value.toUpperCase())}
+              placeholder="e.g. GLOW2024"
+              autoFocus
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '13px 16px',
+                border: `0.5px solid ${BORDER}`,
+                borderRadius: 0,
+                fontSize: 18,
+                fontFamily: sans,
+                fontWeight: 600,
+                textAlign: 'center',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: TEXT,
+                backgroundColor: OFF_WHITE,
+                outline: 'none',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = BURG)}
+              onBlur={(e) => (e.target.style.borderColor = BORDER)}
+            />
+            {error && (
+              <p style={{ fontFamily: sans, fontSize: 11, color: '#b91c1c', margin: 0, lineHeight: 1.5 }}>
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={!key.trim() || loading}
+              style={{
+                width: '100%',
+                padding: '13px 0',
+                borderRadius: 0,
+                backgroundColor: BURG,
+                color: '#fff',
+                border: 'none',
+                fontFamily: sans,
+                fontSize: 11,
+                fontWeight: 400,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                cursor: (!key.trim() || loading) ? 'not-allowed' : 'pointer',
+                opacity: (!key.trim() || loading) ? 0.45 : 1,
+                transition: 'opacity 0.15s',
+              }}
+            >
+              {loading ? 'Checking…' : 'Enter'}
+            </button>
+          </form>
+
+          <div style={{ marginTop: 28 }}>
+            <a
+              href="/"
+              style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, textDecoration: 'none', letterSpacing: '0.04em' }}
+            >
+              ← Back to directory
+            </a>
+          </div>
+
+        </div>
       </div>
     </div>
   )
 }
 
 // ── Appointment card ──────────────────────────────────────────────────────────
-function AppointmentCard({ appt }) {
-  const done = ['completed', 'cancelled', 'no_show'].includes(appt.status)
+function AppointmentCard({ appt, faded }) {
+  const { t, period } = splitTime(formatTime(appt.startsAt))
 
   return (
-    <div className={`rounded-2xl p-4 transition-opacity ${done ? 'opacity-50' : ''}`}
-      style={{ backgroundColor: '#fff', border: done ? '1px solid #E8D8DC' : '1.5px solid #6B2737' }}>
-      <div className="flex items-start gap-3">
-        {/* Time */}
-        <div className="shrink-0 text-center w-14">
-          <p className="text-lg font-bold font-display text-primary">{formatTime(appt.startsAt)}</p>
-          <p className="text-xs text-on-surface-variant">{appt.serviceDuration}m</p>
-        </div>
-
-        {/* Details */}
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-primary">{appt.staffName}</p>
-          <p className="font-medium text-on-surface text-sm mt-0.5">{appt.customerName}</p>
-          <p className="text-xs text-on-surface-variant mt-0.5">{appt.serviceName}</p>
-        </div>
-
+    <div style={{
+      backgroundColor: '#fff',
+      border: `0.5px solid ${BORDER}`,
+      borderLeft: `2px solid ${BURG}`,
+      borderRadius: 0,
+      padding: '14px 16px',
+      display: 'flex',
+      gap: 16,
+      opacity: faded ? 0.4 : 1,
+    }}>
+      {/* Time block */}
+      <div style={{ flexShrink: 0, width: 52, paddingTop: 2 }}>
+        <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: 0, lineHeight: 1 }}>
+          {t}
+        </p>
+        <p style={{ fontFamily: sans, fontSize: 9, fontWeight: 300, color: HINT, margin: '3px 0 0', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          {period}
+        </p>
+        <p style={{ fontFamily: sans, fontSize: 9, fontWeight: 300, color: HINT, margin: '4px 0 0', letterSpacing: '0.04em' }}>
+          {appt.serviceDuration}m
+        </p>
+      </div>
+      {/* Details */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, color: BURG, margin: '0 0 3px', letterSpacing: '0.01em' }}>
+          {appt.staffName}
+        </p>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {appt.customerName}
+        </p>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {appt.serviceName}
+        </p>
       </div>
     </div>
   )
@@ -111,7 +217,7 @@ function DaySchedule({ staffKey, onSignOut }) {
   const [nameFilter, setNameFilter] = useState('')
   const [showTomorrow, setShowTomorrow] = useState(false)
 
-  const today = toDateInputValue()
+  const today    = toDateInputValue()
   const tomorrow = toDateInputValue(addDays(new Date(), 1))
 
   const { data: todayData, loading: todayLoading, error: todayError, refetch } = useQuery(ALL_APPOINTMENTS_TODAY, {
@@ -126,7 +232,7 @@ function DaySchedule({ staffKey, onSignOut }) {
     fetchPolicy: 'network-only',
   })
 
-  const todayAppts = todayData?.allAppointmentsToday ?? []
+  const todayAppts    = todayData?.allAppointmentsToday ?? []
   const tomorrowAppts = tomorrowData?.allAppointmentsToday ?? []
 
   const trimmed = nameFilter.trim().toLowerCase()
@@ -137,145 +243,198 @@ function DaySchedule({ staffKey, onSignOut }) {
   }, [todayAppts, trimmed])
 
   const active = filtered.filter((a) => !['completed', 'cancelled', 'no_show'].includes(a.status))
-  const done = filtered.filter((a) => ['completed', 'cancelled', 'no_show'].includes(a.status))
+  const done   = filtered.filter((a) =>  ['completed', 'cancelled', 'no_show'].includes(a.status))
 
-  const isFiltering = !!trimmed
+  const isFiltering  = !!trimmed
+  const displayCount = isFiltering ? filtered.length : todayAppts.length
 
   return (
-    <div className="min-h-screen pb-16" style={{ backgroundColor: '#FAF8F6' }}>
-      {/* Header */}
-      <header className="px-5 pt-10 pb-6" style={{ backgroundColor: '#1A0A0D', color: '#fff' }}>
-        <div className="flex items-start justify-between">
+    <div style={{ minHeight: '100vh', backgroundColor: OFF_WHITE }}>
+
+      {/* Burgundy header */}
+      <header style={{ backgroundColor: BURG, padding: '32px 24px 28px' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Today</p>
-            <h1 className="font-display text-xl font-bold">
+            <p style={{ fontFamily: sans, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', margin: '0 0 8px' }}>
+              Today
+            </p>
+            <h1 style={{ fontFamily: serif, fontSize: 26, fontWeight: 400, color: '#fff', margin: 0, lineHeight: 1.1 }}>
               {new Date().toLocaleDateString('en-ZM', { weekday: 'long', day: 'numeric', month: 'long' })}
             </h1>
             {isFiltering && filtered[0]?.staffName && (
-              <p className="text-2xl font-bold mt-2" style={{ color: '#E8C4CC' }}>
+              <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: 'rgba(255,255,255,0.65)', margin: '6px 0 0', lineHeight: 1.1 }}>
                 {filtered[0].staffName}
               </p>
             )}
-            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              {isFiltering ? filtered.length : todayAppts.length} appointment{(isFiltering ? filtered.length : todayAppts.length) !== 1 ? 's' : ''}
+            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: 'rgba(255,255,255,0.5)', margin: '8px 0 0', letterSpacing: '0.04em' }}>
+              {displayCount} appointment{displayCount !== 1 ? 's' : ''}
             </p>
           </div>
           <button
             onClick={() => { clearStoredKey(); onSignOut() }}
-            style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4, background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{
+              fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)',
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4,
+            }}
           >
             Change key
           </button>
         </div>
       </header>
 
-      {/* Name filter */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 py-3 border-b border-outline-variant/50">
-        <div className="relative max-w-lg mx-auto">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+      {/* Search bar */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: OFF_WHITE, borderBottom: `0.5px solid ${BORDER}`, padding: '12px 24px' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', position: 'relative' }}>
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: HINT, pointerEvents: 'none' }} />
           <input
             type="text"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
-            placeholder="Type your name to filter…"
-            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+            placeholder="Filter by staff name…"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              paddingLeft: 34, paddingRight: nameFilter ? 34 : 14,
+              paddingTop: 10, paddingBottom: 10,
+              border: `0.5px solid ${BORDER}`, borderRadius: 0,
+              backgroundColor: '#fff',
+              fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
+              outline: 'none', transition: 'border-color 0.15s',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = BURG)}
+            onBlur={(e) => (e.target.style.borderColor = BORDER)}
           />
           {nameFilter && (
-            <button onClick={() => setNameFilter('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface">
-              <X size={16} />
+            <button
+              onClick={() => setNameFilter('')}
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: HINT, display: 'flex', padding: 0 }}
+            >
+              <X size={14} />
             </button>
           )}
         </div>
-        {isFiltering && (
-          <p className="text-xs text-center text-on-surface-variant mt-2">
-            Showing {filtered.length} appointment{filtered.length !== 1 ? 's' : ''} for <strong>"{nameFilter.trim()}"</strong>
-          </p>
-        )}
       </div>
 
-      <main className="max-w-lg mx-auto px-4 py-5 space-y-3">
+      <main style={{ maxWidth: 560, margin: '0 auto', padding: '20px 24px 60px' }}>
+
         {todayLoading && (
-          <div className="text-center py-12 text-on-surface-variant">Loading schedule…</div>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, textAlign: 'center', padding: '48px 0' }}>
+            Loading schedule…
+          </p>
         )}
+
         {todayError && (
-          <div className="text-center py-12 text-red-600 text-sm">
-            Could not load schedule. <button onClick={() => refetch()} className="underline">Retry</button>
-          </div>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#b91c1c', textAlign: 'center', padding: '48px 0' }}>
+            Could not load schedule.{' '}
+            <button onClick={() => refetch()} style={{ fontFamily: sans, color: BURG, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: 12, fontWeight: 300, padding: 0 }}>
+              Retry
+            </button>
+          </p>
         )}
 
         {!todayLoading && todayAppts.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-4xl mb-3">🌟</p>
-            <p className="text-lg font-semibold text-on-surface">No appointments today</p>
-            <p className="text-on-surface-variant mt-1">Enjoy your day!</p>
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>All clear</p>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>
+              No appointments scheduled for today.
+            </p>
           </div>
         )}
 
         {!todayLoading && todayAppts.length > 0 && filtered.length === 0 && isFiltering && (
-          <div className="text-center py-12 text-on-surface-variant text-sm">
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, textAlign: 'center', padding: '48px 0' }}>
             No appointments found for "{nameFilter.trim()}"
-          </div>
+          </p>
         )}
 
         {/* Active appointments */}
-        {active.map((appt) => (
-          <AppointmentCard key={appt.id} appt={appt} />
-        ))}
-
-        {/* Done today */}
-        {done.length > 0 && (
-          <div className="pt-2">
-            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-3">Done today</p>
-            {done.map((appt) => (
-              <AppointmentCard key={appt.id} appt={appt} />
+        {active.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {active.map((appt) => (
+              <AppointmentCard key={appt.id} appt={appt} faded={false} />
             ))}
           </div>
         )}
 
+        {/* Done today */}
+        {done.length > 0 && (
+          <div style={{ marginTop: active.length > 0 ? 28 : 0 }}>
+            <p style={{ fontFamily: sans, fontSize: 9, fontWeight: 400, letterSpacing: '0.16em', textTransform: 'uppercase', color: HINT, margin: '0 0 12px' }}>
+              Done today
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {done.map((appt) => (
+                <AppointmentCard key={appt.id} appt={appt} faded />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Tomorrow */}
-        <div className="mt-6 pt-5 border-t-2 border-outline-variant">
+        <div style={{ marginTop: 36, borderTop: `0.5px solid ${BORDER}`, paddingTop: 20 }}>
           <button
             onClick={() => setShowTomorrow((v) => !v)}
-            className="flex items-center gap-2 text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-3 w-full"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: 0, marginBottom: showTomorrow ? 16 : 0, width: '100%',
+            }}
           >
-            <span>Tomorrow's schedule</span>
-            <ChevronDown size={14} className={`transition-transform ${showTomorrow ? 'rotate-180' : ''}`} />
+            <span style={{ fontFamily: sans, fontSize: 9, fontWeight: 400, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>
+              Tomorrow's schedule
+            </span>
+            <ChevronDown
+              size={12}
+              style={{ color: MUTED, transform: showTomorrow ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', flexShrink: 0 }}
+            />
           </button>
 
           {showTomorrow && (
             tomorrowLoading ? (
-              <p className="text-sm text-on-surface-variant text-center py-4">Loading…</p>
+              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, padding: '16px 0' }}>Loading…</p>
             ) : tomorrowAppts.length === 0 ? (
-              <p className="text-sm text-on-surface-variant text-center py-4">Nothing booked tomorrow.</p>
+              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, padding: '16px 0' }}>Nothing booked tomorrow.</p>
             ) : (
-              <div className="space-y-2">
-                {tomorrowAppts.map((appt) => (
-                  <div key={appt.id} className="flex items-center gap-3 py-2.5 border-b border-outline-variant/40 last:border-0">
-                    <span className="text-sm font-bold text-on-surface-variant w-14 shrink-0">{formatTime(appt.startsAt)}</span>
-                    <span className="text-sm font-semibold text-on-surface">{appt.customerName}</span>
-                    <span className="text-sm text-on-surface-variant truncate">· {appt.serviceName}</span>
-                    <span className="text-xs text-on-surface-variant ml-auto shrink-0">{appt.staffName}</span>
+              <div>
+                {tomorrowAppts.map((appt, i) => (
+                  <div
+                    key={appt.id}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '10px 0',
+                      borderBottom: i < tomorrowAppts.length - 1 ? `0.5px solid ${BORDER}` : 'none',
+                    }}
+                  >
+                    <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: TEXT, width: 52, flexShrink: 0 }}>
+                      {formatTime(appt.startsAt)}
+                    </span>
+                    <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: BURG, flexShrink: 0 }}>
+                      {appt.staffName}
+                    </span>
+                    <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {appt.customerName}
+                    </span>
+                    <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, flexShrink: 0 }}>
+                      {appt.serviceName}
+                    </span>
                   </div>
                 ))}
               </div>
             )
           )}
         </div>
+
       </main>
     </div>
   )
 }
 
-// ── Root component ────────────────────────────────────────────────────────────
+// ── Root ──────────────────────────────────────────────────────────────────────
 export default function StaffPortal() {
   const [staffKey, setStaffKey] = useState(() => getStoredKey())
 
-  useEffect(() => {
-    if (staffKey) storeKey(staffKey)
-  }, [staffKey])
-
   if (!staffKey) {
-    return <KeyEntry onVerified={(k) => setStaffKey(k)} />
+    return <KeyEntry onVerified={(k) => { storeKey(k); setStaffKey(k) }} />
   }
 
   return (
