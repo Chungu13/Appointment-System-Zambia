@@ -19,7 +19,7 @@ const BLUSH   = '#fdf8f8'
 const NAV_MUTED = '#5c4848'
 
 const sans = "'Inter', sans-serif"
-const serif = "'Cormorant Garamond', serif"
+const serif = "'Inter', sans-serif"
 
 const mainLinks = [
   { to: '/owner',           icon: LayoutDashboard, label: 'Dashboard',  end: true, id: 'tour-dashboard' },

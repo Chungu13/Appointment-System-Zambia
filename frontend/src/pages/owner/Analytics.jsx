@@ -5,7 +5,7 @@ const BURG   = '#6B2737'
 const MUTED  = '#7a5060'
 const BORDER = '#ede5e7'
 
-const serif = "'Cormorant Garamond', Georgia, serif"
+const serif = "'Inter', sans-serif"
 const sans  = "'Inter', sans-serif"
 
 export default function Analytics() {

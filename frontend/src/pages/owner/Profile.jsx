@@ -18,7 +18,7 @@ const HINT   = '#8a6268'
 const BORDER = '#ede5e7'
 
 const sans  = "'Inter', sans-serif"
-const serif = "'Cormorant Garamond', Georgia, serif"
+const serif = "'Inter', sans-serif"
 
 const cardStyle = {
   backgroundColor: '#fff',

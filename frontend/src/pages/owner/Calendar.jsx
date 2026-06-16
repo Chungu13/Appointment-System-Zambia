@@ -18,7 +18,7 @@ const TEXT       = '#1a0a0d'
 const NAV_MUTED  = '#5c4848'
 
 const sans  = "'Inter', sans-serif"
-const serif = "'Cormorant Garamond', Georgia, serif"
+const serif = "'Inter', sans-serif"
 
 const DAY_START = 8
 const DAY_END   = 20

@@ -16,7 +16,7 @@ const BLUSH     = '#fdf8f8'
 const OFF_WHITE = '#faf7f7'
 
 const sans  = "'Inter', sans-serif"
-const serif = "'Cormorant Garamond', Georgia, serif"
+const serif = "'Inter', sans-serif"
 
 const cardStyle = {
   backgroundColor: '#fff',

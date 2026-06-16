@@ -18,7 +18,7 @@ const HINT      = '#5c2232'
 const BORDER    = '#ede5e7'
 const OFF_WHITE = '#faf7f7'
 
-const serif = "'Cormorant Garamond', Georgia, serif"
+const serif = "'Inter', sans-serif"
 const sans  = "'Inter', sans-serif"
 
 function greeting() {

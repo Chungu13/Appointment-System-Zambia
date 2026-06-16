@@ -13,7 +13,7 @@ const BORDER  = '#ede5e7'
 const BLUSH   = '#fdf8f8'
 
 const sans  = "'Inter', sans-serif"
-const serif = "'Cormorant Garamond', Georgia, serif"
+const serif = "'Inter', sans-serif"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
