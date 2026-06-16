@@ -389,9 +389,7 @@ function StaffKeyCard({ currentKey }) {
           Staff access key
         </h2>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
-          Share this key with your staff. They enter it at{' '}
-          <CopyableUrl url={`${window.location.origin}/staff`} />{' '}
-          to see today's schedule.
+          Share these links and the key below with your team.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -402,6 +400,14 @@ function StaffKeyCard({ currentKey }) {
             <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, width: 96, flexShrink: 0 }}>Staff page</span>
             <CopyableUrl url={`${window.location.origin}/staff`} />
           </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10, paddingLeft: 2 }}>
+          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0, lineHeight: 1.7 }}>
+            <span style={{ fontWeight: 400, color: MUTED }}>Booking page</span> — customers use this to browse services and book appointments.
+          </p>
+          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0, lineHeight: 1.7 }}>
+            <span style={{ fontWeight: 400, color: MUTED }}>Staff page</span> — staff enter the key below to view today's appointments.
+          </p>
         </div>
       </div>
 
@@ -435,9 +441,9 @@ function StaffKeyCard({ currentKey }) {
       <div style={{ backgroundColor: OFF_WHITE, border: `0.5px solid ${BORDER}`, padding: '14px 18px' }}>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>How to share with staff</p>
         <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2.2 }}>
-          <li>Tell all staff: "Go to <CopyableUrl url={`${window.location.origin}/staff`} />"</li>
-          <li>Enter the key: <span style={{ fontFamily: "'Courier New', monospace", color: BURG, fontWeight: 400 }}>{key || '-'}</span></li>
-          <li>Type your name to filter to just your appointments</li>
+          <li>Send staff the <span style={{ fontWeight: 400, color: TEXT }}>Staff page</span> link above</li>
+          <li>They enter the key: <span style={{ fontFamily: "'Courier New', monospace", color: BURG, fontWeight: 400 }}>{key || '-'}</span></li>
+          <li>Type their name to filter to just their appointments</li>
         </ol>
       </div>
     </div>
