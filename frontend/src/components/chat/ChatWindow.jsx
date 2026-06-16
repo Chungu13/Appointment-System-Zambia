@@ -696,7 +696,7 @@ function IntakeForm({ salonName, onSubmit, onClose }) {
           />
           {error && <p style={{ fontFamily: sans, fontSize: 12, color: "#f87171", margin: 0 }}>{error}</p>}
           <button type="submit" style={{ marginTop: 4, width: "100%", padding: "12px 0", backgroundColor: PRIMARY, color: "#fff", border: "none", borderRadius: 10, fontFamily: sans, fontSize: 13, fontWeight: 500, cursor: "pointer", letterSpacing: "0.02em" }}>
-            Start booking →
+            Start booking
           </button>
         </form>
       </div>

@@ -55,7 +55,7 @@ export default function SalonCard({ salon, placeholder = false }) {
           href="/signup"
           style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: PRIMARY, textDecoration: 'underline', letterSpacing: '0.04em' }}
         >
-          List free →
+          List free
         </a>
       </div>
     )
@@ -123,7 +123,7 @@ export default function SalonCard({ salon, placeholder = false }) {
         {/* Footer */}
         <div style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: PRIMARY, letterSpacing: '0.02em' }}>
-            Book Now →
+            Book Now
           </span>
         </div>
       </div>

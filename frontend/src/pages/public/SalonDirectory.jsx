@@ -121,7 +121,7 @@ function SalonsSection() {
             </p>
           </div>
           <Link to="/discover" style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: PRIMARY, textDecoration: 'none' }}>
-            Explore All →
+            Explore All
           </Link>
         </div>
 
