@@ -81,12 +81,6 @@ function KeyEntry({ onVerified }) {
 }
 
 // ── Appointment card ──────────────────────────────────────────────────────────
-const STATUS_COLOR = {
-  confirmed:   'text-emerald-800 bg-emerald-50 border-emerald-200',
-  pending:     'text-amber-800 bg-amber-50 border-amber-200',
-  in_progress: 'text-purple-800 bg-purple-50 border-purple-200',
-}
-
 function AppointmentCard({ appt }) {
   const done = ['completed', 'cancelled', 'no_show'].includes(appt.status)
 
@@ -107,16 +101,6 @@ function AppointmentCard({ appt }) {
           <p className="text-xs text-on-surface-variant mt-0.5">{appt.serviceName}</p>
         </div>
 
-        {/* Status */}
-        <div className="shrink-0">
-          {done ? (
-            <span className="text-xs text-on-surface-variant">Done ✓</span>
-          ) : (
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_COLOR[appt.status] ?? 'text-gray-600 bg-gray-100 border-gray-200'}`}>
-              {appt.status.replace('_', ' ')}
-            </span>
-          )}
-        </div>
       </div>
     </div>
   )
