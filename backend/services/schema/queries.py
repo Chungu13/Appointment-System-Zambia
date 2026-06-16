@@ -133,6 +133,7 @@ class ServicesQuery:
                 service_names=entry["service_names"],
             )
             for sid, entry in staff_services_map.items()
+            if getattr(entry["user"], "display_on_public_page", False)
         ]
 
         from services.models import PortfolioImage

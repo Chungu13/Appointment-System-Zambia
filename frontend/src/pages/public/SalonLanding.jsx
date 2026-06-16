@@ -904,7 +904,9 @@ function PortfolioSection({ images }) {
 
 // ── Team ──────────────────────────────────────────────────────────────────────
 function TeamSection({ staff }) {
-  if (!staff || staff.length === 0) return null;
+  const visible = (staff ?? []).filter((m) => m.displayOnPublicPage);
+  if (visible.length === 0) return null;
+  staff = visible;
 
   return (
     <section>
