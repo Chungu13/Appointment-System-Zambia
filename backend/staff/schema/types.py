@@ -11,6 +11,13 @@ class RoleEnum(Enum):
 
 
 @strawberry.type
+class PublicStaffType:
+    id: int
+    full_name: str
+    avatar_url: str
+
+
+@strawberry.type
 class UserType:
     id: int
     username: str

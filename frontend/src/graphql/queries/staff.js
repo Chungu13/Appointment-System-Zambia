@@ -17,6 +17,16 @@ export const MY_PROFILE = gql`
   }
 `
 
+export const PUBLIC_STAFF = gql`
+  query PublicStaff {
+    publicStaff {
+      id
+      fullName
+      avatarUrl
+    }
+  }
+`
+
 export const STAFF_LIST = gql`
   query StaffList {
     staffList {
