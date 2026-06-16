@@ -587,7 +587,7 @@ class BookingAgent:
                     inputs.get("customer_name", "unknown"),
                 )
 
-            customer, _ = Customer.objects.get_or_create(
+            customer, _ = Customer.objects.update_or_create(
                 phone=resolved_phone,
                 defaults={"full_name": inputs["customer_name"]},
             )
