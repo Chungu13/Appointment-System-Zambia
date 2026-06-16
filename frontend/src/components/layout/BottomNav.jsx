@@ -10,17 +10,17 @@ import { useLogout } from '../../hooks/useAuth'
 import { startTour, resetTour } from '../../lib/tour'
 
 const BURG   = '#6B2737'
-const MUTED  = '#9B7A80'
+const MUTED  = '#6b4a52'
 const BORDER = '#ede5e7'
 const TEXT   = '#1a0a0d'
 
 const sans = "'Inter', sans-serif"
 
 const PRIMARY_LINKS = [
-  { to: '/owner',           icon: LayoutDashboard, label: 'Home',     end: true },
-  { to: '/owner/calendar',  icon: Calendar,        label: 'Calendar' },
-  { to: '/owner/services',  icon: Scissors,        label: 'Services' },
-  { to: '/owner/customers', icon: UserCircle,      label: 'Customers' },
+  { to: '/owner',           icon: LayoutDashboard, label: 'Home',      end: true, id: 'tour-dashboard-m' },
+  { to: '/owner/calendar',  icon: Calendar,        label: 'Calendar',  id: 'tour-calendar-m' },
+  { to: '/owner/services',  icon: Scissors,        label: 'Services',  id: 'tour-services-m' },
+  { to: '/owner/customers', icon: UserCircle,      label: 'Customers', id: 'tour-customers-m' },
 ]
 
 const MORE_LINKS = [
@@ -56,11 +56,12 @@ export default function BottomNav() {
         style={{ backgroundColor: '#fff', borderTop: `0.5px solid ${BORDER}` }}
       >
         <div style={{ display: 'flex' }}>
-          {PRIMARY_LINKS.map(({ to, icon: Icon, label, end }) => (
+          {PRIMARY_LINKS.map(({ to, icon: Icon, label, end, id }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
+              id={id}
               style={({ isActive }) => ({
                 flex: 1,
                 display: 'flex',

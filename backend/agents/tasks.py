@@ -72,45 +72,7 @@ def send_appointment_reminders():
 
 
 # ---------------------------------------------------------------------------
-# Task 2 — every 5 minutes
-# ---------------------------------------------------------------------------
-
-@shared_task(name="agents.tasks.fill_cancelled_slots")
-def fill_cancelled_slots():
-    """Notify waitlist customers when a slot opens up via the SchedulingAgent."""
-    import datetime
-    from django_tenants.utils import tenant_context
-    from agents.scheduling_agent import SchedulingAgent
-    from bookings.models import Appointment
-
-    now = timezone.now()
-    since = now - datetime.timedelta(minutes=10)
-    total = 0
-
-    for tenant in _active_tenants():
-        with tenant_context(tenant):
-            recently_cancelled = (
-                Appointment.objects
-                .filter(status="cancelled", cancelled_at__gte=since)
-                .only("id")
-            )
-            agent = SchedulingAgent(tenant)
-            for appt in recently_cancelled:
-                try:
-                    agent.fill_slot(appt.pk)
-                    total += 1
-                except Exception:
-                    logger.exception(
-                        "fill_cancelled_slots: error processing appointment %d for tenant %s",
-                        appt.pk, tenant.schema_name,
-                    )
-
-    logger.info("fill_cancelled_slots: processed %d cancelled slots", total)
-    return total
-
-
-# ---------------------------------------------------------------------------
-# Task 3 — every 30 minutes
+# Task 2 — every 30 minutes
 # ---------------------------------------------------------------------------
 
 @shared_task(name="agents.tasks.detect_no_shows")

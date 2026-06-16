@@ -10,25 +10,25 @@ import { CATEGORY_CHIPS, DURATIONS } from '../../lib/services'
 
 const BURG    = '#6B2737'
 const TEXT    = '#1a0a0d'
-const MUTED   = '#b09090'
-const HINT    = '#c0a8a8'
+const MUTED   = '#7a5060'
+const HINT    = '#8a6268'
 const BORDER  = '#ede5e7'
 
 const sans = "'Inter', sans-serif"
 
 function chipStyle(active) {
   return {
-    border: active ? '0.5px solid #d4a8b0' : '0.5px solid #ede5e7',
+    border: `0.5px solid ${BURG}`,
     padding: '7px 16px',
     fontSize: 11,
     fontFamily: sans,
-    fontWeight: 300,
+    fontWeight: 400,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     cursor: 'pointer',
     transition: 'all 0.1s',
-    backgroundColor: active ? '#EDD5D8' : 'transparent',
-    color: active ? BURG : MUTED,
+    backgroundColor: active ? BURG : '#fff',
+    color: active ? '#fff' : BURG,
     whiteSpace: 'nowrap',
   }
 }
@@ -66,87 +66,96 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px',
+      padding: '10px 16px',
       borderBottom: `0.5px solid ${BORDER}`,
       opacity: service.isActive ? 1 : 0.4,
     }}>
+      {/* Row 1: Name */}
       <input
         value={name}
         onChange={e => setName(e.target.value)}
         onFocus={e => (e.target.style.borderBottomColor = BORDER)}
         onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ name: e.target.value }) }}
-        style={{ ...inputBase, flex: 1, minWidth: 80 }}
+        style={{ ...inputBase, width: '100%', marginBottom: 6 }}
       />
-      {customDur ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      {/* Row 2: Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {customDur ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+            <input
+              type="number"
+              min="5"
+              step="5"
+              value={duration}
+              onChange={e => setDuration(Number(e.target.value))}
+              onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+              onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ duration: Number(e.target.value) }) }}
+              style={{ ...inputBase, width: 44, textAlign: 'center', fontSize: 11 }}
+            />
+            <span style={{ fontFamily: sans, fontSize: 10, color: MUTED }}>min</span>
+            <button
+              type="button"
+              title="Back to presets"
+              onClick={() => setCustomDur(false)}
+              style={{ fontFamily: sans, fontSize: 10, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
+            >↩</button>
+          </div>
+        ) : (
+          <select
+            value={duration}
+            onChange={e => {
+              if (e.target.value === 'custom') { setCustomDur(true); return }
+              const v = Number(e.target.value); setDuration(v); save({ duration: v })
+            }}
+            style={{ ...inputBase, fontSize: 11, color: MUTED, cursor: 'pointer', flexShrink: 0 }}
+          >
+            {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+            <option value="custom">Custom…</option>
+          </select>
+        )}
+
+        <div style={{ flex: 1 }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+          <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>ZMW</span>
           <input
             type="number"
-            min="5"
-            step="5"
-            value={duration}
-            onChange={e => setDuration(Number(e.target.value))}
+            min="0"
+            value={price}
+            onChange={e => setPrice(e.target.value)}
             onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-            onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ duration: Number(e.target.value) }) }}
-            style={{ ...inputBase, width: 48, textAlign: 'center', fontSize: 11 }}
+            onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ price: e.target.value }) }}
+            style={{ ...inputBase, width: 56, textAlign: 'right' }}
           />
-          <span style={{ fontFamily: sans, fontSize: 10, color: MUTED }}>min</span>
-          <button
-            type="button"
-            title="Back to presets"
-            onClick={() => setCustomDur(false)}
-            style={{ fontFamily: sans, fontSize: 10, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
-          >↩</button>
         </div>
-      ) : (
-        <select
-          value={duration}
-          onChange={e => {
-            if (e.target.value === 'custom') { setCustomDur(true); return }
-            const v = Number(e.target.value); setDuration(v); save({ duration: v })
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+          <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>dep.</span>
+          <input
+            type="number"
+            min="0"
+            value={deposit}
+            onChange={e => setDeposit(e.target.value)}
+            onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+            onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ deposit: e.target.value }) }}
+            style={{ ...inputBase, width: 50, textAlign: 'right', color: MUTED }}
+          />
+        </div>
+
+        <button
+          type="button"
+          title={service.isActive ? 'Deactivate' : 'Restore'}
+          onClick={() => onToggle(service.id)}
+          disabled={toggling}
+          style={{
+            fontSize: 16, lineHeight: 1, padding: '2px 4px', border: 'none',
+            background: 'none', cursor: 'pointer', flexShrink: 0,
+            color: service.isActive ? '#c0a0a8' : '#16a34a',
           }}
-          style={{ ...inputBase, fontSize: 11, color: MUTED, cursor: 'pointer' }}
         >
-          {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-          <option value="custom">Custom…</option>
-        </select>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-        <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>ZMW</span>
-        <input
-          type="number"
-          min="0"
-          value={price}
-          onChange={e => setPrice(e.target.value)}
-          onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-          onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ price: e.target.value }) }}
-          style={{ ...inputBase, width: 60, textAlign: 'right' }}
-        />
+          {service.isActive ? '×' : '↺'}
+        </button>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-        <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT }}>dep.</span>
-        <input
-          type="number"
-          min="0"
-          value={deposit}
-          onChange={e => setDeposit(e.target.value)}
-          onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-          onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ deposit: e.target.value }) }}
-          style={{ ...inputBase, width: 55, textAlign: 'right', color: MUTED }}
-        />
-      </div>
-      <button
-        type="button"
-        title={service.isActive ? 'Deactivate' : 'Restore'}
-        onClick={() => onToggle(service.id)}
-        disabled={toggling}
-        style={{
-          fontSize: 14, lineHeight: 1, padding: '2px 6px', border: 'none',
-          background: 'none', cursor: 'pointer', flexShrink: 0,
-          color: service.isActive ? '#d4a8b0' : '#16a34a',
-        }}
-      >
-        {service.isActive ? '×' : '↺'}
-      </button>
     </div>
   )
 }
@@ -390,7 +399,7 @@ export default function Services() {
             <button
               type="button"
               onClick={() => setShowCustom(true)}
-              style={{ ...chipStyle(false), border: `0.5px dashed ${BORDER}` }}
+              style={{ ...chipStyle(false), border: `0.5px dashed ${BURG}` }}
             >
               + Add your own
             </button>

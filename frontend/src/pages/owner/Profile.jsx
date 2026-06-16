@@ -13,8 +13,8 @@ import { getInitials } from '../../lib/utils'
 
 const BURG   = '#6B2737'
 const TEXT   = '#1a0a0d'
-const MUTED  = '#b09090'
-const HINT   = '#c0a8a8'
+const MUTED  = '#7a5060'
+const HINT   = '#8a6268'
 const BORDER = '#ede5e7'
 
 const sans  = "'Inter', sans-serif"

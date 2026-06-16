@@ -38,9 +38,17 @@ import Profile from './pages/owner/Profile'
 // Staff portal — no auth, shared key
 import StaffPortal from './pages/staff/StaffPortal'
 
+import { useVersionCheck } from './hooks/useVersionCheck'
+
+function VersionGuard() {
+  useVersionCheck()
+  return null
+}
+
 function AppShell({ children }) {
   return (
     <div className="min-h-screen bg-background">
+      <VersionGuard />
       <Sidebar />
       <div className="sm:pl-[220px]">
         {children}

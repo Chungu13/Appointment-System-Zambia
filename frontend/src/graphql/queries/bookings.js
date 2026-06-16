@@ -44,10 +44,12 @@ export const MY_APPOINTMENTS = gql`
 export const DASHBOARD_STATS = gql`
   query DashboardStats($date: Date) {
     dashboardStats(date: $date) {
-      todayRevenue
+      earnedToday
+      depositsToday
       todayBookings
       bookedByAgent
-      slotsRecovered
+      cancelledToday
+      pendingCompletion
     }
   }
 `

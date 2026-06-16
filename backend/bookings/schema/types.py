@@ -86,10 +86,12 @@ class AvailabilitySlotType:
 
 @strawberry.type
 class DashboardStatsType:
-    today_revenue: float
+    earned_today: float      # sum of service prices for completed appointments today
+    deposits_today: float    # sum of deposit payments collected through the platform today
     today_bookings: int
     booked_by_agent: int
-    slots_recovered: int
+    cancelled_today: int     # appointments cancelled today
+    pending_completion: int  # confirmed/in-progress appointments today not yet marked done
 
 
 @strawberry.type

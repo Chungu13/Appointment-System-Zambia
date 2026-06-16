@@ -1,11 +1,10 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { ChevronDown, ChevronUp, Plus, KeyRound, X, Camera, Eye, EyeOff } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus, X, Camera, Eye, EyeOff } from 'lucide-react'
 import { STAFF_LIST, MY_PROFILE } from '../../graphql/queries/staff'
 import { SERVICES } from '../../graphql/queries/services'
 import {
   CREATE_STAFF,
-  SET_STAFF_PIN,
   SET_WORKING_HOURS,
   ASSIGN_SERVICE,
   REMOVE_SERVICE,
@@ -20,11 +19,11 @@ import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 
 const BURG     = '#6B2737'
 const TEXT     = '#1a0a0d'
-const MUTED    = '#b09090'
-const HINT     = '#c0a8a8'
+const MUTED    = '#7a5060'
+const HINT     = '#8a6268'
 const BORDER   = '#ede5e7'
 const BLUSH    = '#fdf8f8'
-const NAV_MUTED = '#9a8080'
+const NAV_MUTED = '#5c4848'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Cormorant Garamond', Georgia, serif"
@@ -40,7 +39,7 @@ function initials(name) {
 function CreateStaffModal({ onClose, onCreated }) {
   const { profile } = useAuth()
   const [isMe, setIsMe] = useState(false)
-  const [form, setForm] = useState({ fullName: '', phone: '', username: '', email: '', pin: '' })
+  const [form, setForm] = useState({ fullName: '', phone: '', username: '', email: '' })
 
   const [createStaff, { loading, error }] = useMutation(CREATE_STAFF, {
     refetchQueries: [STAFF_LIST, MY_PROFILE],
@@ -65,9 +64,9 @@ function CreateStaffModal({ onClose, onCreated }) {
   function submit(e) {
     e.preventDefault()
     if (isMe) {
-      createStaff({ variables: { isMe: true, pin: form.pin || null } })
+      createStaff({ variables: { isMe: true } })
     } else {
-      createStaff({ variables: { ...form, pin: form.pin || null, isMe: false } })
+      createStaff({ variables: { ...form, isMe: false } })
     }
   }
 
@@ -97,19 +96,9 @@ function CreateStaffModal({ onClose, onCreated }) {
           </label>
 
           {isMe ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ border: `0.5px solid ${BORDER}`, padding: 12, fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED }}>
-                <p style={{ fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>{profile?.fullName}</p>
-                <p style={{ margin: 0 }}>{profile?.phone}</p>
-              </div>
-              <Input
-                label="Your PIN (4 digits, for quick sign-in)"
-                value={form.pin}
-                onChange={(e) => set('pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                maxLength={4}
-                placeholder="e.g. 1234"
-                hint="You'll use your phone number + this PIN to access the staff view"
-              />
+            <div style={{ border: `0.5px solid ${BORDER}`, padding: 12, fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED }}>
+              <p style={{ fontWeight: 400, color: TEXT, margin: '0 0 2px' }}>{profile?.fullName}</p>
+              <p style={{ margin: 0 }}>{profile?.phone}</p>
             </div>
           ) : (
             <>
@@ -117,7 +106,6 @@ function CreateStaffModal({ onClose, onCreated }) {
               <Input label="Phone" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+260 97..." required />
               <Input label="Username (for records)" value={form.username} onChange={(e) => set('username', e.target.value)} required />
               <Input label="Email (optional)" value={form.email} onChange={(e) => set('email', e.target.value)} />
-              <Input label="PIN (4 digits, optional)" value={form.pin} onChange={(e) => set('pin', e.target.value.replace(/\D/g, '').slice(0, 4))} maxLength={4} placeholder="e.g. 1234" />
             </>
           )}
 
@@ -240,40 +228,6 @@ function ServiceAssignment({ staffId, assignedIds, services }) {
           </button>
         )
       })}
-    </div>
-  )
-}
-
-// ── PIN setter ────────────────────────────────────────────────────────────────
-function PinSetter({ staffId }) {
-  const [pin, setPin] = useState('')
-  const [done, setDone] = useState(false)
-  const [setStaffPin, { loading, error }] = useMutation(SET_STAFF_PIN, {
-    onCompleted: () => { setDone(true); setPin(''); setTimeout(() => setDone(false), 3000) },
-  })
-
-  return (
-    <div className="flex items-end gap-3">
-      <Input
-        label="Staff PIN (4 digits)"
-        value={pin}
-        onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-        placeholder="1234"
-        className="w-36"
-        hint="Staff uses phone + PIN to sign in"
-      />
-      <Button
-        size="sm"
-        variant="outline"
-        loading={loading}
-        disabled={pin.length !== 4}
-        onClick={() => setStaffPin({ variables: { staffId, pin } })}
-        className="mb-px"
-      >
-        <KeyRound size={14} /> Set PIN
-      </Button>
-      {done && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#16a34a', marginBottom: 1 }}>PIN updated ✓</span>}
-      {error && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', marginBottom: 1 }}>{error.graphQLErrors?.[0]?.message}</span>}
     </div>
   )
 }
@@ -464,12 +418,6 @@ function StaffPanel({ member, allServices }) {
             </div>
           )}
 
-          {(member.role !== 'OWNER' || member.isAlsoStaff) && (
-            <div>
-              <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>PIN login</h3>
-              <PinSetter staffId={member.id} />
-            </div>
-          )}
         </div>
       )}
     </div>

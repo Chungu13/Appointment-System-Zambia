@@ -15,11 +15,6 @@ app.conf.beat_schedule = {
         "task": "agents.tasks.send_appointment_reminders",
         "schedule": crontab(hour=18, minute=0),
     },
-    # Every 5 minutes — notify waitlist when a slot opens up
-    "fill-cancelled-slots": {
-        "task": "agents.tasks.fill_cancelled_slots",
-        "schedule": 300.0,
-    },
     # Every 30 minutes — auto-mark missed appointments as no_show
     "detect-no-shows": {
         "task": "agents.tasks.detect_no_shows",

@@ -7,8 +7,8 @@ import { ErrorMessage } from '../../components/ui/Spinner'
 
 const BURG    = '#6B2737'
 const TEXT    = '#1a0a0d'
-const MUTED   = '#b09090'
-const HINT    = '#c0a8a8'
+const MUTED   = '#7a5060'
+const HINT    = '#8a6268'
 const BORDER  = '#ede5e7'
 const BLUSH   = '#fdf8f8'
 
@@ -50,10 +50,10 @@ function CustomerAvatar({ name }) {
   return (
     <div style={{
       width: 36, height: 36, flexShrink: 0,
-      backgroundColor: '#EDD5D8',
+      backgroundColor: BURG,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: BURG }}>{initials(name)}</span>
+      <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#fff' }}>{initials(name)}</span>
     </div>
   )
 }

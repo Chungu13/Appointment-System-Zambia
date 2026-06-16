@@ -13,8 +13,8 @@ import { startTour, isTourDone } from '../../lib/tour'
 
 const BURG      = '#6B2737'
 const TEXT      = '#1a0a0d'
-const MUTED     = '#b09090'
-const HINT      = '#c0a8a8'
+const MUTED     = '#4a1527'
+const HINT      = '#5c2232'
 const BORDER    = '#ede5e7'
 const OFF_WHITE = '#faf7f7'
 
@@ -208,17 +208,32 @@ export default function OwnerDashboard() {
       {/* Revenue bar */}
       <div style={{ backgroundColor: BURG, padding: '16px 24px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', margin: '0 0 4px' }}>
-            Revenue Today
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', margin: '0 0 4px' }}>
+            Earned Today
           </p>
           <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 500, color: '#fff', margin: 0, lineHeight: 1 }}>
-            {loading ? '—' : stats ? formatZMW(stats.todayRevenue) : '—'}
+            {loading ? '—' : stats ? formatZMW(stats.earnedToday) : '—'}
+          </p>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0', letterSpacing: '0.04em' }}>
+            Based on completed appointments
           </p>
         </div>
-        <TrendingUp size={18} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+        <TrendingUp size={18} style={{ color: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
       </div>
 
       {error && <ErrorMessage message={error.message} />}
+
+      {/* Pending completion reminder */}
+      {!loading && stats?.pendingCompletion > 0 && (
+        <div style={{ backgroundColor: '#fff8f8', border: '0.5px solid #e0b0b8', padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: BURG, margin: 0 }}>
+            {stats.pendingCompletion} appointment{stats.pendingCompletion !== 1 ? 's' : ''} today still need to be marked as done.
+          </p>
+          <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: BURG }}>
+            Go to Calendar →
+          </span>
+        </div>
+      )}
 
       {/* Getting-started checklist */}
       <GettingStarted />
@@ -231,9 +246,19 @@ export default function OwnerDashboard() {
           sub="Appointments today"
         />
         <StatCard
-          label="Slots Recovered"
-          value={loading ? '…' : stats?.slotsRecovered}
-          sub="Filled from cancellations"
+          label="Cancelled Today"
+          value={loading ? '…' : stats?.cancelledToday ?? 0}
+          sub="Appointments cancelled"
+        />
+        <StatCard
+          label="Deposits Today"
+          value={loading ? '…' : stats ? formatZMW(stats.depositsToday) : '—'}
+          sub="Collected through Kimawa"
+        />
+        <StatCard
+          label="Pending Done"
+          value={loading ? '…' : stats?.pendingCompletion ?? 0}
+          sub="Need marking complete"
         />
       </div>
 

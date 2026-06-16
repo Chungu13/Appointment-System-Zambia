@@ -2,7 +2,7 @@ import { BarChart2 } from 'lucide-react'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 
 const BURG   = '#6B2737'
-const MUTED  = '#b09090'
+const MUTED  = '#7a5060'
 const BORDER = '#ede5e7'
 
 const serif = "'Cormorant Garamond', Georgia, serif"

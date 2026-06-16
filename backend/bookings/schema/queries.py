@@ -124,27 +124,37 @@ class BookingsQuery:
 
         appts = Appointment.objects.filter(starts_at__date=date)
 
-        revenue = (
+        # Real earnings: service prices for appointments marked complete today
+        earned_today = (
+            appts
+            .filter(status="completed")
+            .aggregate(t=Sum("service__price_zmw"))["t"] or 0
+        )
+
+        # Platform deposits collected today
+        deposits_today = (
             Payment.objects
             .filter(
                 appointment__starts_at__date=date,
                 status="completed",
-                payment_type__in=("deposit", "balance"),
+                payment_type="deposit",
             )
             .aggregate(t=Sum("amount_zmw"))["t"] or 0
         )
 
-        slots_recovered = AgentLog.objects.filter(
-            agent_type="scheduling",
-            outcome="success",
-            created_at__date=date,
+        cancelled_today = appts.filter(status="cancelled").count()
+
+        pending_completion = appts.filter(
+            status__in=("confirmed", "in_progress")
         ).count()
 
         return DashboardStatsType(
-            today_revenue=float(revenue),
+            earned_today=float(earned_today),
+            deposits_today=float(deposits_today),
             today_bookings=appts.count(),
             booked_by_agent=appts.filter(booked_by="agent").count(),
-            slots_recovered=slots_recovered,
+            cancelled_today=cancelled_today,
+            pending_completion=pending_completion,
         )
 
     @strawberry.field

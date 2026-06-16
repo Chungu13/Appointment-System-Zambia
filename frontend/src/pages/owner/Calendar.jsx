@@ -11,11 +11,11 @@ import { toDateInputValue, formatTime, formatZMW, addDays, classNames } from '..
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const BURG       = '#6B2737'
-const MUTED      = '#b09090'
-const HINT       = '#c0a8a8'
+const MUTED      = '#7a5060'
+const HINT       = '#8a6268'
 const BORDER     = '#ede5e7'
 const TEXT       = '#1a0a0d'
-const NAV_MUTED  = '#9a8080'
+const NAV_MUTED  = '#5c4848'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Cormorant Garamond', Georgia, serif"
@@ -165,7 +165,7 @@ function DayCol({ day, appointments, colorMap, isToday, onSelect }) {
 }
 
 // ── List view ─────────────────────────────────────────────────────────────────
-function ListView({ days, appointments, today, onSelect }) {
+function ListView({ days, appointments, today, onSelect, onAction }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {days.map((day, di) => {
@@ -236,9 +236,24 @@ function ListView({ days, appointments, today, onSelect }) {
                         {appt.service.name} · {appt.staff.fullName}
                       </p>
                     </div>
-                    <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, flexShrink: 0, paddingTop: 2 }}>
-                      {STATUS_LABELS[appt.status] ?? appt.status}
-                    </span>
+                    {['confirmed', 'in_progress'].includes(appt.status) ? (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onAction(appt.id, 'COMPLETED') }}
+                        style={{
+                          fontFamily: sans, fontSize: 10, fontWeight: 400,
+                          letterSpacing: '0.08em', textTransform: 'uppercase',
+                          color: '#fff', backgroundColor: BURG,
+                          border: 'none', padding: '5px 12px',
+                          cursor: 'pointer', flexShrink: 0,
+                        }}
+                      >
+                        Mark done
+                      </button>
+                    ) : (
+                      <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, flexShrink: 0, paddingTop: 2 }}>
+                        {STATUS_LABELS[appt.status] ?? appt.status}
+                      </span>
+                    )}
                   </div>
                 </button>
               ))
@@ -251,7 +266,7 @@ function ListView({ days, appointments, today, onSelect }) {
 }
 
 // ── Appointment modal ─────────────────────────────────────────────────────────
-const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#b09090', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
+const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#7a5060', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
 const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#1a0a0d', margin: 0 }
 
 function ApptModal({ appt, onClose, onAction, loading }) {
@@ -370,6 +385,21 @@ export default function Calendar() {
   const displayDays = view === 'week' ? days : [selDay]
   const rangeLabel  = `${days[0].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric' })} – ${days[6].toLocaleDateString('en-ZM', { month: 'short', day: 'numeric', year: 'numeric' })}`
 
+  // In list view, skip past days of the current week so it starts from today
+  const todayStr = toDateInputValue(today)
+  const listDays = useMemo(() => {
+    const weekContainsToday = days.some((d) => toDateInputValue(d) === todayStr)
+    return weekContainsToday ? days.filter((d) => toDateInputValue(d) >= todayStr) : days
+  }, [days, todayStr])
+
+  // Count today's appointments still needing to be marked done
+  const pendingToday = useMemo(() =>
+    appointments.filter(
+      (a) => toDateInputValue(new Date(a.startsAt)) === todayStr &&
+             ['confirmed', 'in_progress'].includes(a.status)
+    ).length,
+  [appointments, todayStr])
+
   return (
     <PageWrapper maxWidth="full">
       {/* ── Toolbar ── */}
@@ -450,6 +480,31 @@ export default function Calendar() {
         }
       />
 
+      {/* ── Pending completion reminder ── */}
+      {!loading && pendingToday > 0 && (
+        <div style={{
+          backgroundColor: '#fff8f8', border: `0.5px solid #e0b0b8`,
+          padding: '10px 16px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        }}>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: BURG, margin: 0 }}>
+            {pendingToday} appointment{pendingToday !== 1 ? 's' : ''} today still need to be marked as done.
+          </p>
+          {view !== 'list' && (
+            <button
+              onClick={() => setView('list')}
+              style={{
+                fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.08em',
+                textTransform: 'uppercase', color: BURG, background: 'none',
+                border: `0.5px solid #e0b0b8`, padding: '4px 12px', cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              View list
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── Day pills (day view only) ── */}
       {view === 'day' && (
         <div style={{ display: 'flex', gap: 4, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
@@ -485,10 +540,11 @@ export default function Calendar() {
       {view === 'list' && !loading && (
         <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
           <ListView
-            days={days}
+            days={listDays}
             appointments={appointments}
             today={today}
             onSelect={setSelAppt}
+            onAction={(id, status) => updateStatus({ variables: { appointmentId: id, status } })}
           />
         </div>
       )}

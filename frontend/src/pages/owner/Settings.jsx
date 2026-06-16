@@ -9,8 +9,8 @@ import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
 
 const BURG      = '#6B2737'
 const TEXT      = '#1a0a0d'
-const MUTED     = '#b09090'
-const HINT      = '#c0a8a8'
+const MUTED     = '#7a5060'
+const HINT      = '#8a6268'
 const BORDER    = '#ede5e7'
 const BLUSH     = '#fdf8f8'
 const OFF_WHITE = '#faf7f7'
@@ -324,6 +324,30 @@ function generateKey() {
   return `${word}${num}`
 }
 
+function CopyableUrl({ url }) {
+  const [copied, setCopied] = useState(false)
+  function copy() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, verticalAlign: 'middle' }}>
+      <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, backgroundColor: OFF_WHITE, padding: '1px 6px', border: `0.5px solid ${BORDER}` }}>
+        {url}
+      </span>
+      <button
+        onClick={copy}
+        title="Copy URL"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1px 3px', display: 'flex', alignItems: 'center', color: copied ? '#2d6a4f' : MUTED }}
+      >
+        {copied ? <Check size={13} /> : <Copy size={13} />}
+      </button>
+    </span>
+  )
+}
+
 function StaffKeyCard({ currentKey }) {
   const [key, setKey]       = useState(currentKey || '')
   const [copied, setCopied] = useState(false)
@@ -366,11 +390,19 @@ function StaffKeyCard({ currentKey }) {
         </h2>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
           Share this key with your staff. They enter it at{' '}
-          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, backgroundColor: OFF_WHITE, padding: '1px 6px', border: `0.5px solid ${BORDER}` }}>
-            {window.location.origin}/staff
-          </span>{' '}
+          <CopyableUrl url={`${window.location.origin}/staff`} />{' '}
           to see today's schedule.
         </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, width: 96, flexShrink: 0 }}>Booking page</span>
+            <CopyableUrl url={window.location.origin} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, width: 96, flexShrink: 0 }}>Staff page</span>
+            <CopyableUrl url={`${window.location.origin}/staff`} />
+          </div>
+        </div>
       </div>
 
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
@@ -402,8 +434,8 @@ function StaffKeyCard({ currentKey }) {
 
       <div style={{ backgroundColor: OFF_WHITE, border: `0.5px solid ${BORDER}`, padding: '14px 18px' }}>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>How to share with staff</p>
-        <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2 }}>
-          <li>Tell all staff: "Go to <span style={{ color: TEXT }}>{window.location.origin}/staff</span>"</li>
+        <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2.2 }}>
+          <li>Tell all staff: "Go to <CopyableUrl url={`${window.location.origin}/staff`} />"</li>
           <li>Enter the key: <span style={{ fontFamily: "'Courier New', monospace", color: BURG, fontWeight: 400 }}>{key || '-'}</span></li>
           <li>Type your name to filter to just your appointments</li>
         </ol>

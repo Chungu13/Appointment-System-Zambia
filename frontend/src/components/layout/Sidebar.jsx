@@ -13,7 +13,7 @@ import { startTour, resetTour } from '../../lib/tour'
 
 const BURG    = '#6B2737'
 const TEXT    = '#1a0a0d'
-const MUTED   = '#b09090'
+const MUTED   = '#7a5060'
 const BORDER  = '#ede5e7'
 const BLUSH   = '#fdf8f8'
 const NAV_MUTED = '#5c4848'
