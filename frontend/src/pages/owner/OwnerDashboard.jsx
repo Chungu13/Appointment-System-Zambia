@@ -36,15 +36,15 @@ function addDays(dateStr, n) {
 
 function StatCard({ label, value, sub }) {
   return (
-    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: 20 }}>
-      <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTED, margin: '0 0 8px' }}>
+    <div className="p-3 sm:p-5" style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
+      <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTED, margin: '0 0 6px' }}>
         {label}
       </p>
-      <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 500, color: TEXT, margin: '0 0 4px', lineHeight: 1 }}>
+      <p style={{ fontFamily: serif, fontSize: 'clamp(16px, 5vw, 28px)', fontWeight: 500, color: TEXT, margin: '0 0 4px', lineHeight: 1.1, wordBreak: 'break-word' }}>
         {value ?? '—'}
       </p>
       {sub && (
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0 }}>
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT, margin: 0 }}>
           {sub}
         </p>
       )}
