@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { KeyRound, Search, X, ChevronDown } from 'lucide-react'
 import { ALL_APPOINTMENTS_TODAY } from '../../graphql/queries/tenant'
-import { VERIFY_STAFF_KEY, STAFF_UPDATE_APPOINTMENT } from '../../graphql/mutations/tenant'
+import { VERIFY_STAFF_KEY } from '../../graphql/mutations/tenant'
 import { toDateInputValue, addDays, formatTime } from '../../lib/utils'
 
 const SESSION_KEY = 'beautybook_staff_key'
@@ -84,52 +84,37 @@ function KeyEntry({ onVerified }) {
 const STATUS_COLOR = {
   confirmed:   'text-emerald-800 bg-emerald-50 border-emerald-200',
   pending:     'text-amber-800 bg-amber-50 border-amber-200',
-  in_progress: 'text-primary bg-primary-container border-outline-variant',
-  completed:   'text-on-surface-variant bg-surface-container border-outline-variant',
+  in_progress: 'text-purple-800 bg-purple-50 border-purple-200',
 }
 
-function AppointmentCard({ appt, isOwn, staffKey, onDone }) {
+function AppointmentCard({ appt }) {
   const done = ['completed', 'cancelled', 'no_show'].includes(appt.status)
-  const inProgress = appt.status === 'in_progress'
-
-  const [updateAppt, { loading }] = useMutation(STAFF_UPDATE_APPOINTMENT, {
-    onCompleted: () => onDone(),
-  })
 
   return (
-    <div className={`rounded-2xl p-4 transition-opacity ${done ? 'opacity-50' : ''}`} style={{ backgroundColor: '#fff', border: isOwn && !done ? '1.5px solid #6B2737' : '1px solid #E8D8DC' }}>
+    <div className={`rounded-2xl p-4 transition-opacity ${done ? 'opacity-50' : ''}`}
+      style={{ backgroundColor: '#fff', border: done ? '1px solid #E8D8DC' : '1.5px solid #6B2737' }}>
       <div className="flex items-start gap-3">
+        {/* Time */}
         <div className="shrink-0 text-center w-14">
-          <p className={`text-lg font-bold font-display ${isOwn ? 'text-primary' : 'text-on-surface'}`}>
-            {formatTime(appt.startsAt)}
-          </p>
+          <p className="text-lg font-bold font-display text-primary">{formatTime(appt.startsAt)}</p>
           <p className="text-xs text-on-surface-variant">{appt.serviceDuration}m</p>
         </div>
 
+        {/* Details */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-on-surface">{appt.customerName}</p>
-          <p className="text-sm text-on-surface-variant">{appt.serviceName}</p>
-          {!isOwn && (
-            <p className="text-xs text-on-surface-variant mt-0.5 font-medium">{appt.staffName}</p>
-          )}
+          <p className="font-bold text-primary">{appt.staffName}</p>
+          <p className="font-medium text-on-surface text-sm mt-0.5">{appt.customerName}</p>
+          <p className="text-xs text-on-surface-variant mt-0.5">{appt.serviceName}</p>
         </div>
 
-        <div className="shrink-0 flex flex-col items-end gap-2">
+        {/* Status */}
+        <div className="shrink-0">
           {done ? (
             <span className="text-xs text-on-surface-variant">Done ✓</span>
           ) : (
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_COLOR[appt.status] ?? 'text-gray-600 bg-gray-100 border-gray-200'}`}>
               {appt.status.replace('_', ' ')}
             </span>
-          )}
-          {isOwn && !done && (
-            <button
-              disabled={loading}
-              onClick={() => updateAppt({ variables: { key: staffKey, appointmentId: appt.id, status: inProgress ? 'completed' : 'in_progress' } })}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 transition-colors"
-            >
-              {loading ? '…' : inProgress ? 'Done ✓' : 'Start →'}
-            </button>
           )}
         </div>
       </div>
@@ -182,8 +167,13 @@ function DaySchedule({ staffKey, onSignOut }) {
             <h1 className="font-display text-xl font-bold">
               {new Date().toLocaleDateString('en-ZM', { weekday: 'long', day: 'numeric', month: 'long' })}
             </h1>
+            {isFiltering && filtered[0]?.staffName && (
+              <p className="text-2xl font-bold mt-2" style={{ color: '#E8C4CC' }}>
+                {filtered[0].staffName}
+              </p>
+            )}
             <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              {todayAppts.length} appointment{todayAppts.length !== 1 ? 's' : ''}
+              {isFiltering ? filtered.length : todayAppts.length} appointment{(isFiltering ? filtered.length : todayAppts.length) !== 1 ? 's' : ''}
             </p>
           </div>
           <button
@@ -245,13 +235,7 @@ function DaySchedule({ staffKey, onSignOut }) {
 
         {/* Active appointments */}
         {active.map((appt) => (
-          <AppointmentCard
-            key={appt.id}
-            appt={appt}
-            isOwn={isFiltering}
-            staffKey={staffKey}
-            onDone={() => refetch()}
-          />
+          <AppointmentCard key={appt.id} appt={appt} />
         ))}
 
         {/* Done today */}
@@ -259,13 +243,7 @@ function DaySchedule({ staffKey, onSignOut }) {
           <div className="pt-2">
             <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-3">Done today</p>
             {done.map((appt) => (
-              <AppointmentCard
-                key={appt.id}
-                appt={appt}
-                isOwn={false}
-                staffKey={staffKey}
-                onDone={() => refetch()}
-              />
+              <AppointmentCard key={appt.id} appt={appt} />
             ))}
           </div>
         )}
