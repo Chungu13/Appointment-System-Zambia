@@ -18,7 +18,6 @@ import SalonBooking from './pages/public/SalonBooking'
 import HowItWorks from './pages/public/HowItWorks'
 import ForBusinesses from './pages/public/ForBusinesses'
 import Signup from './pages/public/Signup'
-import Onboarding from './pages/public/Onboarding'
 import Directory from './pages/public/Directory'
 
 // Auth
@@ -84,7 +83,6 @@ export default function App() {
             <Route path="/pricing" element={<Navigate to="/" replace />} />
             <Route path="/for-businesses" element={<ForBusinesses />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/onboarding" element={<Onboarding />} />
 
             <Route path="/login" element={<Login />} />
 

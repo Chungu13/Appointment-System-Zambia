@@ -3,7 +3,6 @@ import { useQuery, useMutation } from '@apollo/client/react'
 import { TrendingUp } from 'lucide-react'
 import { DASHBOARD_STATS, MY_STAFF_APPOINTMENTS } from '../../graphql/queries/bookings'
 import AgentFeed from '../../components/dashboard/AgentFeed'
-import GettingStarted from '../../components/dashboard/GettingStarted'
 import { UPDATE_APPOINTMENT_STATUS } from '../../graphql/mutations/bookings'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { useAuth } from '../../context/AuthContext'
@@ -234,9 +233,6 @@ export default function OwnerDashboard() {
           </span>
         </div>
       )}
-
-      {/* Getting-started checklist */}
-      <GettingStarted />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 mb-6">

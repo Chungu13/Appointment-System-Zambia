@@ -249,6 +249,7 @@ class Mutation:
             on_trial=True,
             is_active=True,
             staff_access_key=staff_key,
+            onboarding_completed=True,
         )
         tenant.save()  # triggers auto_create_schema
 

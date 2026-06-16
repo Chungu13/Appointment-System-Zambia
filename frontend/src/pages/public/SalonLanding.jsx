@@ -4,7 +4,6 @@ import { useQuery } from "@apollo/client/react";
 import {
   MapPin,
   Phone,
-  Calendar,
   Menu,
   X,
   ChevronLeft,
@@ -1249,61 +1248,6 @@ export default function SalonLanding() {
 
   const profile = data?.salonProfile;
   if (!profile) return null;
-
-  if (!profile.onboardingCompleted) {
-    const homeUrl = import.meta.env.VITE_TENANT_APP_DOMAIN
-      ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}`
-      : "/";
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "0 24px",
-          backgroundColor: "#faf8f6",
-        }}
-      >
-        <Calendar size={48} style={{ color: "#ddd", marginBottom: 16 }} />
-        <h1
-          style={{
-            fontFamily: serif,
-            fontSize: 28,
-            fontWeight: 300,
-            color: "#1a1a1a",
-            margin: "0 0 8px",
-          }}
-        >
-          {profile.businessName}
-        </h1>
-        <p
-          style={{
-            fontFamily: sans,
-            fontSize: 14,
-            fontWeight: 300,
-            color: "#666",
-            margin: "0 0 24px",
-          }}
-        >
-          We're getting ready to take bookings. Check back soon.
-        </p>
-        <a
-          href={homeUrl}
-          style={{
-            fontFamily: sans,
-            fontSize: 13,
-            color: PRIMARY,
-            textDecoration: "none",
-          }}
-        >
-          ← Back to Kimawa
-        </a>
-      </div>
-    );
-  }
 
   function openChat(msg = "", skipIntake = false) {
     setChatKey((k) => k + 1);

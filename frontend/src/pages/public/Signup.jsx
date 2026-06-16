@@ -154,21 +154,16 @@ export default function Signup() {
         },
       })
 
-      const { accessToken, refreshToken, tenantSubdomain, staffAccessKey } = data.registerTenant
+      const { accessToken, refreshToken, tenantSubdomain } = data.registerTenant
 
-      // Onboarding always stays on the main domain — no SSL delay waiting for new subdomain cert.
-      // In production: https://{VITE_TENANT_APP_DOMAIN}/onboarding?slug=...
-      // In dev: http://localhost:{port}/onboarding?slug=...
       const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+      const port = window.location.port || '3000'
       const base = appDomain
-        ? `https://${appDomain}`
-        : `http://localhost:${window.location.port || '3000'}`
-      const url = new URL(`${base}/onboarding`)
-      url.searchParams.set('slug', tenantSubdomain)
+        ? `https://${tenantSubdomain}.${appDomain}`
+        : `http://${tenantSubdomain}.localhost:${port}`
+      const url = new URL(`${base}/owner`)
       url.searchParams.set('t', accessToken)
       url.searchParams.set('r', refreshToken)
-      url.searchParams.set('bt', form.businessType)
-      url.searchParams.set('sk', staffAccessKey)
 
       window.location.href = url.toString()
     } catch (err) {
