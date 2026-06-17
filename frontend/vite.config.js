@@ -50,9 +50,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          apollo: ['@apollo/client', 'graphql'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor'
+            }
+            if (id.includes('@apollo/client') || id.includes('graphql')) {
+              return 'apollo'
+            }
+          }
         },
       },
     },
