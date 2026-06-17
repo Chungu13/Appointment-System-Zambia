@@ -40,6 +40,8 @@ class OwnerLoginPayload:
     refresh_token: str
     tenant_slug: str
     full_name: str
+    is_approved: bool
+    business_name: str
 
 
 # ── Query ─────────────────────────────────────────────────────────────────────
@@ -117,7 +119,6 @@ class Mutation:
                     continue
                 if not user.check_password(password):
                     raise ValueError("Invalid credentials.")
-                # Generate tokens inside the schema_context so user.pk is scoped correctly
                 access_token  = make_access_token(user.pk, "owner")
                 refresh_token = make_refresh_token(user.pk)
                 full_name     = user.full_name
@@ -128,6 +129,8 @@ class Mutation:
                 refresh_token=refresh_token,
                 tenant_slug=slug,
                 full_name=full_name,
+                is_approved=tenant.is_approved,
+                business_name=tenant.business_name,
             )
 
         raise ValueError("Invalid credentials.")
@@ -141,26 +144,46 @@ class Mutation:
         owner_name: str,
         phone: str,
         email: str,
-        password: str,
         address: str = "",
         area: str = "",
+        password: str = "",
+        google_token: str = "",
     ) -> RegisterPayload:
         from django.conf import settings
+        from django.utils import timezone
         from django_tenants.utils import tenant_context, schema_context
         from beautybook.jwt_auth import make_access_token, make_refresh_token
         from tenants.models import Domain, Tenant
+        from tenants.auth_views import send_verification_email, send_admin_notification
 
-        # ── Validate ──────────────────────────────────────────────────────────
+        # ── Validate google token first ───────────────────────────────────────
+        is_google = False
+        if google_token:
+            from django.core import signing as _signing
+            try:
+                google_data = _signing.loads(google_token, max_age=600, salt="google-auth")
+                if google_data.get("email", "").lower() != email.strip().lower():
+                    raise ValueError("Google email does not match the email entered.")
+                is_google = True
+            except _signing.SignatureExpired:
+                raise ValueError("Your Google session has expired. Please try Google sign-in again.")
+            except ValueError:
+                raise
+            except Exception:
+                raise ValueError("Invalid Google authentication. Please try again.")
+
+        # ── Validate required fields ──────────────────────────────────────────
         for label, val in [
             ("Business name", business_name), ("Business type", business_type),
             ("City", city), ("Owner name", owner_name),
-            ("Phone", phone), ("Email", email), ("Password", password),
+            ("Phone", phone), ("Email", email),
         ]:
             if not str(val).strip():
                 raise ValueError(f"{label} is required.")
 
-        if len(password) < 8:
-            raise ValueError("Password must be at least 8 characters.")
+        if not is_google:
+            if len(password) < 8:
+                raise ValueError("Password must be at least 8 characters.")
 
         import re as _re
         _phone_digits = _re.sub(r'\D', '', phone.strip())
@@ -172,10 +195,7 @@ class Mutation:
 
         email = email.strip().lower()
 
-        # ── Option A: resume incomplete onboarding ────────────────────────────
-        # If this email already owns a tenant that hasn't finished onboarding,
-        # return their existing credentials so they drop back into the flow
-        # seamlessly — no duplicate tenant created.
+        # ── Check for existing account with this email ────────────────────────
         for existing_tenant in Tenant.objects.exclude(schema_name="public"):
             with schema_context(existing_tenant.schema_name):
                 from staff.models import User as _User
@@ -184,27 +204,20 @@ class Mutation:
                 except _User.DoesNotExist:
                     continue
 
-                if existing_tenant.onboarding_completed:
-                    raise ValueError(
-                        "An account with this email already exists. "
-                        "Please log in instead."
+                if not existing_user.is_active:
+                    # Not yet verified — resend the link
+                    send_verification_email(
+                        existing_user.pk,
+                        existing_tenant.schema_name,
+                        email,
+                        existing_user.full_name,
                     )
-
-                # Incomplete onboarding — sync password in case they re-entered
-                # a different one, then hand back existing credentials.
-                if not existing_user.check_password(password):
-                    existing_user.set_password(password)
-                    existing_user.save(update_fields=["password"])
-
-                logger.info(
-                    "registerTenant: resuming incomplete onboarding for %r (tenant=%r)",
-                    email, existing_tenant.subdomain,
-                )
-                return RegisterPayload(
-                    access_token=make_access_token(existing_user.pk, "owner"),
-                    refresh_token=make_refresh_token(existing_user.pk),
-                    tenant_subdomain=existing_tenant.subdomain,
-                    staff_access_key=existing_tenant.staff_access_key or "",
+                    raise ValueError(
+                        "This email is already registered but not verified. "
+                        "We've resent the verification link — please check your inbox."
+                    )
+                raise ValueError(
+                    "An account with this email already exists. Please log in instead."
                 )
 
         # ── Generate identifiers ──────────────────────────────────────────────
@@ -212,7 +225,6 @@ class Mutation:
         if len(base_slug) < 2:
             raise ValueError("Business name is too short or contains only special characters.")
 
-        # Append -2, -3 … if slug already taken
         subdomain = base_slug
         counter = 2
         while Tenant.objects.filter(subdomain=subdomain).exists():
@@ -220,12 +232,13 @@ class Mutation:
             counter += 1
 
         schema_name = subdomain.replace("-", "_")
-        # Avoid schema_name collision (edge case)
         if Tenant.objects.filter(schema_name=schema_name).exists():
             schema_name = schema_name + "_biz"
 
-        logger.info("registerTenant: business_name=%r → subdomain=%r schema=%r", business_name, subdomain, schema_name)
-        print(f"[registerTenant] business_name={business_name!r} → subdomain={subdomain!r} schema={schema_name!r}")
+        logger.info(
+            "registerTenant: business_name=%r → subdomain=%r schema=%r",
+            business_name, subdomain, schema_name,
+        )
 
         # ── Staff access key ──────────────────────────────────────────────────
         words = ["GLOW", "LUXE", "SHINE", "BLOOM", "GRACE", "SPARK", "VIBE", "GLAM", "SILK", "PURE"]
@@ -248,18 +261,17 @@ class Mutation:
             whatsapp_number=phone,
             on_trial=True,
             is_active=True,
+            is_approved=False,
             staff_access_key=staff_key,
             onboarding_completed=True,
         )
-        tenant.save()  # triggers auto_create_schema
+        tenant.save()
 
-        # Primary domain: {slug}.kimawa.pro → Vercel frontend (tenant identification)
         Domain.objects.create(
             domain=f"{subdomain}.{domain_suffix}",
             tenant=tenant,
             is_primary=True,
         )
-        # API domain: {slug}.api.kimawa.pro → Railway backend (django-tenants routing)
         if api_domain_suffix:
             Domain.objects.create(
                 domain=f"{subdomain}.{api_domain_suffix}",
@@ -272,7 +284,9 @@ class Mutation:
             from tenants.vercel import add_vercel_domain
             add_vercel_domain(subdomain)
         except Exception as exc:
-            logger.error("registerTenant: Vercel domain provisioning failed for %r: %s", subdomain, exc)
+            logger.error(
+                "registerTenant: Vercel provisioning failed for %r: %s", subdomain, exc
+            )
 
         # ── Create owner inside tenant schema ─────────────────────────────────
         with tenant_context(tenant):
@@ -288,12 +302,29 @@ class Mutation:
             user = User.objects.create_user(
                 username=username,
                 email=email,
-                password=password,
+                password=password if not is_google else None,
                 full_name=owner_name,
                 phone=phone,
                 role="owner",
                 is_staff=True,
+                is_active=is_google,   # True for Google auth (already verified)
             )
+
+        # ── Send verification email (non-Google only) ─────────────────────────
+        if not is_google:
+            send_verification_email(user.pk, schema_name, email, owner_name)
+
+        # ── Notify admin ──────────────────────────────────────────────────────
+        send_admin_notification(
+            business_name=business_name,
+            business_type=business_type,
+            city=city,
+            area=area.strip() or "",
+            phone=phone,
+            full_name=owner_name,
+            email=email,
+            timestamp=timezone.now().strftime("%Y-%m-%d %H:%M UTC+2"),
+        )
 
         return RegisterPayload(
             access_token=make_access_token(user.pk, "owner"),

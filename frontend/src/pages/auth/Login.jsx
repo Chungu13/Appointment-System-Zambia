@@ -25,6 +25,11 @@ const inputStyle = {
 export default function Login() {
   const { isAuthenticated, isOwner } = useAuth()
   const location = useLocation()
+
+  const params   = new URLSearchParams(location.search)
+  const verified = params.get('verified') === 'true'
+  const tokenErr = params.get('error')
+
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -41,21 +46,33 @@ export default function Login() {
     setErrorMsg('')
     try {
       const { data } = await ownerLogin({ variables: { email: email.trim().toLowerCase(), password } })
-      const { accessToken, refreshToken, tenantSlug } = data.ownerLogin
+      const { accessToken, refreshToken, tenantSlug, isApproved, businessName } = data.ownerLogin
 
       setTokens(accessToken, refreshToken)
       saveRole('owner')
 
       const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+      const port = window.location.port || '3000'
+
+      const destPath = isApproved ? '/owner' : '/owner/pending'
       const dest = appDomain
-        ? new URL(`https://${tenantSlug}.${appDomain}/owner`)
-        : new URL(`http://${tenantSlug}.localhost:${window.location.port || '3000'}/owner`)
+        ? new URL(`https://${tenantSlug}.${appDomain}${destPath}`)
+        : new URL(`http://${tenantSlug}.localhost:${port}${destPath}`)
+
       dest.searchParams.set('t', accessToken)
       dest.searchParams.set('r', refreshToken)
+      if (!isApproved && businessName) {
+        dest.searchParams.set('bn', businessName)
+      }
+
       window.location.href = dest.toString()
     } catch (err) {
-      const msg = err?.graphQLErrors?.[0]?.message || err?.message || 'Invalid credentials.'
-      setErrorMsg(msg)
+      const raw = err?.graphQLErrors?.[0]?.message || err?.message || 'Invalid credentials.'
+      if (raw.includes('not verified') || raw.includes('verification')) {
+        setErrorMsg('Please verify your email before signing in. Check your inbox for the verification link.')
+      } else {
+        setErrorMsg(raw)
+      }
     }
   }
 
@@ -85,6 +102,24 @@ export default function Login() {
             <Link to="/staff" style={{ color: '#6B2737', textDecoration: 'none' }}>Use the staff portal</Link>
             {' '}(no account needed).
           </p>
+
+          {verified && (
+            <div style={{ border: '0.5px solid #bbf7d0', backgroundColor: '#f0fdf4', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#166534', marginBottom: 20 }}>
+              Email verified! You can now sign in.
+            </div>
+          )}
+
+          {tokenErr === 'token_expired' && (
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
+              Your verification link has expired. Please sign up again to get a new link.
+            </div>
+          )}
+
+          {tokenErr === 'invalid_token' && (
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
+              Invalid verification link. Please try again or contact support.
+            </div>
+          )}
 
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {errorMsg && (
@@ -132,6 +167,9 @@ export default function Login() {
           </form>
 
           <p style={{ fontSize: 12, color: '#666', textAlign: 'center', marginTop: 24 }}>
+            New business?{' '}
+            <Link to="/signup" style={{ color: '#6B2737', textDecoration: 'none' }}>Create an account</Link>
+            {' · '}
             <Link to="/" style={{ color: '#666', textDecoration: 'none' }}>Back to directory</Link>
           </p>
         </div>

@@ -224,6 +224,13 @@ VERCEL_PROJECT_ID = config("VERCEL_PROJECT_ID", default="")
 VERCEL_TEAM_ID    = config("VERCEL_TEAM_ID",    default="")
 VERCEL_APP_DOMAIN = config("VERCEL_APP_DOMAIN", default="kimawa.pro")
 
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="hello@kimawa.pro")
+ADMIN_EMAIL        = config("ADMIN_EMAIL",        default="admin@kimawa.pro")
+API_BASE_URL       = config("API_BASE_URL",       default="http://localhost:8000")
+APP_BASE_URL       = config("APP_BASE_URL",       default="http://localhost:3000")
+GOOGLE_CLIENT_ID     = config("GOOGLE_CLIENT_ID",     default="")
+GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET", default="")
+
 CELERY_BROKER_URL        = config("CELERY_BROKER_URL",     default=config("REDIS_URL", default="redis://localhost:6379/0"))
 CELERY_RESULT_BACKEND    = config("CELERY_RESULT_BACKEND", default=config("REDIS_URL", default="redis://localhost:6379/1"))
 CELERY_ACCEPT_CONTENT    = ["json"]

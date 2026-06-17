@@ -9,8 +9,9 @@ export const REGISTER_TENANT = gql`
     $ownerName: String!
     $phone: String!
     $email: String!
-    $password: String!
     $address: String
+    $password: String
+    $googleToken: String
   ) {
     registerTenant(
       businessName: $businessName
@@ -20,11 +21,10 @@ export const REGISTER_TENANT = gql`
       ownerName: $ownerName
       phone: $phone
       email: $email
-      password: $password
       address: $address
+      password: $password
+      googleToken: $googleToken
     ) {
-      accessToken
-      refreshToken
       tenantSubdomain
       staffAccessKey
     }
@@ -71,6 +71,8 @@ export const OWNER_LOGIN = gql`
       refreshToken
       tenantSlug
       fullName
+      isApproved
+      businessName
     }
   }
 `

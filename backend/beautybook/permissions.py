@@ -28,4 +28,12 @@ def require_owner(info: Info):
     user = require_auth(info)
     if user.role != "owner":
         raise PermissionError("Owner access required.")
+    from django.db import connection
+    from tenants.models import Tenant
+    try:
+        tenant = Tenant.objects.get(schema_name=connection.schema_name)
+        if not tenant.is_approved:
+            raise PermissionError("Account pending approval.")
+    except Tenant.DoesNotExist:
+        pass
     return user
