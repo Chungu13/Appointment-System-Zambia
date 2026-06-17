@@ -1010,6 +1010,7 @@ class BookingAgent:
                 messages=[{"role": "system", "content": self._system_prompt(customer_name)}] + messages,
                 tools=_TOOLS,
                 tool_choice="auto",
+                max_tokens=500,
             )
 
             choice = response.choices[0]

@@ -59,6 +59,16 @@ class ServicesQuery:
         category: Optional[str] = None,
         active_only: bool = True,
     ) -> List[ServiceType]:
+        from beautybook.cache_utils import get_cached_services, set_cached_services
+        # Cache the default case (active, no category filter) used by the booking chat
+        if active_only and category is None:
+            schema_name = info.context.request.tenant.schema_name
+            cached = get_cached_services(schema_name)
+            if cached is not None:
+                return cached
+            result = [service_to_type(s) for s in Service.objects.filter(is_active=True)]
+            set_cached_services(schema_name, result)
+            return result
         qs = Service.objects.all()
         if active_only:
             qs = qs.filter(is_active=True)
@@ -78,37 +88,50 @@ class ServicesQuery:
     def salon_profile(self, info: Info) -> SalonProfileType:
         from services.models import StaffService
         from staff.models import WorkingHours
+        from beautybook.cache_utils import (
+            get_cached_services, set_cached_services,
+            get_cached_hours, set_cached_hours,
+        )
 
         tenant = info.context.request.tenant
-        services = [service_to_type(s) for s in Service.objects.filter(is_active=True)]
+        schema_name = tenant.schema_name
 
-        # Aggregate across all staff: salon opens when any staff member is available
-        opening_hours = []
-        for day in range(7):
-            timed_rows = WorkingHours.objects.filter(
-                day_of_week=day,
-                is_day_off=False,
-                start_time__isnull=False,
-                end_time__isnull=False,
-            )
-            if timed_rows.exists():
-                opens = min(wh.start_time for wh in timed_rows)
-                closes = max(wh.end_time for wh in timed_rows)
-                opening_hours.append(OpeningHoursType(
+        # Services — serve from cache when possible
+        services = get_cached_services(schema_name)
+        if services is None:
+            services = [service_to_type(s) for s in Service.objects.filter(is_active=True)]
+            set_cached_services(schema_name, services)
+
+        # Opening hours — expensive 7-query loop; cache for 1 hour
+        opening_hours = get_cached_hours(schema_name)
+        if opening_hours is None:
+            opening_hours = []
+            for day in range(7):
+                timed_rows = WorkingHours.objects.filter(
                     day_of_week=day,
-                    day_name=_DAY_NAMES[day],
-                    opens_at=opens,
-                    closes_at=closes,
-                    is_closed=False,
-                ))
-            else:
-                opening_hours.append(OpeningHoursType(
-                    day_of_week=day,
-                    day_name=_DAY_NAMES[day],
-                    opens_at=None,
-                    closes_at=None,
-                    is_closed=True,
-                ))
+                    is_day_off=False,
+                    start_time__isnull=False,
+                    end_time__isnull=False,
+                )
+                if timed_rows.exists():
+                    opens = min(wh.start_time for wh in timed_rows)
+                    closes = max(wh.end_time for wh in timed_rows)
+                    opening_hours.append(OpeningHoursType(
+                        day_of_week=day,
+                        day_name=_DAY_NAMES[day],
+                        opens_at=opens,
+                        closes_at=closes,
+                        is_closed=False,
+                    ))
+                else:
+                    opening_hours.append(OpeningHoursType(
+                        day_of_week=day,
+                        day_name=_DAY_NAMES[day],
+                        opens_at=None,
+                        closes_at=None,
+                        is_closed=True,
+                    ))
+            set_cached_hours(schema_name, opening_hours)
 
         # Bookable staff = users who have at least one service assigned
         bookable_qs = (

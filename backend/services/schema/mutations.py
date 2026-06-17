@@ -43,6 +43,8 @@ class ServicesMutation:
             deposit_zmw=deposit_zmw,
             buffer_minutes=buffer_minutes,
         )
+        from beautybook.cache_utils import invalidate_services_cache
+        invalidate_services_cache(info.context.request.tenant.schema_name)
         return service_to_type(service)
 
     @strawberry.mutation
@@ -90,6 +92,8 @@ class ServicesMutation:
             update_fields.append("updated_at")
             service.save(update_fields=update_fields)
 
+        from beautybook.cache_utils import invalidate_services_cache
+        invalidate_services_cache(info.context.request.tenant.schema_name)
         return service_to_type(service)
 
     @strawberry.mutation
@@ -100,6 +104,8 @@ class ServicesMutation:
             raise ValueError("Service not found.")
         service.is_active = not service.is_active
         service.save(update_fields=["is_active", "updated_at"])
+        from beautybook.cache_utils import invalidate_services_cache
+        invalidate_services_cache(info.context.request.tenant.schema_name)
         return service_to_type(service)
 
     @strawberry.mutation

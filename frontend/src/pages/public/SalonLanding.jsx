@@ -801,6 +801,7 @@ function Lightbox({ images, startIndex, onClose }) {
         <img
           src={img.imageUrl}
           alt={img.caption || ""}
+          loading="lazy"
           style={{
             width: "100%",
             maxHeight: "80vh",
@@ -873,6 +874,7 @@ function PortfolioSection({ images }) {
             <img
               src={img.imageUrl}
               alt={img.caption || "Portfolio"}
+              loading="lazy"
               style={{
                 width: "100%",
                 height: "100%",
@@ -925,6 +927,9 @@ function TeamSection({ staff }) {
               <img
                 src={member.avatarUrl}
                 alt={member.fullName}
+                loading="lazy"
+                width={72}
+                height={72}
                 style={{
                   width: 72,
                   height: 72,

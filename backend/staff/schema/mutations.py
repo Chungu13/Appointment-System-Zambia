@@ -228,6 +228,8 @@ class StaffMutation:
                 "end_time": None if is_day_off else end_time,
             },
         )
+        from beautybook.cache_utils import invalidate_hours_cache
+        invalidate_hours_cache(info.context.request.tenant.schema_name)
         return working_hours_to_type(wh)
 
     # ── Owner: assign service to staff member ─────────────────────────────────
@@ -250,6 +252,8 @@ class StaffMutation:
         if not service:
             raise ValueError("Service not found.")
         StaffService.objects.get_or_create(staff=user, service=service)
+        from beautybook.cache_utils import invalidate_staff_cache
+        invalidate_staff_cache(info.context.request.tenant.schema_name)
         return True
 
     # ── Owner: update staff profile (avatar, bio, public visibility) ─────────
@@ -284,6 +288,8 @@ class StaffMutation:
             fields.append("display_on_public_page")
 
         user.save(update_fields=fields)
+        from beautybook.cache_utils import invalidate_staff_cache
+        invalidate_staff_cache(info.context.request.tenant.schema_name)
         return user_to_type(user)
 
     # ── Owner: remove service from staff member ───────────────────────────────
@@ -299,4 +305,6 @@ class StaffMutation:
 
         require_owner(info)
         StaffService.objects.filter(staff_id=staff_id, service_id=service_id).delete()
+        from beautybook.cache_utils import invalidate_staff_cache
+        invalidate_staff_cache(info.context.request.tenant.schema_name)
         return True

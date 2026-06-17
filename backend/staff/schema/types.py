@@ -94,12 +94,9 @@ def working_hours_to_type(wh) -> WorkingHoursType:
 
 
 def staff_detail_to_type(u) -> StaffDetailType:
-    from services.models import StaffService
-
     wh_qs = u.working_hours.order_by("day_of_week")
-    service_ids = list(
-        StaffService.objects.filter(staff=u).values_list("service_id", flat=True)
-    )
+    # Use prefetched staff_services (from staff_list queryset) to avoid N+1
+    service_ids = [ss.service_id for ss in u.staff_services.all()]
     try:
         role = RoleEnum(u.role)
     except (ValueError, KeyError, TypeError):

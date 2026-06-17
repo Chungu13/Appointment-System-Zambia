@@ -111,6 +111,7 @@ _DATABASE_URL = config("DATABASE_URL", default="")
 if _DATABASE_URL and _HAS_DJ_DATABASE_URL:
     DATABASES = {"default": _dj_db_url.parse(_DATABASE_URL)}
     DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
+    DATABASES["default"]["CONN_MAX_AGE"] = 60
 else:
     DATABASES = {
         "default": {
@@ -120,6 +121,7 @@ else:
             "PASSWORD": config("DB_PASSWORD", default=""),
             "HOST": config("DB_HOST", default="localhost"),
             "PORT": config("DB_PORT", default="5432"),
+            "CONN_MAX_AGE": 60,
         }
     }
 
@@ -222,12 +224,14 @@ VERCEL_PROJECT_ID = config("VERCEL_PROJECT_ID", default="")
 VERCEL_TEAM_ID    = config("VERCEL_TEAM_ID",    default="")
 VERCEL_APP_DOMAIN = config("VERCEL_APP_DOMAIN", default="kimawa.pro")
 
-CELERY_BROKER_URL     = config("CELERY_BROKER_URL",     default=config("REDIS_URL", default="redis://localhost:6379/0"))
-CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=config("REDIS_URL", default="redis://localhost:6379/1"))
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
+CELERY_BROKER_URL        = config("CELERY_BROKER_URL",     default=config("REDIS_URL", default="redis://localhost:6379/0"))
+CELERY_RESULT_BACKEND    = config("CELERY_RESULT_BACKEND", default=config("REDIS_URL", default="redis://localhost:6379/1"))
+CELERY_ACCEPT_CONTENT    = ["json"]
+CELERY_TASK_SERIALIZER   = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_TIMEZONE          = TIME_ZONE
+CELERY_TASK_COMPRESSION  = "gzip"
+CELERY_RESULT_EXPIRES    = 3600
 
 # ---------------------------------------------------------------------------
 # Email

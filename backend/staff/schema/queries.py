@@ -38,10 +38,17 @@ class StaffQuery:
     @strawberry.field
     def staff_list(self, info: Info) -> List[StaffDetailType]:
         require_owner(info)
+        from beautybook.cache_utils import get_cached_staff, set_cached_staff
+        schema_name = info.context.request.tenant.schema_name
+        cached = get_cached_staff(schema_name)
+        if cached is not None:
+            return cached
         users = User.objects.filter(is_active=True).prefetch_related(
             "working_hours", "staff_services"
         )
-        return [staff_detail_to_type(u) for u in users]
+        result = [staff_detail_to_type(u) for u in users]
+        set_cached_staff(schema_name, result)
+        return result
 
     @strawberry.field
     def working_hours(self, info: Info, staff_id: Optional[int] = None) -> List[WorkingHoursType]:

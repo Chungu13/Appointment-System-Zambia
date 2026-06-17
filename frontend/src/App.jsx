@@ -1,41 +1,42 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client/react'
 import { AuthProvider } from './context/AuthContext'
 import { tenantClient } from './lib/apollo'
 
-// Router helpers
+// Router helpers — kept eager (tiny, needed before any route renders)
 import ProtectedRoute from './router/ProtectedRoute'
 import TenantRoute, { getSubdomain } from './router/TenantRoute'
 
-// Layout
+// Layout — kept eager (shell is always present)
 import Sidebar from './components/layout/Sidebar'
 import BottomNav from './components/layout/BottomNav'
 
-// Public pages
-import SalonDirectory from './pages/public/SalonDirectory'
-import SalonLanding from './pages/public/SalonLanding'
-import SalonBooking from './pages/public/SalonBooking'
-import HowItWorks from './pages/public/HowItWorks'
-import ForBusinesses from './pages/public/ForBusinesses'
-import Signup from './pages/public/Signup'
-import Directory from './pages/public/Directory'
+// Public pages — lazy loaded
+const SalonDirectory = lazy(() => import('./pages/public/SalonDirectory'))
+const SalonLanding   = lazy(() => import('./pages/public/SalonLanding'))
+const SalonBooking   = lazy(() => import('./pages/public/SalonBooking'))
+const HowItWorks     = lazy(() => import('./pages/public/HowItWorks'))
+const ForBusinesses  = lazy(() => import('./pages/public/ForBusinesses'))
+const Signup         = lazy(() => import('./pages/public/Signup'))
+const Directory      = lazy(() => import('./pages/public/Directory'))
 
 // Auth
-import Login from './pages/auth/Login'
+const Login = lazy(() => import('./pages/auth/Login'))
 
-// Owner pages
-import OwnerDashboard from './pages/owner/OwnerDashboard'
-import Calendar from './pages/owner/Calendar'
-import Services from './pages/owner/Services'
-import Staff from './pages/owner/Staff'
-import Customers from './pages/owner/Customers'
-import Analytics from './pages/owner/Analytics'
-import Settings from './pages/owner/Settings'
-import Portfolio from './pages/owner/Portfolio'
-import Profile from './pages/owner/Profile'
+// Owner pages — lazy loaded
+const OwnerDashboard = lazy(() => import('./pages/owner/OwnerDashboard'))
+const Calendar       = lazy(() => import('./pages/owner/Calendar'))
+const Services       = lazy(() => import('./pages/owner/Services'))
+const Staff          = lazy(() => import('./pages/owner/Staff'))
+const Customers      = lazy(() => import('./pages/owner/Customers'))
+const Analytics      = lazy(() => import('./pages/owner/Analytics'))
+const Settings       = lazy(() => import('./pages/owner/Settings'))
+const Portfolio      = lazy(() => import('./pages/owner/Portfolio'))
+const Profile        = lazy(() => import('./pages/owner/Profile'))
 
-// Staff portal — no auth, shared key
-import StaffPortal from './pages/staff/StaffPortal'
+// Staff portal
+const StaffPortal = lazy(() => import('./pages/staff/StaffPortal'))
 
 import { useVersionCheck } from './hooks/useVersionCheck'
 
@@ -62,6 +63,7 @@ export default function App() {
     <ApolloProvider client={tenantClient}>
       <AuthProvider>
         <BrowserRouter>
+          <Suspense fallback={null}>
           <Routes>
             {/* Root — landing on subdomain, directory on plain localhost */}
             <Route
@@ -121,6 +123,7 @@ export default function App() {
               }
             />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </ApolloProvider>

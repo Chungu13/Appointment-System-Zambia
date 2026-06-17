@@ -1,4 +1,5 @@
 import base64
+import io
 import uuid
 from pathlib import Path
 
@@ -7,24 +8,33 @@ from django.conf import settings
 
 def save_image_from_base64(data_url: str, subfolder: str, tenant_schema: str) -> str:
     """
-    If data_url is a base64 data URL (data:image/...), decode it, write the file to
-    MEDIA_ROOT/<subfolder>/<tenant_schema>/<uuid>.<ext>, and return the full URL
-    (prefixed with MEDIA_BASE_URL if set, otherwise a relative /media/... path).
-
-    If data_url is already a plain URL or path, return it unchanged so existing
-    records keep working without re-upload.
+    Decode a base64 data URL, compress to JPEG (max 1200px wide, quality 85),
+    write to MEDIA_ROOT and return the public URL.
+    Plain URLs are returned unchanged so existing records keep working.
     """
     if not data_url.startswith("data:image"):
         return data_url
 
     try:
         header, encoded = data_url.split(",", 1)
-        mime = header.split(";")[0].split(":")[1]          # "image/jpeg" or "image/png"
-        ext = "jpg" if mime.endswith("jpeg") else mime.split("/")[1]
     except (ValueError, IndexError):
         raise ValueError("Invalid image data URL format.")
 
-    image_bytes = base64.b64decode(encoded)
+    raw_bytes = base64.b64decode(encoded)
+
+    # Compress with Pillow: resize to max 1200px wide, convert to JPEG
+    from PIL import Image
+    img = Image.open(io.BytesIO(raw_bytes))
+    if img.mode not in ("RGB",):
+        img = img.convert("RGB")
+    max_width = 1200
+    if img.width > max_width:
+        new_height = int(img.height * (max_width / img.width))
+        img = img.resize((max_width, new_height), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85, optimize=True)
+    image_bytes = buf.getvalue()
+    ext = "jpg"
 
     rel_dir = Path(subfolder) / tenant_schema
     abs_dir = Path(settings.MEDIA_ROOT) / rel_dir
