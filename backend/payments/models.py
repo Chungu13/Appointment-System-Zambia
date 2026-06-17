@@ -36,6 +36,10 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ["-paid_at"]
+        indexes = [
+            models.Index(fields=["status"],          name="payment_status_idx"),
+            models.Index(fields=["transaction_ref"], name="payment_txn_ref_idx"),
+        ]
 
     def __str__(self):
         return f"{self.appointment} — {self.amount_zmw} ZMW ({self.status})"
