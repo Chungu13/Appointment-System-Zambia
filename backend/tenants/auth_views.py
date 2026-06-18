@@ -4,7 +4,6 @@ import urllib.request
 
 from django.conf import settings
 from django.core import signing
-from django.core.mail import send_mail
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -20,24 +19,39 @@ def _api_url():
     return getattr(settings, "API_BASE_URL", "http://localhost:8000")
 
 
+# ── Email via Resend HTTP API ─────────────────────────────────────────────────
+
+def send_email(to: str, subject: str, html: str) -> None:
+    import resend
+    from decouple import config
+
+    resend.api_key = config("RESEND_API_KEY", default="")
+    if not resend.api_key:
+        logger.warning("send_email: RESEND_API_KEY not set — skipping email to %s", to)
+        return
+
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "hello@kimawa.pro")
+    try:
+        resend.Emails.send({"from": from_email, "to": to, "subject": subject, "html": html})
+    except Exception as exc:
+        logger.error("send_email: failed to send to %s: %s", to, exc)
+
+
 # ── Email helpers ─────────────────────────────────────────────────────────────
 
 def send_verification_email(user_pk: int, schema_name: str, email: str, full_name: str) -> None:
     token = signing.dumps({"schema": schema_name, "pk": user_pk}, salt="email-verification")
     verify_url = f"{_api_url()}/auth/verify-email/?token={token}"
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "hello@kimawa.pro")
 
-    send_mail(
+    send_email(
+        to=email,
         subject="Verify your Kimawa account",
-        message=(
-            f"Hi {full_name},\n\n"
-            "Click the link below to verify your email and activate your Kimawa account.\n\n"
-            f"{verify_url}\n\n"
-            "This link expires in 24 hours."
+        html=(
+            f"<p>Hi {full_name},</p>"
+            "<p>Click the link below to verify your email and activate your Kimawa account.</p>"
+            f'<p><a href="{verify_url}">{verify_url}</a></p>'
+            "<p>This link expires in 24 hours.</p>"
         ),
-        from_email=from_email,
-        recipient_list=[email],
-        fail_silently=True,
     )
 
 
@@ -53,43 +67,39 @@ def send_admin_notification(
     timestamp: str,
 ) -> None:
     admin_email = getattr(settings, "ADMIN_EMAIL", "admin@kimawa.pro")
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "hello@kimawa.pro")
-    api_base = getattr(settings, "API_BASE_URL", "https://api.kimawa.pro")
+    api_base    = getattr(settings, "API_BASE_URL", "https://api.kimawa.pro")
 
-    send_mail(
-        subject=f"New business signup — {business_name}",
-        message=(
-            "New business registered on Kimawa:\n\n"
-            f"Business name: {business_name}\n"
-            f"Business type: {business_type}\n"
-            f"City: {city}\n"
-            f"Area: {area}\n"
-            f"Phone: {phone}\n"
-            f"Owner name: {full_name}\n"
-            f"Owner email: {email}\n"
-            f"Signed up: {timestamp}\n\n"
-            f"Review and approve at: {api_base}/admin/tenants/tenant/"
+    send_email(
+        to=admin_email,
+        subject=f"New business signup - {business_name}",
+        html=(
+            "<p>New business registered on Kimawa:</p>"
+            "<ul>"
+            f"<li><b>Business name:</b> {business_name}</li>"
+            f"<li><b>Business type:</b> {business_type}</li>"
+            f"<li><b>City:</b> {city}</li>"
+            f"<li><b>Area:</b> {area}</li>"
+            f"<li><b>Phone:</b> {phone}</li>"
+            f"<li><b>Owner name:</b> {full_name}</li>"
+            f"<li><b>Owner email:</b> {email}</li>"
+            f"<li><b>Signed up:</b> {timestamp}</li>"
+            "</ul>"
+            f'<p><a href="{api_base}/admin/tenants/tenant/">Review and approve in Django admin</a></p>'
         ),
-        from_email=from_email,
-        recipient_list=[admin_email],
-        fail_silently=True,
     )
 
 
 def send_approval_email(owner_name: str, business_name: str, owner_email: str) -> None:
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "hello@kimawa.pro")
     app_base = _app_url()
 
-    send_mail(
-        subject="Your Kimawa account is approved — you're live!",
-        message=(
-            f"Hi {owner_name},\n\n"
-            f"Your business {business_name} has been approved on Kimawa. "
-            f"Log in to your dashboard to get started: {app_base}/login"
+    send_email(
+        to=owner_email,
+        subject="Your Kimawa account is approved - you're live!",
+        html=(
+            f"<p>Hi {owner_name},</p>"
+            f"<p>Your business <b>{business_name}</b> has been approved on Kimawa.</p>"
+            f'<p><a href="{app_base}/login">Log in to your dashboard to get started</a></p>'
         ),
-        from_email=from_email,
-        recipient_list=[owner_email],
-        fail_silently=True,
     )
 
 
@@ -158,7 +168,6 @@ def google_auth_view(request):
     if not email:
         return JsonResponse({"error": "No email returned from Google"}, status=400)
 
-    # Issue a short-lived signed token that register_tenant verifies server-side
     google_token = signing.dumps(
         {"email": email, "sub": info.get("id", "")},
         salt="google-auth",
