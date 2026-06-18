@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 
 from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -30,19 +29,9 @@ def chat_stream(request):
     if not message:
         return JsonResponse({"error": "message is required"}, status=400)
 
-    import redis as _redis
-    redis_url = (
-        os.environ.get("REDIS_URL")
-        or os.environ.get("CELERY_BROKER_URL")
-        or "redis://localhost:6379/0"
-    )
-    r = _redis.from_url(redis_url, decode_responses=True)
-    redis_key = f"booking_agent:{session_id}" if session_id else None
+    from agents.booking_agent import BookingAgent, load_history, save_history
 
-    raw = r.get(redis_key) if redis_key else None
-    history = json.loads(raw) if raw else []
-
-    from agents.booking_agent import BookingAgent
+    history = load_history(session_id)
     agent = BookingAgent(request.tenant)
 
     def event_stream():
@@ -52,11 +41,12 @@ def chat_stream(request):
                 customer_phone=customer_phone,
                 conversation_history=history,
                 customer_name=customer_name,
+                session_id=session_id,
             ):
                 if kind == "token":
                     yield f"data: {json.dumps({'token': value})}\n\n"
-                elif kind == "history" and redis_key:
-                    r.setex(redis_key, 86400, json.dumps(value, default=str))
+                elif kind == "history":
+                    save_history(session_id, value)
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as exc:
             logger.error("chat_stream error: %s", exc, exc_info=True)

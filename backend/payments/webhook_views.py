@@ -143,4 +143,23 @@ def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref
         outcome="failed",
         metadata={"reference_id": reference_id, "status": status, "message": message},
     )
+
+    # Notify the customer's active chat session so the AI can offer a retry
+    if appt.chat_session_id:
+        try:
+            from agents.booking_agent import inject_system_message
+            inject_system_message(
+                session_id=appt.chat_session_id,
+                message=(
+                    f"SYSTEM: The customer's payment prompt was dismissed or failed "
+                    f"(appointment_id={appt.pk}, service={appt.service.name}). "
+                    f"Inform the customer their payment was not completed and ask if they would "
+                    f"like you to resend the payment prompt to their phone. "
+                    f"If yes, use the retry_payment tool with appointment_id={appt.pk}. "
+                    f"If no, let them know their booking slot has been released and they can book again anytime."
+                ),
+            )
+        except Exception:
+            logger.exception("[Webhook] Failed to inject retry system message for appt %s", appt.pk)
+
     return {"ok": False, "error": f"Payment {status}: {message}"}

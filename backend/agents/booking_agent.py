@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 from django.conf import settings
 from django.utils import timezone
@@ -9,6 +10,44 @@ from agents.models import AgentLog
 from agents.log_labels import friendly_tool_label
 
 logger = logging.getLogger(__name__)
+
+
+# ── Redis session helpers ──────────────────────────────────────────────────────
+
+def _redis_client():
+    import redis
+    url = (
+        os.environ.get("REDIS_URL")
+        or os.environ.get("CELERY_BROKER_URL")
+        or "redis://localhost:6379/0"
+    )
+    return redis.from_url(url, decode_responses=True)
+
+
+def _redis_key(session_id: str) -> str:
+    return f"booking_agent:{session_id}"
+
+
+def load_history(session_id: str) -> list:
+    if not session_id:
+        return []
+    raw = _redis_client().get(_redis_key(session_id))
+    return json.loads(raw) if raw else []
+
+
+def save_history(session_id: str, history: list) -> None:
+    if not session_id:
+        return
+    _redis_client().setex(_redis_key(session_id), 86400, json.dumps(history, default=str))
+
+
+def inject_system_message(session_id: str, message: str) -> None:
+    """Append a system message to an active chat session's Redis history."""
+    if not session_id:
+        return
+    history = load_history(session_id)
+    history.append({"role": "system", "content": message})
+    save_history(session_id, history)
 
 
 def _normalise_phone(phone: str) -> str:
@@ -167,6 +206,27 @@ _TOOLS = [
                     "reason": {
                         "type": "string",
                         "description": "Brief reason for cancellation (optional).",
+                    },
+                },
+                "required": ["appointment_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "retry_payment",
+            "description": "Re-send a Lipila mobile money payment prompt for an appointment whose previous payment was dismissed or failed.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "appointment_id": {
+                        "type": "integer",
+                        "description": "ID of the appointment to retry payment for.",
+                    },
+                    "mobile_money_phone": {
+                        "type": "string",
+                        "description": "Customer's mobile money number. Use the same number as before unless they provide a different one.",
                     },
                 },
                 "required": ["appointment_id"],
@@ -419,6 +479,14 @@ class BookingAgent:
             "| old_date: [YYYY-MM-DD] | old_time: [HH:MM] | new_date: [YYYY-MM-DD] | new_time: [HH:MM] "
             "| staff: [staff] | ref: [ref]\n"
             "  Use 24-hour HH:MM in this line only.\n\n"
+            "PAYMENT RETRY FLOW — follow exactly if you receive a SYSTEM message about payment failure:\n"
+            "- Respond warmly: 'It looks like your payment prompt was dismissed or didn't go through. "
+            "No worries — would you like me to resend it to your phone?'\n"
+            "- If they say yes: call retry_payment with the appointment_id from the SYSTEM message. "
+            "Then append the same MOBILE_PAYMENT_SENT | ... line as in the original booking flow "
+            "(use amount_charged, phone, and transaction_ref from the retry_payment result).\n"
+            "- If they say no: tell them their booking slot has been released and invite them to book again anytime.\n"
+            "- Mobile money dismissals are very common — be warm and non-judgmental.\n\n"
             "CRITICAL for cancel/reschedule:\n"
             "- NEVER act without explicit customer confirmation.\n"
             "- NEVER cancel or reschedule an appointment from find_my_appointments unless the customer "
@@ -618,6 +686,7 @@ class BookingAgent:
                     booked_by="agent",
                     customer_notes=inputs.get("notes", ""),
                     notification_phone=inputs.get("notification_phone", ""),
+                    chat_session_id=getattr(self, "_session_id", ""),
                 )
 
             AgentLog.objects.create(
@@ -981,6 +1050,74 @@ class BookingAgent:
                 "ref":       f"APPT-{appt.pk}",
             }
 
+        elif name == "retry_payment":
+            from bookings.models import Appointment
+            from payments.models import Payment
+            from payments.provider_factory import get_provider
+            import uuid as _uuid
+
+            try:
+                appt = Appointment.objects.select_related("service", "staff", "customer").get(
+                    pk=inputs["appointment_id"]
+                )
+            except Appointment.DoesNotExist:
+                return {"error": f"Appointment {inputs['appointment_id']} not found."}
+
+            actual_deposit = float(appt.service.deposit_zmw)
+            if actual_deposit == 0:
+                return {"error": "This booking has no deposit — no payment is needed."}
+
+            actual_total = _calculate_customer_total(actual_deposit)
+            mobile_phone = (inputs.get("mobile_money_phone") or customer_phone or appt.customer.phone).strip()
+            if not mobile_phone:
+                return {"error": "No mobile money number available. Please ask the customer for their number."}
+
+            transaction_ref = f"KIMAWA-RETRY-{_uuid.uuid4().hex[:12].upper()}"
+            payment = Payment.objects.create(
+                appointment=appt,
+                amount_zmw=actual_total,
+                payment_type="deposit",
+                method="airtel_money",
+                status="pending",
+                transaction_ref=transaction_ref,
+            )
+
+            provider = get_provider()
+            result = provider.initiate_collection(
+                phone=mobile_phone,
+                amount=actual_total,
+                reference=transaction_ref,
+                narration=f"{appt.service.name} deposit (retry)",
+            )
+
+            if not result.success:
+                payment.status = "failed"
+                payment.save(update_fields=["status", "updated_at"])
+                return {"error": f"Failed to resend payment prompt: {result.message}"}
+
+            AgentLog.objects.create(
+                agent_type="payment",
+                action=f"Agent retried payment for {appt.customer.full_name} ({mobile_phone})",
+                related_appointment=appt,
+                outcome="success",
+                metadata={
+                    "tenant": self.tenant.schema_name,
+                    "transaction_ref": transaction_ref,
+                    "amount_charged": str(actual_total),
+                    "phone": mobile_phone,
+                },
+            )
+            return {
+                "payment_flow": "mobile_money",
+                "transaction_ref": transaction_ref,
+                "phone": mobile_phone,
+                "amount_charged": actual_total,
+                "service_name": appt.service.name,
+                "staff_name": appt.staff.full_name,
+                "starts_at": appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
+                "message": f"Payment prompt of ZMW {actual_total} resent to {mobile_phone}.",
+            }
+
         return {"error": f"Unknown tool: {name}"}
 
     # ------------------------------------------------------------------
@@ -993,6 +1130,7 @@ class BookingAgent:
         customer_phone: str,
         conversation_history: list,
         customer_name: str = "",
+        session_id: str = "",
     ) -> tuple[str, list, list]:
         """
         Run one customer turn through the agentic loop.
@@ -1000,6 +1138,7 @@ class BookingAgent:
         availability_slots is the list of slot dicts from the last check_availability call,
         or [] if check_availability was not called this turn.
         """
+        self._session_id = session_id
         self._last_availability_slots: list = []
         messages = list(conversation_history)
         messages.append({"role": "user", "content": message})
@@ -1065,6 +1204,7 @@ class BookingAgent:
         customer_phone: str,
         conversation_history: list,
         customer_name: str = "",
+        session_id: str = "",
     ):
         """
         Same agentic loop as chat(), but uses stream=True for the final text turn.
@@ -1075,6 +1215,7 @@ class BookingAgent:
 
         Tool-call turns are handled non-streaming (fast; latency is in tool execution).
         """
+        self._session_id = session_id
         self._last_availability_slots = []
         messages = list(conversation_history)
         messages.append({"role": "user", "content": message})

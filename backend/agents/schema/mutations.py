@@ -1,5 +1,4 @@
 import datetime
-import json
 from typing import List
 
 import strawberry
@@ -35,21 +34,9 @@ class AgentsMutation:
         session_id: str,
         customer_name: str = "",
     ) -> AgentChatResult:
-        import os
-        import redis
+        from agents.booking_agent import BookingAgent, load_history, save_history
 
-        from agents.booking_agent import BookingAgent
-
-        redis_url = (
-            os.environ.get("REDIS_URL")
-            or os.environ.get("CELERY_BROKER_URL")
-            or "redis://localhost:6379/0"
-        )
-        r = redis.from_url(redis_url, decode_responses=True)
-        redis_key = f"booking_agent:{session_id}"
-
-        raw = r.get(redis_key)
-        history = json.loads(raw) if raw else []
+        history = load_history(session_id)
 
         request = info.context.request
         tenant  = request.tenant
@@ -60,10 +47,10 @@ class AgentsMutation:
             customer_phone=customer_phone,
             conversation_history=history,
             customer_name=customer_name,
+            session_id=session_id,
         )
 
-        # Persist for 24 hours
-        r.setex(redis_key, 86400, json.dumps(updated_history, default=str))
+        save_history(session_id, updated_history)
 
         slots = [
             ChatSlotType(
