@@ -38,4 +38,4 @@ Write-Host "  Press Ctrl+C to stop" -ForegroundColor DarkGray
 Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 
-railway logs --tail
+railway logs --lines 100
