@@ -65,8 +65,8 @@ export const LOGIN = gql`
 `
 
 export const OWNER_LOGIN = gql`
-  mutation OwnerLogin($email: String!, $password: String!) {
-    ownerLogin(email: $email, password: $password) {
+  mutation OwnerLogin($email: String!, $password: String, $googleToken: String) {
+    ownerLogin(email: $email, password: $password, googleToken: $googleToken) {
       accessToken
       refreshToken
       tenantSlug

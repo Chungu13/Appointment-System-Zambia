@@ -100,14 +100,35 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def owner_login(self, email: str, password: str) -> OwnerLoginPayload:
+    def owner_login(
+        self,
+        email: str,
+        password: str = "",
+        google_token: str = "",
+    ) -> OwnerLoginPayload:
         from django_tenants.utils import schema_context
         from beautybook.jwt_auth import make_access_token, make_refresh_token
         from tenants.models import Tenant
 
         email = email.strip().lower()
-        if not email or not password:
-            raise ValueError("Invalid credentials.")
+        if not email:
+            raise ValueError("Email is required.")
+
+        # Verify google_token when provided — skip password check
+        if google_token:
+            from django.core import signing as _signing
+            try:
+                gdata = _signing.loads(google_token, max_age=600, salt="google-auth")
+                if gdata.get("email", "").lower() != email:
+                    raise ValueError("Google authentication mismatch.")
+            except _signing.SignatureExpired:
+                raise ValueError("Google session expired. Please try again.")
+            except ValueError:
+                raise
+            except Exception:
+                raise ValueError("Invalid Google authentication.")
+        elif not password:
+            raise ValueError("Password is required.")
 
         tenants = Tenant.objects.exclude(schema_name="public")
         for tenant in tenants:
@@ -117,7 +138,7 @@ class Mutation:
                     user = User.objects.get(email=email, role="owner", is_active=True)
                 except User.DoesNotExist:
                     continue
-                if not user.check_password(password):
+                if not google_token and not user.check_password(password):
                     raise ValueError("Invalid credentials.")
                 access_token  = make_access_token(user.pk, "owner")
                 refresh_token = make_refresh_token(user.pk)
@@ -133,6 +154,8 @@ class Mutation:
                 business_name=tenant.business_name,
             )
 
+        if google_token:
+            raise ValueError("NO_TENANT")
         raise ValueError("Invalid credentials.")
 
     @strawberry.mutation
