@@ -6,6 +6,39 @@ from pathlib import Path
 from django.conf import settings
 
 
+def save_raw_from_base64(data_url: str, subfolder: str, tenant_schema: str) -> tuple:
+    """
+    Decode a base64 data URL and write the raw bytes to disk immediately —
+    no Pillow, no compression. Returns (public_url, abs_path_str).
+
+    Call compress_portfolio_image.delay(abs_path) afterwards to compress async.
+    Plain URLs (existing records) are returned as (url, "") with nothing written.
+    """
+    if not data_url.startswith("data:image"):
+        return data_url, ""
+
+    try:
+        _, encoded = data_url.split(",", 1)
+    except (ValueError, IndexError):
+        raise ValueError("Invalid image data URL format.")
+
+    raw_bytes = base64.b64decode(encoded)
+
+    rel_dir = Path(subfolder) / tenant_schema
+    abs_dir = Path(settings.MEDIA_ROOT) / rel_dir
+    abs_dir.mkdir(parents=True, exist_ok=True)
+
+    # Always .jpg — Celery task will overwrite with proper JPEG bytes
+    filename = f"{uuid.uuid4()}.jpg"
+    abs_path = abs_dir / filename
+    abs_path.write_bytes(raw_bytes)
+
+    rel_url = f"/media/{rel_dir}/{filename}"
+    base = getattr(settings, "MEDIA_BASE_URL", "").rstrip("/")
+    url = f"{base}{rel_url}" if base else rel_url
+    return url, str(abs_path)
+
+
 def save_image_from_base64(data_url: str, subfolder: str, tenant_schema: str) -> str:
     """
     Decode a base64 data URL, compress to JPEG (max 1200px wide, quality 85),

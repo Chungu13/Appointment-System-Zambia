@@ -160,6 +160,7 @@ STORAGES = {
 }
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB — allows base64 image uploads
+MEDIA_MAX_SIZE_MB = config("MEDIA_MAX_SIZE_MB", default=10, cast=int)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

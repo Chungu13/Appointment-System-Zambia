@@ -119,9 +119,25 @@ class ServicesMutation:
         require_owner(info)
         if not image_url.strip():
             raise ValueError("Image URL is required.")
-        from beautybook.storage import save_image_from_base64
+
+        # Reject oversized uploads before touching disk
+        from django.conf import settings as _settings
+        max_mb = getattr(_settings, "MEDIA_MAX_SIZE_MB", 10)
+        if image_url.startswith("data:image"):
+            try:
+                _, _encoded = image_url.split(",", 1)
+                approx_bytes = len(_encoded) * 3 // 4
+            except ValueError:
+                approx_bytes = 0
+            if approx_bytes > max_mb * 1024 * 1024:
+                raise ValueError(f"Image is too large. Maximum size is {max_mb}MB.")
+
+        from beautybook.storage import save_raw_from_base64
         tenant_schema = info.context.request.tenant.schema_name
-        stored_url = save_image_from_base64(image_url.strip(), "portfolio", tenant_schema)
+
+        # Save raw bytes immediately — no compression, response stays fast
+        stored_url, abs_path = save_raw_from_base64(image_url.strip(), "portfolio", tenant_schema)
+
         next_order = (PortfolioImage.objects.aggregate(m=Max("display_order"))["m"] or 0) + 1
         img = PortfolioImage.objects.create(
             image_url=stored_url,
@@ -130,6 +146,12 @@ class ServicesMutation:
             display_order=next_order,
         )
         _sync_portfolio_preview(info)
+
+        # Compress in background — overwrites same file, URL unchanged
+        if abs_path:
+            from services.tasks import compress_portfolio_image
+            compress_portfolio_image.delay(abs_path)
+
         return portfolio_image_to_type(img)
 
     @strawberry.mutation
