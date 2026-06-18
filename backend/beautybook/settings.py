@@ -193,7 +193,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": config("CACHE_REDIS_URL", default="redis://localhost:6379/2"),
+        "LOCATION": config("CACHE_REDIS_URL", default=config("REDIS_URL", default="redis://localhost:6379")),
     },
 }
 
