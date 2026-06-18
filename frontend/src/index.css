@@ -65,3 +65,13 @@ body {
 .animate-chat-fade-in {
   animation: chat-fade-in 0.18s ease-out both;
 }
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.streaming-cursor {
+  display: inline-block;
+  animation: blink 1s infinite;
+  margin-left: 1px;
+}

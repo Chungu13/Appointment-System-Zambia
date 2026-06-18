@@ -587,6 +587,18 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
     );
   }
 
+  // Streaming in-progress: show raw accumulated text + blinking cursor
+  if (message.streaming) {
+    return (
+      <div className="animate-chat-fade-in" style={{ display: "flex", justifyContent: "flex-start" }}>
+        <div style={{ maxWidth: "88%", padding: "10px 14px", backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "12px 12px 12px 2px", fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+          {message.content}
+          <span className="streaming-cursor">▋</span>
+        </div>
+      </div>
+    );
+  }
+
   const isUser = message.role === "user";
   if (isUser) {
     const displayText = message.content.replace(/\s*\[service_id:\d+\]/gi, "").trim();
@@ -792,7 +804,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
         {displayMessages.map((msg, i) => (
           <MessageBubble key={i} message={msg} onSend={sendMessage} salonName={salonName} customerName={customer.name} />
         ))}
-        {loading && (
+        {loading && !displayMessages.some((m) => m.streaming) && (
           <div style={{ display: "flex", justifyContent: "flex-start" }}>
             <div style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "12px 12px 12px 2px", padding: "10px 16px", display: "flex", gap: 5, alignItems: "center" }}>
               {[0, 1, 2].map((i) => (

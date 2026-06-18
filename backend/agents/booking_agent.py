@@ -1054,3 +1054,119 @@ class BookingAgent:
             else:
                 messages.append(assistant_dict)
                 return "Sorry, something went wrong. Please try again.", messages, self._last_availability_slots
+
+    # ------------------------------------------------------------------
+    # Streaming agentic loop — yields (kind, value) tuples
+    # ------------------------------------------------------------------
+
+    def chat_streaming(
+        self,
+        message: str,
+        customer_phone: str,
+        conversation_history: list,
+        customer_name: str = "",
+    ):
+        """
+        Same agentic loop as chat(), but uses stream=True for the final text turn.
+
+        Yields:
+          ("token", str)   — text chunk from the streaming text response
+          ("history", list) — final messages list, yielded once at the very end
+
+        Tool-call turns are handled non-streaming (fast; latency is in tool execution).
+        """
+        self._last_availability_slots = []
+        messages = list(conversation_history)
+        messages.append({"role": "user", "content": message})
+
+        while True:
+            stream = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": self._system_prompt(customer_name)}] + messages,
+                tools=_TOOLS,
+                tool_choice="auto",
+                max_tokens=500,
+                stream=True,
+            )
+
+            accumulated_content = ""
+            accumulated_tool_calls = {}   # index → {id, name, arguments}
+            finish_reason = None
+
+            for chunk in stream:
+                if not chunk.choices:
+                    continue
+                choice = chunk.choices[0]
+                if choice.finish_reason:
+                    finish_reason = choice.finish_reason
+
+                delta = choice.delta
+
+                if delta.tool_calls:
+                    for tc_delta in delta.tool_calls:
+                        idx = tc_delta.index
+                        if idx not in accumulated_tool_calls:
+                            accumulated_tool_calls[idx] = {"id": "", "name": "", "arguments": ""}
+                        if tc_delta.id:
+                            accumulated_tool_calls[idx]["id"] += tc_delta.id
+                        if tc_delta.function:
+                            if tc_delta.function.name:
+                                accumulated_tool_calls[idx]["name"] += tc_delta.function.name
+                            if tc_delta.function.arguments:
+                                accumulated_tool_calls[idx]["arguments"] += tc_delta.function.arguments
+
+                if delta.content:
+                    accumulated_content += delta.content
+                    yield ("token", delta.content)
+
+            if finish_reason == "tool_calls":
+                tool_calls_list = [
+                    {
+                        "id": accumulated_tool_calls[idx]["id"],
+                        "type": "function",
+                        "function": {
+                            "name": accumulated_tool_calls[idx]["name"],
+                            "arguments": accumulated_tool_calls[idx]["arguments"],
+                        },
+                    }
+                    for idx in sorted(accumulated_tool_calls.keys())
+                ]
+                messages.append({"role": "assistant", "content": None, "tool_calls": tool_calls_list})
+
+                for tc in tool_calls_list:
+                    try:
+                        inputs = json.loads(tc["function"]["arguments"])
+                    except json.JSONDecodeError:
+                        inputs = {}
+
+                    result = self._run_tool(tc["function"]["name"], inputs, customer_phone)
+                    logger.info("Tool %s(%s) → %s", tc["function"]["name"], inputs, result)
+
+                    AgentLog.objects.create(
+                        agent_type="booking",
+                        action=friendly_tool_label(tc["function"]["name"]),
+                        outcome="success" if "error" not in result else "failed",
+                        metadata={
+                            "tool": tc["function"]["name"],
+                            "input": inputs,
+                            "result": result,
+                            "tenant": self.tenant.schema_name,
+                        },
+                    )
+
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": json.dumps(result, default=str),
+                    })
+
+                continue  # next agentic loop iteration
+
+            else:
+                # finish_reason == "stop" or unexpected — wrap up
+                if not accumulated_content:
+                    accumulated_content = "Sorry, something went wrong. Please try again."
+                    yield ("token", accumulated_content)
+                messages.append({"role": "assistant", "content": accumulated_content})
+                yield ("history", messages)
+                return
