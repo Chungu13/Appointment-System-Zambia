@@ -35,10 +35,10 @@ railway link `
 
 # ── 4. Open shell ─────────────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
-Write-Host "  Railway shell — Appointment-System-Zambia (production)" -ForegroundColor White
+Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "  Railway shell - Appointment-System-Zambia (production)" -ForegroundColor White
 Write-Host "  You are now on the Railway server. Type 'exit' to close." -ForegroundColor DarkGray
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 
 railway shell

@@ -32,10 +32,10 @@ railway link `
 
 # ── 4. Stream logs ────────────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
-Write-Host "  Streaming logs — Appointment-System-Zambia (production)" -ForegroundColor White
+Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "  Streaming logs - Appointment-System-Zambia (production)" -ForegroundColor White
 Write-Host "  Press Ctrl+C to stop" -ForegroundColor DarkGray
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 
 railway logs --tail
