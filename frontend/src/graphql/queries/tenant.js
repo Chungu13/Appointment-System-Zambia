@@ -10,6 +10,7 @@ export const SALON_SETTINGS = gql`
       address
       phone
       payoutPhone
+      payoutNetwork
       whatsappNumber
       staffAccessKey
       coverImageUrl

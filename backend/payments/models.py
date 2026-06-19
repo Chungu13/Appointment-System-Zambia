@@ -32,6 +32,11 @@ class Payment(models.Model):
     transaction_ref = models.CharField(max_length=100, blank=True)
     provider_ref = models.CharField(max_length=200, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    disburse_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    disburse_reference = models.CharField(max_length=64, null=True, blank=True)
+    disburse_transaction_id = models.CharField(max_length=128, null=True, blank=True)
+    disburse_status = models.CharField(max_length=20, default='pending')
+    kimawa_net = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

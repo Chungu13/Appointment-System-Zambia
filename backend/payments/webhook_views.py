@@ -40,40 +40,57 @@ def payment_webhook(request):
     return JsonResponse(result, status=200 if result["ok"] else 400)
 
 
-def _trigger_disbursement(transaction_ref: str, deposit_zmw: float, service_name: str) -> None:
+def _disburse_to_business(payment, appt) -> None:
     """Send owner payout after successful payment. Never raises — logs errors only."""
     try:
+        from decimal import Decimal
         from django.db import connection
         from tenants.models import Tenant
-        from payments.providers.lipila import LipilaProvider
+        from payments.providers.lipila import LipilaProvider, compute_disburse_amount, compute_kimawa_net
 
         tenant = Tenant.objects.filter(schema_name=connection.schema_name).first()
         if not tenant:
             logger.warning("[Disbursement] Tenant not found for schema %s", connection.schema_name)
             return
 
-        payout_phone = tenant.payout_phone or tenant.phone
+        payout_phone = tenant.payout_phone
         if not payout_phone:
             logger.warning("[Disbursement] No payout_phone set for tenant %s", tenant.schema_name)
             return
 
-        disburse_ref = f"DISBURSE-{transaction_ref}"
+        deposit = float(appt.service.deposit_zmw)
+        collection_amount = float(payment.amount_zmw)
+        disburse_amount = compute_disburse_amount(deposit)
+        kimawa_net = compute_kimawa_net(deposit, collection_amount)
+        disburse_ref = f"DISBURSE-{payment.transaction_ref}"
+
+        payment.disburse_amount = Decimal(str(disburse_amount))
+        payment.disburse_reference = disburse_ref
+        payment.disburse_status = "pending"
+        payment.kimawa_net = Decimal(str(kimawa_net))
+        payment.save(update_fields=["disburse_amount", "disburse_reference", "disburse_status", "kimawa_net", "updated_at"])
+
         result = LipilaProvider().initiate_disbursement(
             phone=payout_phone,
-            amount=deposit_zmw,
+            amount=disburse_amount,
             reference=disburse_ref,
-            narration=f"Booking payout — {service_name}",
+            narration=f"Booking payout — {appt.service.name}",
         )
         if result.success:
+            payment.disburse_transaction_id = result.provider_ref
+            payment.disburse_status = "sent"
+            payment.save(update_fields=["disburse_transaction_id", "disburse_status", "updated_at"])
             logger.info(
-                "[Disbursement] sent ZMW %.2f to %s | ref=%s",
-                deposit_zmw, payout_phone, disburse_ref,
+                "[Disbursement] sent ZMW %.2f to %s | ref=%s | txn=%s",
+                disburse_amount, payout_phone, disburse_ref, result.provider_ref,
             )
         else:
+            payment.disburse_status = "failed"
+            payment.save(update_fields=["disburse_status", "updated_at"])
             logger.warning("[Disbursement] failed | ref=%s | %s", disburse_ref, result.message)
 
     except Exception as exc:
-        logger.exception("[Disbursement] unexpected error for ref=%s: %s", transaction_ref, exc)
+        logger.exception("[Disbursement] unexpected error for payment %s: %s", payment.pk, exc)
 
 
 def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref: str = "", message: str = "") -> dict:
@@ -122,11 +139,7 @@ def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref
         )
 
         # Disburse the service deposit to the salon owner
-        _trigger_disbursement(
-            transaction_ref=reference_id,
-            deposit_zmw=float(appt.service.deposit_zmw),
-            service_name=appt.service.name,
-        )
+        _disburse_to_business(payment, appt)
 
         return {"ok": True, "appointment_status": appt.status}
 

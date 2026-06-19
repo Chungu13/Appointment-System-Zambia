@@ -59,6 +59,7 @@ class SalonSettingsType:
     address: str
     phone: str
     payout_phone: str
+    payout_network: str
     whatsapp_number: str
     staff_access_key: str
     cover_image_url: str
@@ -104,6 +105,7 @@ class TenantQuery:
             address=tenant.address or "",
             phone=tenant.phone or "",
             payout_phone=tenant.payout_phone or "",
+            payout_network=tenant.payout_network or "",
             whatsapp_number=tenant.whatsapp_number or "",
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
@@ -182,6 +184,7 @@ class TenantMutation:
         city: Optional[str] = None,
         area: Optional[str] = None,
         payout_phone: Optional[str] = None,
+        payout_network: Optional[str] = None,
         whatsapp_number: Optional[str] = None,
     ) -> bool:
         from beautybook.permissions import require_owner
@@ -202,11 +205,13 @@ class TenantMutation:
             tenant.area = area.strip()
         if payout_phone is not None:
             tenant.payout_phone = payout_phone.strip()
+        if payout_network is not None:
+            tenant.payout_network = payout_network.strip()
         if whatsapp_number is not None:
             tenant.whatsapp_number = whatsapp_number.strip()
         tenant.save(update_fields=[
             "cover_image_url", "address", "phone", "city", "area",
-            "payout_phone", "whatsapp_number", "updated_at",
+            "payout_phone", "payout_network", "whatsapp_number", "updated_at",
         ])
         return True
 

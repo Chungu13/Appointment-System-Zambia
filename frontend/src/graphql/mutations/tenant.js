@@ -26,6 +26,7 @@ export const UPDATE_TENANT_PROFILE = gql`
     $city: String
     $area: String
     $payoutPhone: String
+    $payoutNetwork: String
     $whatsappNumber: String
   ) {
     updateTenantProfile(
@@ -35,6 +36,7 @@ export const UPDATE_TENANT_PROFILE = gql`
       city: $city
       area: $area
       payoutPhone: $payoutPhone
+      payoutNetwork: $payoutNetwork
       whatsappNumber: $whatsappNumber
     )
   }

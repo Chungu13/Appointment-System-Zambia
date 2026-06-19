@@ -236,6 +236,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
   const [editing, setEditing]                   = useState(false)
   const [phone, setPhone]                       = useState(settings.phone || '')
   const [payoutPhone, setPayoutPhone]           = useState(settings.payoutPhone || '')
+  const [payoutNetwork, setPayoutNetwork]       = useState(settings.payoutNetwork || '')
   const [whatsappNumber, setWhatsappNumber]     = useState(settings.whatsappNumber || '')
   const [saved, setSaved]                       = useState(false)
 
@@ -253,6 +254,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
       variables: {
         phone: phone.trim(),
         payoutPhone: payoutPhone.trim(),
+        payoutNetwork: payoutNetwork,
         whatsappNumber: whatsappNumber.trim(),
       },
     })
@@ -261,6 +263,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
   function cancel() {
     setPhone(settings.phone || '')
     setPayoutPhone(settings.payoutPhone || '')
+    setPayoutNetwork(settings.payoutNetwork || '')
     setWhatsappNumber(settings.whatsappNumber || '')
     setEditing(false)
   }
@@ -282,6 +285,19 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
             <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '4px 0 0' }}>Kimawa sends your earnings to this number.</p>
           </div>
           <div>
+            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: TEXT, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mobile network</p>
+            <select
+              value={payoutNetwork}
+              onChange={(e) => setPayoutNetwork(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', border: `0.5px solid ${BORDER}`, background: '#fff', fontFamily: sans, fontSize: 13, color: TEXT, outline: 'none', appearance: 'none' }}
+            >
+              <option value="">Select network</option>
+              <option value="mtn">MTN Money</option>
+              <option value="airtel">Airtel Money</option>
+              <option value="zamtel">Zamtel Kwacha</option>
+            </select>
+          </div>
+          <div>
             <Input label="WhatsApp number" type="tel" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="+260 97 000 0000" />
             <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '4px 0 0' }}>We send booking notifications to this number.</p>
           </div>
@@ -290,6 +306,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
         <div>
           <FieldRow label="Contact number" value={settings.phone} />
           <FieldRow label="Mobile money" value={settings.payoutPhone} />
+          <FieldRow label="Network" value={{ mtn: 'MTN Money', airtel: 'Airtel Money', zamtel: 'Zamtel Kwacha' }[settings.payoutNetwork] || '—'} />
           <FieldRow label="WhatsApp" value={settings.whatsappNumber} isLast />
         </div>
       )}

@@ -25,7 +25,7 @@ def approve_businesses(modeladmin, request, queryset):
 class TenantAdmin(admin.ModelAdmin):
     list_display = (
         "business_name", "business_type", "subdomain", "city",
-        "is_approved", "is_active", "on_trial", "created_at",
+        "is_approved", "is_active", "on_trial", "payout_phone", "payout_network", "created_at",
     )
     list_filter = ("is_approved", "is_active", "business_type", "on_trial")
     search_fields = ("business_name", "subdomain", "phone")

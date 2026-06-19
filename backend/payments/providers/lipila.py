@@ -1,9 +1,24 @@
 import logging
+from decimal import Decimal, ROUND_HALF_UP
 
 import requests
 from django.conf import settings
 
 from .base import BasePaymentProvider, PaymentResult, RefundResult, VerifyResult
+
+
+def compute_disburse_amount(deposit_zmw: float) -> float:
+    """Gross up deposit so business receives exactly deposit_zmw after Lipila's 1.5% disbursement fee."""
+    result = Decimal(str(deposit_zmw)) / Decimal("0.985")
+    return float(result.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def compute_kimawa_net(deposit_zmw: float, collection_amount_zmw: float) -> float:
+    """Kimawa's net: collection less Lipila's 2.5% collection fee and the gross-up disbursement."""
+    col = Decimal(str(collection_amount_zmw))
+    lipila_fee = (col * Decimal("0.025")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    disburse = Decimal(str(compute_disburse_amount(deposit_zmw)))
+    return float((col - lipila_fee - disburse).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 logger = logging.getLogger(__name__)
 
