@@ -301,6 +301,17 @@ function ApptModal({ appt, onClose, onAction, loading }) {
             <div><p style={detailLabel}>Booked by</p><p style={{ ...detailValue, textTransform: 'capitalize' }}>{appt.bookedBy}</p></div>
           </div>
 
+          {appt.addonServices && appt.addonServices.length > 0 && (
+            <div>
+              <p style={detailLabel}>Add-ons</p>
+              <p style={{ ...detailValue, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {appt.addonServices.map(a => (
+                  <span key={a.id}>{a.name} <span style={{ color: MUTED }}>(+{a.durationMinutes} min)</span></span>
+                ))}
+              </p>
+            </div>
+          )}
+
           {appt.customerNotes && (
             <div style={{ backgroundColor: '#faf7f7', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
               {appt.customerNotes}

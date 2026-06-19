@@ -52,6 +52,7 @@ class AppointmentType:
     created_at: datetime.datetime
     updated_at: datetime.datetime
     payments: List[PaymentType]
+    addon_services: List[ServiceType]
 
 
 @strawberry.type
@@ -141,6 +142,7 @@ def appointment_to_type(a) -> AppointmentType:
         created_at=a.created_at,
         updated_at=a.updated_at,
         payments=[payment_to_type(p) for p in a.payments.all()],
+        addon_services=[service_to_type(s) for s in a.addon_services.all()],
     )
 
 

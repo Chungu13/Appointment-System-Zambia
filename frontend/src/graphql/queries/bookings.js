@@ -37,6 +37,11 @@ export const MY_APPOINTMENTS = gql`
         status
         paidAt
       }
+      addonServices {
+        id
+        name
+        durationMinutes
+      }
     }
   }
 `

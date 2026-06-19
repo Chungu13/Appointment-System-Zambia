@@ -76,7 +76,7 @@ class BookingsQuery:
         qs = (
             Appointment.objects
             .select_related("customer", "staff", "service")
-            .prefetch_related("payments")
+            .prefetch_related("payments", "addon_services")
         )
         if user.role != "owner":
             qs = qs.filter(staff=user)
@@ -101,7 +101,7 @@ class BookingsQuery:
             Appointment.objects
             .filter(customer=customer)
             .select_related("customer", "staff", "service")
-            .prefetch_related("payments")
+            .prefetch_related("payments", "addon_services")
             .order_by("-starts_at")
         )
         return [appointment_to_type(a) for a in qs]
@@ -170,7 +170,7 @@ class BookingsQuery:
             Appointment.objects
             .filter(staff=user)
             .select_related("customer", "staff", "service")
-            .prefetch_related("payments")
+            .prefetch_related("payments", "addon_services")
             .order_by("starts_at")
         )
         if date_from:

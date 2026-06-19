@@ -91,6 +91,23 @@ _TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "get_addons",
+            "description": "List add-on services available to pair with a primary booking. Returns only active services with no deposit (deposit_zmw = 0), excluding the main service.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "main_service_id": {
+                        "type": "integer",
+                        "description": "ID of the primary service being booked. This service is excluded from results.",
+                    },
+                },
+                "required": ["main_service_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_services",
             "description": "List available services at the salon, optionally filtered by category.",
             "parameters": {
@@ -156,6 +173,11 @@ _TOOLS = [
                         "description": "Phone number for booking confirmation and reminder notifications. May differ from customer_phone/mobile_money_phone. Always pass this — set it to the customer's confirmed notification number from Step 2b.",
                     },
                     "notes": {"type": "string", "description": "Optional customer notes."},
+                    "addon_service_ids": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "IDs of add-on services to include. Pass [] if none were selected.",
+                    },
                 },
                 "required": ["service_id", "staff_id", "starts_at", "customer_name", "customer_phone", "notification_phone"],
             },
@@ -343,8 +365,12 @@ class BookingAgent:
             f"You are a warm, professional booking assistant for {self.tenant.business_name}, "
             "a beauty and or wellness business in Zambia.\n\n"
             "Your job:\n"
-            "- When a customer names a service they want to book, IMMEDIATELY call check_availability "
-            f"for today ({today.isoformat()}) and check whether any slots come back.\n"
+            "- When a customer names a service they want to book, first identify the service_id "
+            "(from [service_id:X] in the message, or by calling get_services). "
+            "Then call get_addons(main_service_id) to check for available add-ons. "
+            "If the main service has deposit_zmw > 0 and add-ons are returned, offer them BEFORE checking availability. "
+            "Once the customer responds (or if no add-ons exist), call check_availability "
+            f"for today ({today.isoformat()}).\n"
             "- Be concise — no filler, no unnecessary questions. When a customer asks about a service, "
             "give them the price, duration and available times immediately.\n"
             "- After check_availability returns results, show the available times ONLY. "
@@ -358,6 +384,18 @@ class BookingAgent:
             "  → Never ask the customer to choose staff — they already chose via the UI or left it to you.\n"
             "- When calling create_booking, use the staff_id from the available_staff list "
             "returned by check_availability. Never guess or invent a staff_id.\n\n"
+            "ADD-ON UPSELL FLOW — follow for any paid service (deposit_zmw > 0):\n"
+            "Step A — After identifying the service_id and BEFORE calling check_availability:\n"
+            "  Call get_addons(main_service_id=<service_id>).\n"
+            "  If addons are returned:\n"
+            "    Ask: 'While you're in, would you like to add anything? No extra deposit needed:'\n"
+            "    Then list each add-on on its own line: '- [name] (+[duration_minutes] min)'\n"
+            "    Then on a new line: 'Just say the name(s) or say none to skip.'\n"
+            "  If no addons are returned, skip silently and proceed to check_availability.\n"
+            "Step B — After the customer responds to the add-on offer:\n"
+            "  Note any selected add-on IDs for use in create_booking (addon_service_ids).\n"
+            "  Then call check_availability for the main service as normal.\n"
+            "  CRITICAL: always pass addon_service_ids to create_booking, even as [] if none selected.\n\n"
             "BOOKING CONFIRMATION FLOW — FOLLOW THIS EXACTLY, EVERY TIME:\n"
             "Step 1 — When the customer picks a time, send a short summary and ask to confirm:\n"
             "  [Service name]\n"
@@ -523,7 +561,16 @@ class BookingAgent:
 
         User = get_user_model()
 
-        if name == "get_services":
+        if name == "get_addons":
+            from services.models import Service
+            main_id = inputs.get("main_service_id")
+            qs = Service.objects.filter(is_active=True, deposit_zmw=0)
+            if main_id:
+                qs = qs.exclude(pk=main_id)
+            rows = list(qs.values("id", "name", "category", "duration_minutes"))
+            return {"addons": rows}
+
+        elif name == "get_services":
             qs = Service.objects.filter(is_active=True)
             if inputs.get("category"):
                 qs = qs.filter(category=inputs["category"])
@@ -642,7 +689,10 @@ class BookingAgent:
             except Exception:
                 return {"error": f"Invalid datetime '{inputs['starts_at']}'."}
 
-            ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
+            addon_ids = [int(i) for i in inputs.get("addon_service_ids", []) if i]
+            addon_objs = list(Service.objects.filter(pk__in=addon_ids, is_active=True)) if addon_ids else []
+            addon_duration = sum(s.duration_minutes for s in addon_objs)
+            ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes + addon_duration)
 
             # Resolve phone: prefer what the AI collected, fall back to intake phone,
             # normalise to +260XXXXXXXXX, log a warning if neither is available.
@@ -688,6 +738,8 @@ class BookingAgent:
                     notification_phone=inputs.get("notification_phone", ""),
                     chat_session_id=getattr(self, "_session_id", ""),
                 )
+                if addon_objs:
+                    appt.addon_services.set(addon_objs)
 
             AgentLog.objects.create(
                 agent_type="booking",
