@@ -67,3 +67,52 @@ def add_vercel_domain(subdomain: str) -> None:
 
     except Exception as exc:
         logger.error("add_vercel_domain: request failed for %s: %s", domain_name, exc)
+
+
+def remove_vercel_domain(subdomain: str) -> None:
+    """
+    Remove {subdomain}.{VERCEL_APP_DOMAIN} from the Vercel project via the Vercel API.
+
+    Never raises — a Vercel failure logs an error but must not block tenant deletion.
+    """
+    token = getattr(settings, "VERCEL_API_TOKEN", "")
+    project_id = getattr(settings, "VERCEL_PROJECT_ID", "")
+    team_id = getattr(settings, "VERCEL_TEAM_ID", "")
+    app_domain = getattr(settings, "VERCEL_APP_DOMAIN", "kimawa.pro")
+
+    if not token or not project_id:
+        logger.warning(
+            "remove_vercel_domain: VERCEL_API_TOKEN or VERCEL_PROJECT_ID not configured — skipping."
+        )
+        return
+
+    domain_name = f"{subdomain}.{app_domain}"
+    url = f"https://api.vercel.com/v9/projects/{project_id}/domains/{domain_name}"
+    params = {"teamId": team_id} if team_id else {}
+
+    try:
+        resp = requests.delete(
+            url,
+            params=params,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
+
+        if resp.status_code in (200, 204):
+            logger.info("remove_vercel_domain: %s removed from Vercel project.", domain_name)
+        elif resp.status_code == 404:
+            logger.info("remove_vercel_domain: %s not found on Vercel (already removed?).", domain_name)
+        else:
+            try:
+                body = resp.json()
+            except Exception:
+                body = {"raw": resp.text}
+            logger.error(
+                "remove_vercel_domain: unexpected response %s for %s: %s",
+                resp.status_code,
+                domain_name,
+                body,
+            )
+
+    except Exception as exc:
+        logger.error("remove_vercel_domain: request failed for %s: %s", domain_name, exc)

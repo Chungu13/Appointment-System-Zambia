@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django_tenants.models import TenantMixin, DomainMixin
 
 
@@ -44,6 +46,14 @@ class Tenant(TenantMixin):
 
 class Domain(DomainMixin):
     pass
+
+
+@receiver(post_delete, sender=Tenant)
+def _remove_vercel_domain_on_delete(sender, instance, **kwargs):
+    if instance.schema_name == "public":
+        return
+    from tenants.vercel import remove_vercel_domain
+    remove_vercel_domain(instance.subdomain)
 
 
 class SubscriptionPlan(models.Model):
