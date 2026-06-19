@@ -717,7 +717,7 @@ class BookingAgent:
                     .select_for_update()
                     .filter(
                         staff=staff,
-                        status__in=["confirmed", "in_progress"],
+                        status__in=["pending", "confirmed", "in_progress"],
                         starts_at__lt=ends_at,
                         ends_at__gt=starts_at,
                     )
@@ -732,7 +732,7 @@ class BookingAgent:
                     service=service,
                     starts_at=starts_at,
                     ends_at=ends_at,
-                    status="confirmed",
+                    status="pending" if float(service.deposit_zmw) > 0 else "confirmed",
                     booked_by="agent",
                     customer_notes=inputs.get("notes", ""),
                     notification_phone=inputs.get("notification_phone", ""),
@@ -1052,7 +1052,7 @@ class BookingAgent:
                     .select_for_update()
                     .filter(
                         staff=appt.staff,
-                        status__in=["confirmed", "in_progress"],
+                        status__in=["pending", "confirmed", "in_progress"],
                         starts_at__lt=new_end,
                         ends_at__gt=new_start,
                     )
