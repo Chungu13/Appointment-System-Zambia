@@ -47,7 +47,7 @@ export default function Directory() {
   const { data, loading } = useQuery(ALL_SALONS, { client: publicClient })
 
   const salons = useMemo(() => {
-    let list = (data?.salons ?? []).filter((s) => s.isActive)
+    let list = (data?.salons ?? []).filter((s) => s.isActive && s.isApproved)
     if (city !== 'All Cities') list = list.filter((s) => s.city?.toLowerCase() === city.toLowerCase())
     if (category !== 'all')    list = list.filter((s) => s.businessType === category)
     if (search.trim()) {

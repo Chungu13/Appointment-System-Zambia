@@ -1249,6 +1249,36 @@ export default function SalonLanding() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <PageSpinner />;
+
+  const isNotApproved = error?.graphQLErrors?.some((e) => e.message === 'SALON_NOT_APPROVED')
+  if (isNotApproved) {
+    const discoverUrl = import.meta.env.VITE_TENANT_APP_DOMAIN
+      ? `https://${import.meta.env.VITE_TENANT_APP_DOMAIN}/discover`
+      : '/discover'
+    return (
+      <div style={{ backgroundColor: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <SalonNav />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center' }}>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 20px' }}>
+            Coming soon
+          </p>
+          <h1 style={{ fontFamily: serif, fontSize: 42, fontWeight: 400, letterSpacing: '-1px', color: DARK, margin: '0 0 16px', lineHeight: 1.1 }}>
+            This salon isn&apos;t open yet.
+          </h1>
+          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#555', margin: '0 0 40px', maxWidth: 380, lineHeight: 1.7 }}>
+            We&apos;re reviewing this business before it goes live. Check back soon.
+          </p>
+          <a
+            href={discoverUrl}
+            style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '13px 28px', borderRadius: 3, textDecoration: 'none' }}
+          >
+            Explore other salons
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   if (error) return <ErrorMessage message={error.message} />;
 
   const profile = data?.salonProfile;

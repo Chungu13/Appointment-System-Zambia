@@ -94,6 +94,8 @@ class ServicesQuery:
         )
 
         tenant = info.context.request.tenant
+        if not tenant.is_approved:
+            raise ValueError("SALON_NOT_APPROVED")
         schema_name = tenant.schema_name
 
         # Services — serve from cache when possible

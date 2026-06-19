@@ -29,6 +29,9 @@ def chat_stream(request):
     if not message:
         return JsonResponse({"error": "message is required"}, status=400)
 
+    if not request.tenant.is_approved:
+        return JsonResponse({"error": "This salon is not yet available for bookings."}, status=403)
+
     from agents.booking_agent import BookingAgent, load_history, save_history
 
     history = load_history(session_id)

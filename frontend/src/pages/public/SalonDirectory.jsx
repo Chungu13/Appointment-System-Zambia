@@ -104,7 +104,7 @@ function StatsBar() {
 // ── Salons section ────────────────────────────────────────────────────────────
 function SalonsSection() {
   const { data, loading } = useQuery(ALL_SALONS, { client: publicClient })
-  const salons = (data?.salons ?? []).filter((s) => s.isActive).slice(0, 4)
+  const salons = (data?.salons ?? []).filter((s) => s.isActive && s.isApproved).slice(0, 4)
   const placeholders = Math.max(0, 2 - salons.length)
 
   return (

@@ -61,6 +61,7 @@ export const ALL_SALONS = gql`
       area
       address
       isActive
+      isApproved
       coverImageUrl
       portfolioPreviewUrl
     }

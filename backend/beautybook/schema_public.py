@@ -22,6 +22,7 @@ class SalonType:
     area: str
     address: str
     is_active: bool
+    is_approved: bool
     cover_image_url: str
     portfolio_preview_url: str
 
@@ -62,7 +63,7 @@ class Query:
 
         qs = (
             Tenant.objects
-            .filter(is_active=True, onboarding_completed=True)
+            .filter(is_active=True, is_approved=True, onboarding_completed=True)
             .exclude(schema_name="public")
             .prefetch_related("domains")
         )
@@ -88,6 +89,7 @@ class Query:
                 area=t.area or "",
                 address=t.address,
                 is_active=t.is_active,
+                is_approved=t.is_approved,
                 cover_image_url=t.cover_image_url or "",
                 portfolio_preview_url=t.portfolio_preview_url or "",
             )
