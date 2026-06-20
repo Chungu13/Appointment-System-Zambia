@@ -1,11 +1,28 @@
 import json
 import logging
+import os
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
+
+
+def _verify_lipila_webhook(payload_bytes: bytes, headers: dict) -> bool:
+    """Verify Lipila webhook signature using the StandardWebhooks spec."""
+    from standardwebhooks import Webhook, WebhookVerificationError
+    secret = os.environ.get("LIPILA_WEBHOOK_SECRET", "")
+    if not secret:
+        logger.warning("[Webhook] LIPILA_WEBHOOK_SECRET not set — rejecting request")
+        return False
+    try:
+        wh = Webhook("whsec_" + secret)
+        wh.verify(payload_bytes, headers)
+        return True
+    except WebhookVerificationError as exc:
+        logger.warning("[Webhook] Lipila signature verification failed: %s", exc)
+        return False
 
 
 @csrf_exempt
@@ -18,6 +35,15 @@ def payment_webhook(request):
     Expected Lipila payload:
         { "referenceId": "KIMAWA-42", "status": "Successful", "identifier": "...", "message": "..." }
     """
+    sig_headers = {
+        "webhook-id":        request.headers.get("webhook-id", ""),
+        "webhook-timestamp": request.headers.get("webhook-timestamp", ""),
+        "webhook-signature": request.headers.get("webhook-signature", ""),
+    }
+    if not _verify_lipila_webhook(request.body, sig_headers):
+        logger.warning("[Webhook] Rejected — invalid or missing signature")
+        return JsonResponse({"error": "invalid signature"}, status=401)
+
     try:
         payload = json.loads(request.body)
     except json.JSONDecodeError:
