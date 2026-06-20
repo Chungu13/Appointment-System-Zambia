@@ -30,11 +30,19 @@ def _verify_lipila_webhook(payload_bytes: bytes, headers: dict) -> bool:
 def payment_webhook(request):
     """
     POST endpoint for Lipila payment callbacks.
-    URL: /webhooks/lipila/  (no transaction_ref in path — it's in the body)
+    URL: /webhooks/lipila/
 
-    Expected Lipila payload:
-        { "referenceId": "KIMAWA-42", "status": "Successful", "identifier": "...", "message": "..." }
+    Lipila payload fields:
+        identifier   — our internal reference (KIMAWA-XXXX or DISBURSE-KIMAWA-XXXX)
+        referenceId  — Lipila's own transaction ID
+        type         — "Collection" or "Disbursement"
+        status       — "Successful" or "Failed"
+        amount       — decimal amount
+        accountNumber — customer phone
+        paymentType  — "AirtelMoney", "MTNMoney", etc.
     """
+    logger.info("[Webhook] Lipila raw body: %s", request.body.decode("utf-8", errors="replace"))
+
     sig_headers = {
         "webhook-id":        request.headers.get("webhook-id", ""),
         "webhook-timestamp": request.headers.get("webhook-timestamp", ""),
@@ -49,20 +57,25 @@ def payment_webhook(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    reference_id = payload.get("referenceId")
-    status       = payload.get("status", "")
-    identifier   = payload.get("identifier", "")
-    message      = payload.get("message", "")
+    event_type  = payload.get("type", "")         # "Collection" or "Disbursement"
+    status      = payload.get("status", "")        # "Successful" or "Failed"
+    identifier  = payload.get("identifier", "")    # our KIMAWA-XXXX or DISBURSE-KIMAWA-XXXX ref
+    lipila_ref  = payload.get("referenceId", "")   # Lipila's own transaction ID
+    message     = payload.get("message", "")
 
     logger.info(
-        "[Webhook] Lipila callback | ref=%s | status=%s | identifier=%s | msg=%s",
-        reference_id, status, identifier, message,
+        "[Webhook] Lipila | type=%s | status=%s | identifier=%s | lipila_ref=%s | msg=%s",
+        event_type, status, identifier, lipila_ref, message,
     )
 
-    if not reference_id:
-        return JsonResponse({"error": "Missing referenceId"}, status=400)
+    if not identifier:
+        return JsonResponse({"error": "Missing identifier"}, status=400)
 
-    result = _confirm_payment(reference_id, status=status, provider_ref=identifier)
+    if event_type == "Disbursement":
+        result = _handle_disbursement_callback(identifier, status, lipila_ref, message)
+    else:
+        result = _confirm_payment(identifier, status=status, provider_ref=lipila_ref, message=message)
+
     return JsonResponse(result, status=200 if result["ok"] else 400)
 
 
@@ -117,6 +130,32 @@ def _disburse_to_business(payment, appt) -> None:
 
     except Exception as exc:
         logger.exception("[Disbursement] unexpected error for payment %s: %s", payment.pk, exc)
+
+
+def _handle_disbursement_callback(identifier: str, status: str, lipila_ref: str, message: str) -> dict:
+    """Handle a Lipila Disbursement callback — update disburse_status on the matching Payment."""
+    from payments.models import Payment
+
+    payment = Payment.objects.filter(disburse_reference=identifier).first()
+    if not payment:
+        logger.warning("[Webhook] Disbursement payment not found | identifier=%s", identifier)
+        return {"ok": False, "error": "Disbursement payment not found"}
+
+    if status == "Successful":
+        payment.disburse_status = "completed"
+        if lipila_ref:
+            payment.disburse_transaction_id = lipila_ref
+        payment.save(update_fields=["disburse_status", "disburse_transaction_id", "updated_at"])
+        logger.info(
+            "[Webhook] Disbursement completed | identifier=%s | lipila_ref=%s",
+            identifier, lipila_ref,
+        )
+        return {"ok": True, "disburse_status": "completed"}
+
+    payment.disburse_status = "failed"
+    payment.save(update_fields=["disburse_status", "updated_at"])
+    logger.warning("[Webhook] Disbursement failed | identifier=%s | msg=%s", identifier, message)
+    return {"ok": False, "error": f"Disbursement {status}: {message}"}
 
 
 def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref: str = "", message: str = "") -> dict:
