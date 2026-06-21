@@ -25,6 +25,27 @@ def _verify_lipila_webhook(payload_bytes: bytes, headers: dict) -> bool:
         return False
 
 
+def _is_already_processed(identifier: str) -> bool:
+    """
+    Redis-backed idempotency guard. Returns True if this identifier was already processed.
+    Never raises — if Redis is unavailable, returns False and processing continues.
+    """
+    try:
+        import redis as _redis
+        url = (
+            os.environ.get("REDIS_URL")
+            or os.environ.get("CELERY_BROKER_URL")
+            or "redis://localhost:6379/0"
+        )
+        r = _redis.from_url(url, decode_responses=True, socket_connect_timeout=2)
+        key = f"webhook:processed:{identifier}"
+        was_new = r.set(key, "1", ex=86400, nx=True)
+        return not was_new  # True = key already existed = already processed
+    except Exception as exc:
+        logger.warning("[Webhook] Redis idempotency check unavailable: %s — proceeding without", exc)
+        return False
+
+
 @csrf_exempt
 @require_POST
 def payment_webhook(request):
@@ -40,6 +61,8 @@ def payment_webhook(request):
         amount       — decimal amount
         accountNumber — customer phone
         paymentType  — "AirtelMoney", "MTNMoney", etc.
+
+    Always returns 200 once past signature verification — non-200 causes Lipila to retry.
     """
     logger.info("[Webhook] Lipila raw body: %s", request.body.decode("utf-8", errors="replace"))
 
@@ -71,12 +94,21 @@ def payment_webhook(request):
     if not identifier:
         return JsonResponse({"error": "Missing identifier"}, status=400)
 
-    if event_type == "Disbursement":
-        result = _handle_disbursement_callback(identifier, status, lipila_ref, message)
-    else:
-        result = _confirm_payment(identifier, status=status, provider_ref=lipila_ref, message=message)
+    if _is_already_processed(identifier):
+        logger.info("[Webhook] Duplicate — identifier=%s already processed, skipping", identifier)
+        return JsonResponse({"ok": True, "duplicate": True}, status=200)
 
-    return JsonResponse(result, status=200 if result["ok"] else 400)
+    try:
+        if event_type == "Disbursement":
+            result = _handle_disbursement_callback(identifier, status, lipila_ref, message)
+        else:
+            result = _confirm_payment(identifier, status=status, provider_ref=lipila_ref, message=message)
+    except Exception as exc:
+        logger.exception("[Webhook] Unhandled error for identifier=%s: %s", identifier, exc)
+        return JsonResponse({"ok": False, "error": "internal error"}, status=200)
+
+    # Always 200 — non-200 causes Lipila to retry the webhook
+    return JsonResponse(result, status=200)
 
 
 def _disburse_to_business(payment, appt) -> None:
