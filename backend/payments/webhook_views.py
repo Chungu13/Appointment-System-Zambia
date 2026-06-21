@@ -82,8 +82,8 @@ def payment_webhook(request):
 
     event_type  = payload.get("type", "")         # "Collection" or "Disbursement"
     status      = payload.get("status", "")        # "Successful" or "Failed"
-    identifier  = payload.get("identifier", "")    # our KIMAWA-XXXX or DISBURSE-KIMAWA-XXXX ref
-    lipila_ref  = payload.get("referenceId", "")   # Lipila's own transaction ID
+    identifier  = payload.get("referenceId", "")   # our KIMAWA-XXXX or DISBURSE-KIMAWA-XXXX ref
+    lipila_ref  = payload.get("identifier", "")    # Lipila's own LPLXC-... transaction ID
     message     = payload.get("message", "")
 
     logger.info(
