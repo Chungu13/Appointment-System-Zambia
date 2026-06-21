@@ -712,12 +712,21 @@ class BookingAgent:
             inputs["customer_phone"] = resolved_phone
 
             with transaction.atomic():
+                # Cancel stale pending appointments for this slot so abandoned payment
+                # attempts don't permanently block it.
+                Appointment.objects.filter(
+                    staff=staff,
+                    status="pending",
+                    starts_at__lt=ends_at,
+                    ends_at__gt=starts_at,
+                ).update(status="cancelled")
+
                 conflict = (
                     Appointment.objects
                     .select_for_update()
                     .filter(
                         staff=staff,
-                        status__in=["pending", "confirmed", "in_progress"],
+                        status__in=["confirmed", "in_progress"],
                         starts_at__lt=ends_at,
                         ends_at__gt=starts_at,
                     )
@@ -1052,7 +1061,7 @@ class BookingAgent:
                     .select_for_update()
                     .filter(
                         staff=appt.staff,
-                        status__in=["pending", "confirmed", "in_progress"],
+                        status__in=["confirmed", "in_progress"],
                         starts_at__lt=new_end,
                         ends_at__gt=new_start,
                     )
