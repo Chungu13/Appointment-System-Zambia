@@ -168,20 +168,25 @@ class LipilaProvider(BasePaymentProvider):
             "currency": "ZMW",
             "narration": narration,
         }
+        url = f"{self.base_url}/disbursements/mobile-money"
+        headers = self._headers()
         # callbackUrl is sent in the request header (via _headers()), not in the body
+        logger.info("[Lipila] disbursement URL: %s", url)
         logger.info(
-            "[Lipila] initiate_disbursement | ref=%s | ZMW %.2f | phone_raw=%s | phone_fmt=%s",
-            reference, amount, phone, formatted_phone,
+            "[Lipila] disbursement headers: x-api-key set=%s | callbackUrl=%s",
+            bool(headers.get("x-api-key")), headers.get("callbackUrl"),
         )
-        logger.info("[Lipila] disbursement payload=%s", payload)
+        logger.info("[Lipila] disbursement body: %s", payload)
 
         try:
             response = requests.post(
-                f"{self.base_url}/disbursements/mobile-money",
+                url,
                 json=payload,
-                headers=self._headers(),
+                headers=headers,
                 timeout=30,
             )
+            logger.info("[Lipila] disbursement response status: %s", response.status_code)
+            logger.info("[Lipila] disbursement response body: %s", response.text)
             try:
                 data = response.json()
             except Exception:
