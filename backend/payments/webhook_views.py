@@ -111,6 +111,32 @@ def payment_webhook(request):
     return JsonResponse(result, status=200)
 
 
+def _find_payment(*, transaction_ref: str = "", disburse_ref: str = ""):
+    """
+    Search all tenant schemas for a Payment record.
+    Pass either transaction_ref (collection) or disburse_ref (disbursement).
+    Returns (payment, tenant) or (None, None).
+    """
+    from django_tenants.utils import get_tenant_model, tenant_context
+
+    Tenant = get_tenant_model()
+    for tenant in Tenant.objects.exclude(schema_name="public"):
+        with tenant_context(tenant):
+            from payments.models import Payment
+            if transaction_ref:
+                payment = (
+                    Payment.objects
+                    .select_related("appointment__service", "appointment__staff")
+                    .filter(transaction_ref=transaction_ref)
+                    .first()
+                )
+            else:
+                payment = Payment.objects.filter(disburse_reference=disburse_ref).first()
+            if payment:
+                return payment, tenant
+    return None, None
+
+
 def _disburse_to_business(payment, appt) -> None:
     """Send owner payout after successful payment. Never raises — logs errors only."""
     try:
@@ -166,48 +192,56 @@ def _disburse_to_business(payment, appt) -> None:
 
 def _handle_disbursement_callback(identifier: str, status: str, lipila_ref: str, message: str) -> dict:
     """Handle a Lipila Disbursement callback — update disburse_status on the matching Payment."""
-    from payments.models import Payment
+    from django_tenants.utils import tenant_context
 
-    payment = Payment.objects.filter(disburse_reference=identifier).first()
+    payment, tenant = _find_payment(disburse_ref=identifier)
     if not payment:
         logger.warning("[Webhook] Disbursement payment not found | identifier=%s", identifier)
         return {"ok": False, "error": "Disbursement payment not found"}
 
-    if status == "Successful":
-        payment.disburse_status = "completed"
-        if lipila_ref:
-            payment.disburse_transaction_id = lipila_ref
-        payment.save(update_fields=["disburse_status", "disburse_transaction_id", "updated_at"])
-        logger.info(
-            "[Webhook] Disbursement completed | identifier=%s | lipila_ref=%s",
-            identifier, lipila_ref,
-        )
-        return {"ok": True, "disburse_status": "completed"}
+    with tenant_context(tenant):
+        if status == "Successful":
+            payment.disburse_status = "completed"
+            if lipila_ref:
+                payment.disburse_transaction_id = lipila_ref
+            payment.save(update_fields=["disburse_status", "disburse_transaction_id", "updated_at"])
+            logger.info(
+                "[Webhook] Disbursement completed | identifier=%s | lipila_ref=%s | tenant=%s",
+                identifier, lipila_ref, tenant.schema_name,
+            )
+            return {"ok": True, "disburse_status": "completed"}
 
-    payment.disburse_status = "failed"
-    payment.save(update_fields=["disburse_status", "updated_at"])
-    logger.warning("[Webhook] Disbursement failed | identifier=%s | msg=%s", identifier, message)
-    return {"ok": False, "error": f"Disbursement {status}: {message}"}
+        payment.disburse_status = "failed"
+        payment.save(update_fields=["disburse_status", "updated_at"])
+        logger.warning("[Webhook] Disbursement failed | identifier=%s | msg=%s", identifier, message)
+        return {"ok": False, "error": f"Disbursement {status}: {message}"}
 
 
 def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref: str = "", message: str = "") -> dict:
     """Confirm or fail a payment based on Lipila webhook status."""
     from django.utils import timezone
+    from django_tenants.utils import tenant_context
     from agents.models import AgentLog
-    from payments.models import Payment
 
-    payment = (
-        Payment.objects
-        .select_related("appointment__service", "appointment__staff")
-        .filter(transaction_ref=reference_id)
-        .first()
-    )
+    payment, tenant = _find_payment(transaction_ref=reference_id)
     if not payment:
         logger.warning("[Webhook] Payment not found | ref=%s", reference_id)
         return {"ok": False, "error": "Payment not found"}
 
-    appt = payment.appointment
-    now  = timezone.now()
+    logger.info("[Webhook] Found payment in tenant=%s | ref=%s", tenant.schema_name, reference_id)
+
+    with tenant_context(tenant):
+        return _process_payment_confirmation(payment, appt=payment.appointment, status=status,
+                                             provider_ref=provider_ref, reference_id=reference_id,
+                                             message=message)
+
+
+def _process_payment_confirmation(payment, appt, status: str, provider_ref: str, reference_id: str, message: str) -> dict:
+    """Run inside tenant_context — updates payment and appointment, triggers disbursement."""
+    from django.utils import timezone
+    from agents.models import AgentLog
+
+    now = timezone.now()
 
     if status == "Successful":
         payment.status   = "completed"
