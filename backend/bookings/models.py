@@ -60,6 +60,12 @@ class Appointment(models.Model):
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
     cancellation_reason = models.TextField(blank=True)
+    cancelled_by = models.CharField(
+        max_length=10,
+        choices=[("customer", "Customer"), ("owner", "Owner")],
+        default="customer",
+        blank=True,
+    )
     notification_phone = models.CharField(max_length=20, blank=True)
     chat_session_id = models.CharField(max_length=128, blank=True)
     addon_services = models.ManyToManyField('services.Service', blank=True, related_name='addon_appointments')

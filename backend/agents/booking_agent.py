@@ -973,7 +973,8 @@ class BookingAgent:
                 appt.status = "cancelled"
                 appt.cancelled_at = timezone.now()
                 appt.cancellation_reason = reason
-                appt.save(update_fields=["status", "cancelled_at", "cancellation_reason", "updated_at"])
+                appt.cancelled_by = "customer"
+                appt.save(update_fields=["status", "cancelled_at", "cancellation_reason", "cancelled_by", "updated_at"])
 
                 AppointmentHistory.objects.create(
                     appointment=appt,

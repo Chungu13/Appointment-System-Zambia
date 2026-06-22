@@ -21,18 +21,24 @@ def _fmt_time(dt) -> str:
     return local.strftime("%I:%M %p").lstrip("0")
 
 
-def _build_payload(appt, tenant, event: str) -> dict:
-    return {
-        "event":          event,
-        "appointment_id": appt.pk,
-        "customer_name":  appt.customer.full_name,
-        "customer_phone": appt.notification_phone or appt.customer.phone,
-        "business_name":  tenant.business_name,
-        "service_name":   appt.service.name,
-        "staff_name":     appt.staff.full_name if appt.staff else None,
-        "date":           _fmt_date(appt.starts_at),
-        "time":           _fmt_time(appt.starts_at),
+def _build_payload(appt, tenant, event: str, payment=None) -> dict:
+    deposit = str(appt.service.deposit_zmw) if float(appt.service.deposit_zmw or 0) > 0 else "0"
+    payload = {
+        "event":           event,
+        "appointment_id":  appt.pk,
+        "customer_name":   appt.customer.full_name,
+        "customer_phone":  appt.notification_phone or appt.customer.phone,
+        "business_name":   tenant.business_name,
+        "service_name":    appt.service.name,
+        "staff_name":      appt.staff.full_name if appt.staff else None,
+        "date":            _fmt_date(appt.starts_at),
+        "time":            _fmt_time(appt.starts_at),
+        "owner_whatsapp":  tenant.whatsapp_number or "",
+        "deposit_amount":  deposit,
     }
+    if event == "booking-cancelled":
+        payload["cancelled_by"] = getattr(appt, "cancelled_by", "customer") or "customer"
+    return payload
 
 
 @shared_task(name="notifications.tasks.notify_booking_confirmed")
@@ -67,6 +73,7 @@ def _fire(event: str, appointment_id: int, schema_name: str) -> None:
 
         with tenant_context(tenant):
             from bookings.models import Appointment
+            from payments.models import Payment
             try:
                 appt = Appointment.objects.select_related(
                     "service", "staff", "customer"
@@ -75,7 +82,8 @@ def _fire(event: str, appointment_id: int, schema_name: str) -> None:
                 logger.warning("_fire: appointment %d not found in %s", appointment_id, schema_name)
                 return
 
-            payload = _build_payload(appt, tenant, event)
+            payment = Payment.objects.filter(appointment=appt).first()
+            payload = _build_payload(appt, tenant, event, payment)
             dispatch(event, payload)
 
     except Exception:
