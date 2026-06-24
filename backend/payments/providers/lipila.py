@@ -58,7 +58,10 @@ class LipilaProvider(BasePaymentProvider):
             if env == "production"
             else "https://api.lipila.dev/api/v1"
         )
-        self.base_url = getattr(settings, "LIPILA_BASE_URL", "").rstrip("/") or default_url
+        configured = getattr(settings, "LIPILA_BASE_URL", "").rstrip("/")
+        if configured and not configured.endswith("/api/v1"):
+            configured = f"{configured}/api/v1"
+        self.base_url = configured or default_url
         self.callback_url = getattr(settings, "LIPILA_CALLBACK_URL", "")
 
     def _headers(self) -> dict:
