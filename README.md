@@ -1,4 +1,4 @@
-# BeautyBook ZM
+# KIMAWA
 
 A multi-tenant salon booking SaaS built for Zambia. Salon owners get their own subdomain, isolated database schema, and a full booking + payment + AI-agent stack out of the box.
 
