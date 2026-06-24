@@ -170,13 +170,10 @@ class LipilaProvider(BasePaymentProvider):
         }
         url = f"{self.base_url}/disbursements/mobile-money"
         headers = self._headers()
-        # callbackUrl is sent in the request header (via _headers()), not in the body
-        logger.info("[Lipila] disbursement URL: %s", url)
-        logger.info(
-            "[Lipila] disbursement headers: x-api-key set=%s | callbackUrl=%s",
-            bool(headers.get("x-api-key")), headers.get("callbackUrl"),
-        )
-        logger.info("[Lipila] disbursement body: %s", payload)
+        print(f"[Lipila] disbursement URL: {url}", flush=True)
+        print(f"[Lipila] disbursement api_key_prefix={self.api_key[:8] + '...' if self.api_key else 'MISSING'}", flush=True)
+        print(f"[Lipila] disbursement callbackUrl={headers.get('callbackUrl')!r}", flush=True)
+        print(f"[Lipila] disbursement body={payload}", flush=True)
 
         try:
             response = requests.post(
@@ -185,16 +182,12 @@ class LipilaProvider(BasePaymentProvider):
                 headers=headers,
                 timeout=30,
             )
-            logger.info("[Lipila] disbursement response status: %s", response.status_code)
-            logger.info("[Lipila] disbursement response body: %s", response.text)
+            print(f"[Lipila] disbursement response status={response.status_code}", flush=True)
+            print(f"[Lipila] disbursement response body={response.text}", flush=True)
             try:
                 data = response.json()
             except Exception:
                 data = {}
-            logger.info(
-                "[Lipila] disbursement response | status=%s | body=%s",
-                response.status_code, data,
-            )
 
             if response.status_code in (200, 201, 202):
                 return PaymentResult(
