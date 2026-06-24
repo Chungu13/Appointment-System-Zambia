@@ -31,18 +31,29 @@ class Customer(models.Model):
 
 
 class Appointment(models.Model):
+    STATUS_PENDING     = "pending"
+    STATUS_CONFIRMED   = "confirmed"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_COMPLETED   = "completed"
+    STATUS_NO_SHOW     = "no_show"
+    STATUS_CANCELLED   = "cancelled"
+
+    BOOKED_BY_CUSTOMER = "customer"
+    BOOKED_BY_STAFF    = "staff"
+    BOOKED_BY_AGENT    = "agent"
+
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("confirmed", "Confirmed"),
-        ("in_progress", "In Progress"),
-        ("completed", "Completed"),
-        ("no_show", "No Show"),
-        ("cancelled", "Cancelled"),
+        (STATUS_PENDING,     "Pending"),
+        (STATUS_CONFIRMED,   "Confirmed"),
+        (STATUS_IN_PROGRESS, "In Progress"),
+        (STATUS_COMPLETED,   "Completed"),
+        (STATUS_NO_SHOW,     "No Show"),
+        (STATUS_CANCELLED,   "Cancelled"),
     ]
     BOOKED_BY_CHOICES = [
-        ("customer", "Customer"),
-        ("staff", "Staff"),
-        ("agent", "Agent"),
+        (BOOKED_BY_CUSTOMER, "Customer"),
+        (BOOKED_BY_STAFF,    "Staff"),
+        (BOOKED_BY_AGENT,    "Agent"),
     ]
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="appointments")

@@ -8,20 +8,20 @@ from notifications.webhook_dispatcher import dispatch
 
 logger = logging.getLogger(__name__)
 
-_CAT = zoneinfo.ZoneInfo("Africa/Lusaka")
+_LUSAKA_TZ = zoneinfo.ZoneInfo("Africa/Lusaka")
 
 
 def _fmt_date(dt) -> str:
-    local = dt.astimezone(_CAT)
+    local = dt.astimezone(_LUSAKA_TZ)
     return local.strftime("%A, %d %B %Y")
 
 
 def _fmt_time(dt) -> str:
-    local = dt.astimezone(_CAT)
+    local = dt.astimezone(_LUSAKA_TZ)
     return local.strftime("%I:%M %p").lstrip("0")
 
 
-def _build_payload(appt, tenant, event: str, payment=None) -> dict:
+def _build_payload(appt, tenant, event: str) -> dict:
     deposit = str(appt.service.deposit_zmw) if float(appt.service.deposit_zmw or 0) > 0 else "0"
     payload = {
         "event":           event,
@@ -43,24 +43,21 @@ def _build_payload(appt, tenant, event: str, payment=None) -> dict:
 
 @shared_task(name="notifications.tasks.notify_booking_confirmed")
 def notify_booking_confirmed(appointment_id: int, schema_name: str) -> None:
-    """Fire the booking_confirmed webhook to n8n."""
-    _fire("booking-confirmed", appointment_id, schema_name)
+    _dispatch_notification("booking-confirmed", appointment_id, schema_name)
 
 
 @shared_task(name="notifications.tasks.notify_booking_reminder")
 def notify_booking_reminder(appointment_id: int, schema_name: str) -> None:
-    """Fire the booking_reminder webhook to n8n."""
-    _fire("booking-reminder", appointment_id, schema_name)
+    _dispatch_notification("booking-reminder", appointment_id, schema_name)
 
 
 @shared_task(name="notifications.tasks.notify_booking_cancelled")
 def notify_booking_cancelled(appointment_id: int, schema_name: str) -> None:
-    """Fire the booking_cancelled webhook to n8n."""
-    _fire("booking-cancelled", appointment_id, schema_name)
+    _dispatch_notification("booking-cancelled", appointment_id, schema_name)
 
 
-def _fire(event: str, appointment_id: int, schema_name: str) -> None:
-    """Shared implementation — fetch appointment in tenant context, dispatch webhook."""
+def _dispatch_notification(event: str, appointment_id: int, schema_name: str) -> None:
+    """Fetch appointment in tenant context and send the event payload to n8n."""
     try:
         from django_tenants.utils import get_tenant_model, tenant_context
 
@@ -68,23 +65,30 @@ def _fire(event: str, appointment_id: int, schema_name: str) -> None:
         try:
             tenant = Tenant.objects.get(schema_name=schema_name)
         except Tenant.DoesNotExist:
-            logger.warning("_fire: schema '%s' not found — skipping %s", schema_name, event)
+            logger.warning(
+                "_dispatch_notification: schema '%s' not found — skipping %s",
+                schema_name, event,
+            )
             return
 
         with tenant_context(tenant):
             from bookings.models import Appointment
-            from payments.models import Payment
             try:
                 appt = Appointment.objects.select_related(
                     "service", "staff", "customer"
                 ).get(pk=appointment_id)
             except Appointment.DoesNotExist:
-                logger.warning("_fire: appointment %d not found in %s", appointment_id, schema_name)
+                logger.warning(
+                    "_dispatch_notification: appointment %d not found in %s",
+                    appointment_id, schema_name,
+                )
                 return
 
-            payment = Payment.objects.filter(appointment=appt).first()
-            payload = _build_payload(appt, tenant, event, payment)
+            payload = _build_payload(appt, tenant, event)
             dispatch(event, payload)
 
     except Exception:
-        logger.exception("_fire: unhandled error for %s appointment=%d schema=%s", event, appointment_id, schema_name)
+        logger.exception(
+            "_dispatch_notification: unhandled error for %s appointment=%d schema=%s",
+            event, appointment_id, schema_name,
+        )

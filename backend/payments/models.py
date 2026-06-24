@@ -2,22 +2,32 @@ from django.db import models
 
 
 class Payment(models.Model):
+    STATUS_PENDING   = "pending"
+    STATUS_COMPLETED = "completed"
+    STATUS_FAILED    = "failed"
+    STATUS_REFUNDED  = "refunded"
+
+    DISBURSE_PENDING   = "pending"
+    DISBURSE_SENT      = "sent"
+    DISBURSE_COMPLETED = "completed"
+    DISBURSE_FAILED    = "failed"
+
     PAYMENT_TYPE_CHOICES = [
         ("deposit", "Deposit"),
         ("balance", "Balance"),
-        ("refund", "Refund"),
+        ("refund",  "Refund"),
     ]
     METHOD_CHOICES = [
         ("airtel_money", "Airtel Money"),
-        ("mtn_momo", "MTN MoMo"),
-        ("card", "Card"),
-        ("cash", "Cash"),
+        ("mtn_momo",     "MTN MoMo"),
+        ("card",         "Card"),
+        ("cash",         "Cash"),
     ]
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("completed", "Completed"),
-        ("failed", "Failed"),
-        ("refunded", "Refunded"),
+        (STATUS_PENDING,   "Pending"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_FAILED,    "Failed"),
+        (STATUS_REFUNDED,  "Refunded"),
     ]
 
     appointment = models.ForeignKey(

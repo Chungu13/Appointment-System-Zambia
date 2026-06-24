@@ -6,19 +6,28 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from bookings.models import Appointment
+from payments.models import Payment
+
 logger = logging.getLogger(__name__)
 
+LIPILA_EVENT_COLLECTION   = "Collection"
+LIPILA_EVENT_DISBURSEMENT = "Disbursement"
+LIPILA_STATUS_SUCCESSFUL  = "Successful"
 
-def _verify_lipila_webhook(payload_bytes: bytes, headers: dict) -> bool:
+IDEMPOTENCY_TTL_SECONDS = 86_400  # 24 hours
+
+
+def _verify_lipila_webhook(payload_bytes: bytes, signature_headers: dict) -> bool:
     """Verify Lipila webhook signature using the StandardWebhooks spec."""
     from standardwebhooks import Webhook, WebhookVerificationError
-    secret = os.environ.get("LIPILA_WEBHOOK_SECRET", "")
-    if not secret:
+    webhook_secret = os.environ.get("LIPILA_WEBHOOK_SECRET", "")
+    if not webhook_secret:
         logger.warning("[Webhook] LIPILA_WEBHOOK_SECRET not set — rejecting request")
         return False
     try:
-        wh = Webhook("whsec_" + secret)
-        wh.verify(payload_bytes, headers)
+        webhook = Webhook("whsec_" + webhook_secret)
+        webhook.verify(payload_bytes, signature_headers)
         return True
     except WebhookVerificationError as exc:
         logger.warning("[Webhook] Lipila signature verification failed: %s", exc)
@@ -32,15 +41,15 @@ def _is_already_processed(identifier: str) -> bool:
     """
     try:
         import redis as _redis
-        url = (
+        redis_url = (
             os.environ.get("REDIS_URL")
             or os.environ.get("CELERY_BROKER_URL")
             or "redis://localhost:6379/0"
         )
-        r = _redis.from_url(url, decode_responses=True, socket_connect_timeout=2)
-        key = f"webhook:processed:{identifier}"
-        was_new = r.set(key, "1", ex=86400, nx=True)
-        return not was_new  # True = key already existed = already processed
+        redis_client = _redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=2)
+        idempotency_key = f"webhook:processed:{identifier}"
+        is_new_key = redis_client.set(idempotency_key, "1", ex=IDEMPOTENCY_TTL_SECONDS, nx=True)
+        return not is_new_key  # True = key already existed = already processed
     except Exception as exc:
         logger.warning("[Webhook] Redis idempotency check unavailable: %s — proceeding without", exc)
         return False
@@ -66,12 +75,12 @@ def payment_webhook(request):
     """
     logger.info("[Webhook] Lipila raw body: %s", request.body.decode("utf-8", errors="replace"))
 
-    sig_headers = {
+    signature_headers = {
         "webhook-id":        request.headers.get("webhook-id", ""),
         "webhook-timestamp": request.headers.get("webhook-timestamp", ""),
         "webhook-signature": request.headers.get("webhook-signature", ""),
     }
-    if not _verify_lipila_webhook(request.body, sig_headers):
+    if not _verify_lipila_webhook(request.body, signature_headers):
         logger.warning("[Webhook] Rejected — invalid or missing signature")
         return JsonResponse({"error": "invalid signature"}, status=401)
 
@@ -99,7 +108,7 @@ def payment_webhook(request):
         return JsonResponse({"ok": True, "duplicate": True}, status=200)
 
     try:
-        if event_type == "Disbursement":
+        if event_type == LIPILA_EVENT_DISBURSEMENT:
             result = _handle_disbursement_callback(identifier, status, lipila_ref, message)
         else:
             result = _confirm_payment(identifier, status=status, provider_ref=lipila_ref, message=message)
@@ -122,7 +131,6 @@ def _find_payment(*, transaction_ref: str = "", disburse_ref: str = ""):
     Tenant = get_tenant_model()
     for tenant in Tenant.objects.exclude(schema_name="public"):
         with tenant_context(tenant):
-            from payments.models import Payment
             if transaction_ref:
                 payment = (
                     Payment.objects
@@ -163,26 +171,27 @@ def _disburse_to_business(payment, appt) -> None:
 
         payment.disburse_amount = Decimal(str(disburse_amount))
         payment.disburse_reference = disburse_ref
-        payment.disburse_status = "pending"
+        payment.disburse_status = Payment.DISBURSE_PENDING
         payment.kimawa_net = Decimal(str(kimawa_net))
         payment.save(update_fields=["disburse_amount", "disburse_reference", "disburse_status", "kimawa_net", "updated_at"])
 
+        sanitised_service_name = "".join(c for c in appt.service.name if c.isalnum() or c == " ")
         result = LipilaProvider().initiate_disbursement(
             phone=payout_phone,
             amount=disburse_amount,
             reference=disburse_ref,
-            narration="Booking payout " + "".join(c for c in appt.service.name if c.isalnum() or c == " "),
+            narration=f"Booking payout {sanitised_service_name}",
         )
         if result.success:
             payment.disburse_transaction_id = result.provider_ref
-            payment.disburse_status = "sent"
+            payment.disburse_status = Payment.DISBURSE_SENT
             payment.save(update_fields=["disburse_transaction_id", "disburse_status", "updated_at"])
             logger.info(
                 "[Disbursement] sent ZMW %.2f to %s | ref=%s | txn=%s",
                 disburse_amount, payout_phone, disburse_ref, result.provider_ref,
             )
         else:
-            payment.disburse_status = "failed"
+            payment.disburse_status = Payment.DISBURSE_FAILED
             payment.save(update_fields=["disburse_status", "updated_at"])
             logger.warning("[Disbursement] failed | ref=%s | %s", disburse_ref, result.message)
 
@@ -200,8 +209,8 @@ def _handle_disbursement_callback(identifier: str, status: str, lipila_ref: str,
         return {"ok": False, "error": "Disbursement payment not found"}
 
     with tenant_context(tenant):
-        if status == "Successful":
-            payment.disburse_status = "completed"
+        if status == LIPILA_STATUS_SUCCESSFUL:
+            payment.disburse_status = Payment.DISBURSE_COMPLETED
             if lipila_ref:
                 payment.disburse_transaction_id = lipila_ref
             payment.save(update_fields=["disburse_status", "disburse_transaction_id", "updated_at"])
@@ -209,19 +218,17 @@ def _handle_disbursement_callback(identifier: str, status: str, lipila_ref: str,
                 "[Webhook] Disbursement completed | identifier=%s | lipila_ref=%s | tenant=%s",
                 identifier, lipila_ref, tenant.schema_name,
             )
-            return {"ok": True, "disburse_status": "completed"}
+            return {"ok": True, "disburse_status": Payment.DISBURSE_COMPLETED}
 
-        payment.disburse_status = "failed"
+        payment.disburse_status = Payment.DISBURSE_FAILED
         payment.save(update_fields=["disburse_status", "updated_at"])
         logger.warning("[Webhook] Disbursement failed | identifier=%s | msg=%s", identifier, message)
         return {"ok": False, "error": f"Disbursement {status}: {message}"}
 
 
-def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref: str = "", message: str = "") -> dict:
+def _confirm_payment(reference_id: str, status: str = LIPILA_STATUS_SUCCESSFUL, provider_ref: str = "", message: str = "") -> dict:
     """Confirm or fail a payment based on Lipila webhook status."""
-    from django.utils import timezone
     from django_tenants.utils import tenant_context
-    from agents.models import AgentLog
 
     payment, tenant = _find_payment(transaction_ref=reference_id)
     if not payment:
@@ -231,9 +238,14 @@ def _confirm_payment(reference_id: str, status: str = "Successful", provider_ref
     logger.info("[Webhook] Found payment in tenant=%s | ref=%s", tenant.schema_name, reference_id)
 
     with tenant_context(tenant):
-        return _process_payment_confirmation(payment, appt=payment.appointment, status=status,
-                                             provider_ref=provider_ref, reference_id=reference_id,
-                                             message=message)
+        return _process_payment_confirmation(
+            payment,
+            appt=payment.appointment,
+            status=status,
+            provider_ref=provider_ref,
+            reference_id=reference_id,
+            message=message,
+        )
 
 
 def _process_payment_confirmation(payment, appt, status: str, provider_ref: str, reference_id: str, message: str) -> dict:
@@ -243,41 +255,54 @@ def _process_payment_confirmation(payment, appt, status: str, provider_ref: str,
 
     now = timezone.now()
 
-    if status == "Successful":
-        payment.status   = "completed"
-        payment.paid_at  = now
-        if provider_ref:
-            payment.provider_ref = provider_ref
-        payment.save(update_fields=["status", "paid_at", "provider_ref", "updated_at"])
+    if status == LIPILA_STATUS_SUCCESSFUL:
+        return _handle_successful_payment(payment, appt, provider_ref, reference_id, now)
 
-        if appt.status not in ("confirmed", "completed"):
-            appt.status = "confirmed"
-            appt.save(update_fields=["status", "updated_at"])
+    return _handle_failed_payment(payment, appt, reference_id, status, message)
 
-        AgentLog.objects.create(
-            agent_type="payment",
-            action=(
-                f"Payment confirmed: {payment.amount_zmw} ZMW "
-                f"for {appt.service.name} with {appt.staff.full_name}"
-            ),
-            related_appointment=appt,
-            outcome="success",
-            metadata={
-                "reference_id": reference_id,
-                "provider_ref": provider_ref,
-                "amount_zmw": float(payment.amount_zmw),
-            },
-        )
 
-        # Disburse the service deposit to the salon owner
-        _disburse_to_business(payment, appt)
+def _handle_successful_payment(payment, appt, provider_ref: str, reference_id: str, now) -> dict:
+    """Mark payment as completed, confirm the appointment, and trigger disbursement."""
+    from agents.models import AgentLog
 
-        return {"ok": True, "appointment_status": appt.status}
+    payment.status = Payment.STATUS_COMPLETED
+    payment.paid_at = now
+    if provider_ref:
+        payment.provider_ref = provider_ref
+    payment.save(update_fields=["status", "paid_at", "provider_ref", "updated_at"])
 
-    # Any non-Successful status = failed
-    payment.status = "failed"
+    if appt.status not in (Appointment.STATUS_CONFIRMED, Appointment.STATUS_COMPLETED):
+        appt.status = Appointment.STATUS_CONFIRMED
+        appt.save(update_fields=["status", "updated_at"])
+
+    AgentLog.objects.create(
+        agent_type="payment",
+        action=(
+            f"Payment confirmed: {payment.amount_zmw} ZMW "
+            f"for {appt.service.name} with {appt.staff.full_name}"
+        ),
+        related_appointment=appt,
+        outcome="success",
+        metadata={
+            "reference_id": reference_id,
+            "provider_ref": provider_ref,
+            "amount_zmw": float(payment.amount_zmw),
+        },
+    )
+
+    _disburse_to_business(payment, appt)
+
+    return {"ok": True, "appointment_status": appt.status}
+
+
+def _handle_failed_payment(payment, appt, reference_id: str, status: str, message: str) -> dict:
+    """Mark payment as failed, cancel the appointment, and notify the customer's chat session."""
+    from agents.models import AgentLog
+
+    payment.status = Payment.STATUS_FAILED
     payment.save(update_fields=["status", "updated_at"])
-    appt.status = "cancelled"
+
+    appt.status = Appointment.STATUS_CANCELLED
     appt.save(update_fields=["status", "updated_at"])
 
     AgentLog.objects.create(
@@ -288,22 +313,27 @@ def _process_payment_confirmation(payment, appt, status: str, provider_ref: str,
         metadata={"reference_id": reference_id, "status": status, "message": message},
     )
 
-    # Notify the customer's active chat session so the AI can offer a retry
-    if appt.chat_session_id:
-        try:
-            from agents.booking_agent import inject_system_message
-            inject_system_message(
-                session_id=appt.chat_session_id,
-                message=(
-                    f"SYSTEM: The customer's payment prompt was dismissed or failed "
-                    f"(appointment_id={appt.pk}, service={appt.service.name}). "
-                    f"Inform the customer their payment was not completed and ask if they would "
-                    f"like you to resend the payment prompt to their phone. "
-                    f"If yes, use the retry_payment tool with appointment_id={appt.pk}. "
-                    f"If no, let them know their booking slot has been released and they can book again anytime."
-                ),
-            )
-        except Exception:
-            logger.exception("[Webhook] Failed to inject retry system message for appt %s", appt.pk)
+    _notify_chat_session_of_failed_payment(appt)
 
     return {"ok": False, "error": f"Payment {status}: {message}"}
+
+
+def _notify_chat_session_of_failed_payment(appt) -> None:
+    """Inject a retry prompt into the customer's active AI chat session."""
+    if not appt.chat_session_id:
+        return
+    try:
+        from agents.booking_agent import inject_system_message
+        inject_system_message(
+            session_id=appt.chat_session_id,
+            message=(
+                f"SYSTEM: The customer's payment prompt was dismissed or failed "
+                f"(appointment_id={appt.pk}, service={appt.service.name}). "
+                f"Inform the customer their payment was not completed and ask if they would "
+                f"like you to resend the payment prompt to their phone. "
+                f"If yes, use the retry_payment tool with appointment_id={appt.pk}. "
+                f"If no, let them know their booking slot has been released and they can book again anytime."
+            ),
+        )
+    except Exception:
+        logger.exception("[Webhook] Failed to inject retry system message for appt %s", appt.pk)
