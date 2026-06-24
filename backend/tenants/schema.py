@@ -282,7 +282,7 @@ class TenantMutation:
 
         from bookings.models import Appointment
 
-        ALLOWED = {"in_progress", "completed"}
+        ALLOWED = {Appointment.STATUS_IN_PROGRESS, Appointment.STATUS_COMPLETED}
         if status.lower() not in ALLOWED:
             raise ValueError("Invalid status.")
 
@@ -310,9 +310,9 @@ class TenantMutation:
         except Appointment.DoesNotExist:
             raise ValueError(f"Appointment {appointment_id} not found.")
 
-        if appt.status == "cancelled":
+        if appt.status == Appointment.STATUS_CANCELLED:
             raise ValueError("Appointment is already cancelled.")
-        if appt.status in ("completed", "no_show"):
+        if appt.status in (Appointment.STATUS_COMPLETED, Appointment.STATUS_NO_SHOW):
             raise ValueError("Completed appointments cannot be cancelled.")
 
         old_status = appt.status
@@ -320,7 +320,7 @@ class TenantMutation:
         if actor not in ("customer", "owner"):
             actor = "owner"
 
-        appt.status = "cancelled"
+        appt.status = Appointment.STATUS_CANCELLED
         appt.cancelled_at = timezone.now()
         appt.cancellation_reason = reason or "Cancelled by owner"
         appt.cancelled_by = actor
@@ -330,7 +330,7 @@ class TenantMutation:
             appointment=appt,
             changed_by=info.context.request.user if info.context.request.user.is_authenticated else None,
             old_status=old_status,
-            new_status="cancelled",
+            new_status=Appointment.STATUS_CANCELLED,
             note=appt.cancellation_reason,
         )
 

@@ -6,8 +6,14 @@ from django.conf import settings
 from django.utils import timezone
 from openai import OpenAI
 
+from agents.agent_log import log_tool_call
 from agents.models import AgentLog
-from agents.log_labels import friendly_tool_label
+from agents.openai_utils import message_to_dict
+from bookings.conflict import cancel_stale_pending_appointments, has_booking_conflict
+from bookings.models import Appointment
+from core.phone import normalise_phone, build_phone_variants
+from core.time_utils import fmt_time_cat, fmt_ordinal_date
+from payments.models import Payment
 
 logger = logging.getLogger(__name__)
 
@@ -49,30 +55,6 @@ def inject_system_message(session_id: str, message: str) -> None:
     history.append({"role": "system", "content": message})
     save_history(session_id, history)
 
-
-def _normalise_phone(phone: str) -> str:
-    """Normalise a Zambian number to +260XXXXXXXXX. Returns original string if unrecognised."""
-    import re as _re
-    digits = _re.sub(r"\D", "", phone.strip())
-    if digits.startswith("260") and len(digits) == 12:
-        return "+" + digits          # 260971234567  → +260971234567
-    if digits.startswith("0") and len(digits) == 10:
-        return "+260" + digits[1:]   # 0971234567    → +260971234567
-    return phone.strip()             # already +260XXXXXXXXX or unknown — leave as-is
-
-
-def _build_phone_variants(phone: str) -> list[str]:
-    """Return a list of plausible normalised forms of a Zambian phone number."""
-    import re as _re
-    digits = _re.sub(r"\D", "", phone.strip())
-    variants = {phone.strip(), digits}
-    if digits.startswith("260") and len(digits) == 12:
-        variants.add("0" + digits[3:])
-        variants.add("+" + digits)
-    elif digits.startswith("0") and len(digits) == 10:
-        variants.add("260" + digits[1:])
-        variants.add("+260" + digits[1:])
-    return list(filter(None, variants))
 
 
 def _calculate_customer_total(deposit_zmw: float) -> float:
@@ -283,36 +265,11 @@ _TOOLS = [
 ]
 
 
-def _message_to_dict(msg) -> dict:
-    """Convert an OpenAI ChatCompletionMessage object to a plain dict for Redis."""
-    d = {"role": msg.role}
-    if msg.content is not None:
-        d["content"] = msg.content
-    if getattr(msg, "tool_calls", None):
-        d["tool_calls"] = [
-            {
-                "id": tc.id,
-                "type": "function",
-                "function": {
-                    "name": tc.function.name,
-                    "arguments": tc.function.arguments,
-                },
-            }
-            for tc in msg.tool_calls
-        ]
-    return d
-
 
 class BookingAgent:
     def __init__(self, tenant):
         self.tenant = tenant
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
-
-    @staticmethod
-    def _fmt_date(d) -> str:
-        day = d.day
-        suffix = "th" if 11 <= day % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
-        return f"{day}{suffix} {d.strftime('%B %Y')}"
 
     def _system_prompt(self, customer_name: str = "") -> str:
         import datetime as _dt
@@ -321,11 +278,11 @@ class BookingAgent:
         _now = timezone.now().astimezone(_cat)
         today = _now.date()
         today_day = _now.strftime("%A")
-        today_str = self._fmt_date(today)
-        current_time_str = _now.strftime("%I:%M %p").lstrip("0")
+        today_str = fmt_ordinal_date(today)
+        current_time_str = fmt_time_cat(_now)
         tomorrow = today + _dt.timedelta(days=1)
         tomorrow_day = tomorrow.strftime("%A")
-        tomorrow_str = self._fmt_date(tomorrow)
+        tomorrow_str = fmt_ordinal_date(tomorrow)
 
         policies = self.tenant.business_policies or {}
         policies_lines = []
@@ -554,8 +511,7 @@ class BookingAgent:
         from django.contrib.auth import get_user_model
         from django.db import transaction
 
-        from bookings.models import Appointment, Customer
-        from payments.models import Payment
+        from bookings.models import Customer
         from payments.provider_factory import get_provider
         from services.models import Service, StaffService
 
@@ -698,7 +654,7 @@ class BookingAgent:
             # normalise to +260XXXXXXXXX, log a warning if neither is available.
             resolved_phone = (inputs.get("customer_phone") or "").strip() or customer_phone.strip()
             if resolved_phone:
-                resolved_phone = _normalise_phone(resolved_phone)
+                resolved_phone = normalise_phone(resolved_phone)
             else:
                 logger.warning(
                     "create_booking: no customer_phone for %s — saving empty string",
@@ -712,27 +668,9 @@ class BookingAgent:
             inputs["customer_phone"] = resolved_phone
 
             with transaction.atomic():
-                # Cancel stale pending appointments for this slot so abandoned payment
-                # attempts don't permanently block it.
-                Appointment.objects.filter(
-                    staff=staff,
-                    status="pending",
-                    starts_at__lt=ends_at,
-                    ends_at__gt=starts_at,
-                ).update(status="cancelled")
+                cancel_stale_pending_appointments(staff, starts_at, ends_at)
 
-                conflict = (
-                    Appointment.objects
-                    .select_for_update()
-                    .filter(
-                        staff=staff,
-                        status__in=["confirmed", "in_progress"],
-                        starts_at__lt=ends_at,
-                        ends_at__gt=starts_at,
-                    )
-                    .exists()
-                )
-                if conflict:
+                if has_booking_conflict(staff, starts_at, ends_at):
                     return {"error": "That slot is no longer available. Please choose another time."}
 
                 appt = Appointment.objects.create(
@@ -741,8 +679,8 @@ class BookingAgent:
                     service=service,
                     starts_at=starts_at,
                     ends_at=ends_at,
-                    status="pending" if float(service.deposit_zmw) > 0 else "confirmed",
-                    booked_by="agent",
+                    status=Appointment.STATUS_PENDING if float(service.deposit_zmw) > 0 else Appointment.STATUS_CONFIRMED,
+                    booked_by=Appointment.BOOKED_BY_AGENT,
                     customer_notes=inputs.get("notes", ""),
                     notification_phone=inputs.get("notification_phone", ""),
                     chat_session_id=getattr(self, "_session_id", ""),
@@ -784,7 +722,7 @@ class BookingAgent:
             except Appointment.DoesNotExist:
                 return {"error": f"Appointment {inputs['appointment_id']} not found."}
 
-            if appt.status == "cancelled":
+            if appt.status == Appointment.STATUS_CANCELLED:
                 return {"error": "Cannot pay for a cancelled appointment."}
 
             # Use the phone the customer provided during intake unless they specified another
@@ -798,7 +736,7 @@ class BookingAgent:
 
             # ── No-deposit path — skip payment entirely ──────────────────────
             if actual_deposit == 0:
-                appt.status = "confirmed"
+                appt.status = Appointment.STATUS_CONFIRMED
                 appt.save(update_fields=["status", "updated_at"])
                 transaction_ref = f"APPT-{appt.pk}"
                 AgentLog.objects.create(
@@ -829,7 +767,7 @@ class BookingAgent:
                 amount_zmw=actual_total,
                 payment_type="deposit",
                 method="airtel_money",
-                status="pending",
+                status=Payment.STATUS_PENDING,
                 transaction_ref=transaction_ref,
             )
 
@@ -842,7 +780,7 @@ class BookingAgent:
             )
 
             if not result.success:
-                payment.status = "failed"
+                payment.status = Payment.STATUS_FAILED
                 payment.save(update_fields=["status", "updated_at"])
                 return {"error": f"Payment initiation failed: {result.message}"}
 
@@ -854,11 +792,11 @@ class BookingAgent:
             # Mock auto-confirms immediately — mark payment + appointment here too
             if result.status == "completed":
                 from django.utils import timezone as _tz
-                payment.status  = "completed"
+                payment.status  = Payment.STATUS_COMPLETED
                 payment.paid_at = _tz.now()
                 update_fields += ["status", "paid_at"]
-                if appt.status not in ("confirmed", "completed"):
-                    appt.status = "confirmed"
+                if appt.status not in (Appointment.STATUS_CONFIRMED, Appointment.STATUS_COMPLETED):
+                    appt.status = Appointment.STATUS_CONFIRMED
                     appt.save(update_fields=["status", "updated_at"])
 
             payment.save(update_fields=list(set(update_fields)))
@@ -904,7 +842,7 @@ class BookingAgent:
 
             # Try exact match, then fallback to digit-normalised variants
             customer = None
-            for phone_variant in _build_phone_variants(customer_phone):
+            for phone_variant in build_phone_variants(customer_phone):
                 customer = Customer.objects.filter(phone=phone_variant).first()
                 if customer:
                     break
@@ -914,7 +852,7 @@ class BookingAgent:
 
             qs = (
                 Appointment.objects
-                .filter(customer=customer, status__in=["confirmed", "pending"], starts_at__gte=now)
+                .filter(customer=customer, status__in=[Appointment.STATUS_CONFIRMED, Appointment.STATUS_PENDING], starts_at__gte=now)
                 .select_related("service", "staff")
                 .order_by("starts_at")[:10]
             )
@@ -939,7 +877,7 @@ class BookingAgent:
             return {"appointments": appointments}
 
         elif name == "cancel_appointment":
-            from bookings.models import Appointment, AppointmentHistory, Customer
+            from bookings.models import AppointmentHistory, Customer
 
             try:
                 appt = Appointment.objects.select_related("customer", "service", "staff").get(
@@ -948,14 +886,13 @@ class BookingAgent:
             except Appointment.DoesNotExist:
                 return {"error": f"Appointment {inputs['appointment_id']} not found."}
 
-            # Ownership check — phone must match any normalised variant
-            owner_phones = _build_phone_variants(customer_phone)
+            owner_phones = build_phone_variants(customer_phone)
             if appt.customer.phone not in owner_phones:
                 return {"error": "This appointment does not belong to your account."}
 
-            if appt.status == "cancelled":
+            if appt.status == Appointment.STATUS_CANCELLED:
                 return {"error": "This appointment is already cancelled."}
-            if appt.status in ("completed", "no_show"):
+            if appt.status in (Appointment.STATUS_COMPLETED, Appointment.STATUS_NO_SHOW):
                 return {"error": "This appointment has already been completed and cannot be cancelled."}
             if appt.starts_at < timezone.now():
                 return {"error": "This appointment has already passed."}
@@ -970,7 +907,7 @@ class BookingAgent:
             old_status = appt.status
 
             with transaction.atomic():
-                appt.status = "cancelled"
+                appt.status = Appointment.STATUS_CANCELLED
                 appt.cancelled_at = timezone.now()
                 appt.cancellation_reason = reason
                 appt.cancelled_by = "customer"
@@ -981,7 +918,7 @@ class BookingAgent:
                     changed_by=None,
                     changed_by_agent="booking_agent",
                     old_status=old_status,
-                    new_status="cancelled",
+                    new_status=Appointment.STATUS_CANCELLED,
                     note=reason,
                 )
 
@@ -1014,7 +951,7 @@ class BookingAgent:
             return result
 
         elif name == "reschedule_appointment":
-            from bookings.models import Appointment, AppointmentHistory, Customer
+            from bookings.models import AppointmentHistory, Customer
 
             try:
                 appt = Appointment.objects.select_related("customer", "service", "staff").get(
@@ -1023,14 +960,13 @@ class BookingAgent:
             except Appointment.DoesNotExist:
                 return {"error": f"Appointment {inputs['appointment_id']} not found."}
 
-            # Ownership check
-            owner_phones = _build_phone_variants(customer_phone)
+            owner_phones = build_phone_variants(customer_phone)
             if appt.customer.phone not in owner_phones:
                 return {"error": "This appointment does not belong to your account."}
 
-            if appt.status == "cancelled":
+            if appt.status == Appointment.STATUS_CANCELLED:
                 return {"error": "This appointment is already cancelled and cannot be rescheduled."}
-            if appt.status in ("completed", "no_show"):
+            if appt.status in (Appointment.STATUS_COMPLETED, Appointment.STATUS_NO_SHOW):
                 return {"error": "This appointment has already been completed."}
 
             # Parse new date + time
@@ -1057,19 +993,7 @@ class BookingAgent:
             )
 
             with transaction.atomic():
-                conflict = (
-                    Appointment.objects
-                    .select_for_update()
-                    .filter(
-                        staff=appt.staff,
-                        status__in=["confirmed", "in_progress"],
-                        starts_at__lt=new_end,
-                        ends_at__gt=new_start,
-                    )
-                    .exclude(pk=appt.pk)
-                    .exists()
-                )
-                if conflict:
+                if has_booking_conflict(appt.staff, new_start, new_end, exclude_pk=appt.pk):
                     return {"error": "That time slot is no longer available. Please choose another time."}
 
                 old_start = appt.starts_at
@@ -1140,7 +1064,7 @@ class BookingAgent:
                 amount_zmw=actual_total,
                 payment_type="deposit",
                 method="airtel_money",
-                status="pending",
+                status=Payment.STATUS_PENDING,
                 transaction_ref=transaction_ref,
             )
 
@@ -1215,7 +1139,7 @@ class BookingAgent:
             )
 
             choice = response.choices[0]
-            assistant_dict = _message_to_dict(choice.message)
+            assistant_dict = message_to_dict(choice.message)
 
             if choice.finish_reason == "stop":
                 messages.append(assistant_dict)
@@ -1233,18 +1157,7 @@ class BookingAgent:
                     result = self._run_tool(tc.function.name, inputs, customer_phone)
                     logger.info("Tool %s(%s) → %s", tc.function.name, inputs, result)
 
-                    # Log to AgentLog on every tool call
-                    AgentLog.objects.create(
-                        agent_type="booking",
-                        action=friendly_tool_label(tc.function.name),
-                        outcome="success" if "error" not in result else "failed",
-                        metadata={
-                            "tool": tc.function.name,
-                            "input": inputs,
-                            "result": result,
-                            "tenant": self.tenant.schema_name,
-                        },
-                    )
+                    log_tool_call("booking", tc.function.name, inputs, result, self.tenant.schema_name)
 
                     messages.append({
                         "role": "tool",
@@ -1345,17 +1258,7 @@ class BookingAgent:
                     result = self._run_tool(tc["function"]["name"], inputs, customer_phone)
                     logger.info("Tool %s(%s) → %s", tc["function"]["name"], inputs, result)
 
-                    AgentLog.objects.create(
-                        agent_type="booking",
-                        action=friendly_tool_label(tc["function"]["name"]),
-                        outcome="success" if "error" not in result else "failed",
-                        metadata={
-                            "tool": tc["function"]["name"],
-                            "input": inputs,
-                            "result": result,
-                            "tenant": self.tenant.schema_name,
-                        },
-                    )
+                    log_tool_call("booking", tc["function"]["name"], inputs, result, self.tenant.schema_name)
 
                     messages.append({
                         "role": "tool",

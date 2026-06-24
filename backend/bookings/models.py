@@ -119,20 +119,21 @@ class Appointment(models.Model):
 
         super().save(*args, **kwargs)
 
-        if old_status != self.status and self.status in ("confirmed", "cancelled"):
+        if old_status != self.status:
             try:
-                from django.db import connection as _conn
-                schema_name = _conn.schema_name
-                if self.status == "confirmed":
-                    from notifications.tasks import notify_booking_confirmed
-                    notify_booking_confirmed.delay(self.pk, schema_name)
-                elif self.status == "cancelled":
-                    from notifications.tasks import notify_booking_cancelled
-                    notify_booking_cancelled.delay(self.pk, schema_name)
+                from django.db import connection
+                from bookings.signals import appointment_status_changed
+                appointment_status_changed.send(
+                    sender=self.__class__,
+                    instance=self,
+                    old_status=old_status,
+                    new_status=self.status,
+                    schema_name=connection.schema_name,
+                )
             except Exception:
                 import logging as _log
                 _log.getLogger(__name__).exception(
-                    "Appointment.save: failed to enqueue webhook for pk=%s status=%s",
+                    "Appointment.save: failed to send appointment_status_changed signal for pk=%s status=%s",
                     self.pk, self.status,
                 )
 

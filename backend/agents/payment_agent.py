@@ -5,8 +5,11 @@ from django.conf import settings
 from django.utils import timezone
 from openai import OpenAI
 
+from agents.agent_log import log_tool_call
 from agents.models import AgentLog
-from agents.log_labels import friendly_tool_label
+from agents.openai_utils import message_to_dict
+from bookings.models import Appointment
+from payments.models import Payment
 
 logger = logging.getLogger(__name__)
 
@@ -87,22 +90,6 @@ _TOOLS = [
 ]
 
 
-def _message_to_dict(msg) -> dict:
-    d = {"role": msg.role}
-    if msg.content is not None:
-        d["content"] = msg.content
-    if getattr(msg, "tool_calls", None):
-        d["tool_calls"] = [
-            {
-                "id": tc.id,
-                "type": "function",
-                "function": {"name": tc.function.name, "arguments": tc.function.arguments},
-            }
-            for tc in msg.tool_calls
-        ]
-    return d
-
-
 class PaymentAgent:
     def __init__(self, tenant):
         self.tenant = tenant
@@ -124,8 +111,6 @@ class PaymentAgent:
 
         from django.db.models import Exists, OuterRef
 
-        from bookings.models import Appointment
-        from payments.models import Payment
         from payments.provider_factory import get_provider
 
         if name == "get_unpaid_bookings":
@@ -133,12 +118,12 @@ class PaymentAgent:
             cutoff_10 = now - datetime.timedelta(minutes=10)
 
             has_completed_payment = Payment.objects.filter(
-                appointment=OuterRef("pk"), status="completed"
+                appointment=OuterRef("pk"), status=Payment.STATUS_COMPLETED
             )
             pending = (
                 Appointment.objects
                 .filter(
-                    status="pending",
+                    status=Appointment.STATUS_PENDING,
                     service__deposit_zmw__gt=0,
                     created_at__lt=cutoff_10,
                 )
@@ -167,16 +152,16 @@ class PaymentAgent:
             except Appointment.DoesNotExist:
                 return {"error": f"Appointment {appointment_id} not found."}
 
-            msg = (
+            reminder_message = (
                 f"SMS to {appt.customer.phone}: Hi {appt.customer.full_name}, "
                 f"a deposit of ZMW {appt.service.deposit_zmw} is required to confirm your "
                 f"{appt.service.name} appointment. Please pay to avoid cancellation."
             )
-            logger.info(msg)
+            logger.info(reminder_message)
 
             AgentLog.objects.create(
                 agent_type="payment",
-                action=msg,
+                action=reminder_message,
                 related_appointment=appt,
                 outcome="success",
                 metadata={
@@ -198,18 +183,20 @@ class PaymentAgent:
             except Appointment.DoesNotExist:
                 return {"error": f"Appointment {appointment_id} not found."}
 
-            if appt.status != "pending":
+            if appt.status != Appointment.STATUS_PENDING:
                 return {"skipped": f"Appointment is already {appt.status}."}
 
             if appt.created_at >= cutoff_10:
                 minutes_left = int((cutoff_10 - appt.created_at).total_seconds() / -60)
                 return {"skipped": f"Not yet overdue — {minutes_left} minutes until 10-minute cutoff."}
 
-            has_paid = Payment.objects.filter(appointment=appt, status="completed").exists()
+            has_paid = Payment.objects.filter(
+                appointment=appt, status=Payment.STATUS_COMPLETED
+            ).exists()
             if has_paid:
                 return {"skipped": "Deposit has been received — no cancellation needed."}
 
-            appt.status = "cancelled"
+            appt.status = Appointment.STATUS_CANCELLED
             appt.cancelled_at = now
             appt.cancellation_reason = "Auto-cancelled: deposit not received within 10 minutes."
             appt.save(update_fields=["status", "cancelled_at", "cancellation_reason", "updated_at"])
@@ -233,22 +220,20 @@ class PaymentAgent:
         elif name == "process_refund":
             payment_id = inputs["payment_id"]
             try:
-                payment = Payment.objects.select_related("appointment__customer", "appointment__service").get(
-                    pk=payment_id
-                )
+                payment = Payment.objects.select_related(
+                    "appointment__customer", "appointment__service"
+                ).get(pk=payment_id)
             except Payment.DoesNotExist:
                 return {"error": f"Payment {payment_id} not found."}
 
-            if payment.status == "refunded":
+            if payment.status == Payment.STATUS_REFUNDED:
                 return {"skipped": "Payment has already been refunded."}
 
-            if payment.status != "completed":
+            if payment.status != Payment.STATUS_COMPLETED:
                 return {"error": f"Cannot refund a payment with status '{payment.status}'."}
 
             provider = get_provider()
-            result = provider.refund_transaction(
-                payment.transaction_ref, float(payment.amount_zmw)
-            )
+            result = provider.refund_transaction(payment.transaction_ref, float(payment.amount_zmw))
 
             if not result.success:
                 AgentLog.objects.create(
@@ -260,7 +245,7 @@ class PaymentAgent:
                 )
                 return {"error": f"Refund failed: {result.error}"}
 
-            payment.status = "refunded"
+            payment.status = Payment.STATUS_REFUNDED
             payment.save(update_fields=["status", "updated_at"])
 
             AgentLog.objects.create(
@@ -282,18 +267,15 @@ class PaymentAgent:
         elif name == "get_refund_decision":
             appointment_id = inputs["appointment_id"]
 
-            # Check AgentLog for refund_status stored at cancellation time
             refund_status = None
-            logs = AgentLog.objects.filter(
+            for log in AgentLog.objects.filter(
                 related_appointment_id=appointment_id,
                 agent_type="scheduling",
-            ).order_by("-created_at")
-            for log in logs:
+            ).order_by("-created_at"):
                 if "refund_status" in log.metadata:
                     refund_status = log.metadata["refund_status"]
                     break
 
-            # Fall back to computing from appointment timestamps
             if not refund_status:
                 try:
                     appt = Appointment.objects.get(pk=appointment_id)
@@ -309,9 +291,9 @@ class PaymentAgent:
                 except Appointment.DoesNotExist:
                     return {"error": f"Appointment {appointment_id} not found."}
 
-            # Find the most recent completed payment for this appointment
             payment = Payment.objects.filter(
-                appointment_id=appointment_id, status="completed"
+                appointment_id=appointment_id,
+                status=Payment.STATUS_COMPLETED,
             ).order_by("-paid_at").first()
 
             return {
@@ -338,30 +320,18 @@ class PaymentAgent:
                 tool_choice="auto",
             )
             choice = response.choices[0]
-            assistant_dict = _message_to_dict(choice.message)
+            messages.append(message_to_dict(choice.message))
 
             if choice.finish_reason == "stop":
-                messages.append(assistant_dict)
                 return choice.message.content or ""
 
             elif choice.finish_reason == "tool_calls":
-                messages.append(assistant_dict)
                 for tc in choice.message.tool_calls:
                     inputs = json.loads(tc.function.arguments or "{}")
                     result = self._run_tool(tc.function.name, inputs)
                     logger.info("PaymentAgent tool %s → %s", tc.function.name, result)
 
-                    AgentLog.objects.create(
-                        agent_type="payment",
-                        action=friendly_tool_label(tc.function.name),
-                        outcome="success" if "error" not in result else "failed",
-                        metadata={
-                            "tool": tc.function.name,
-                            "input": inputs,
-                            "result": result,
-                            "tenant": self.tenant.schema_name,
-                        },
-                    )
+                    log_tool_call("payment", tc.function.name, inputs, result, self.tenant.schema_name)
 
                     messages.append({
                         "role": "tool",

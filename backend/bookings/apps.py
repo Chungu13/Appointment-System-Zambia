@@ -2,4 +2,7 @@ from django.apps import AppConfig
 
 
 class BookingsConfig(AppConfig):
-    name = 'bookings'
+    name = "bookings"
+
+    def ready(self):
+        import bookings.signals  # noqa: F401 — defines appointment_status_changed signal

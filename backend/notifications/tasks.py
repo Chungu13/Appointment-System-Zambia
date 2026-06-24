@@ -1,24 +1,11 @@
 import logging
-import zoneinfo
 
 from celery import shared_task
-from django.utils import timezone
 
+from core.time_utils import fmt_date_cat, fmt_time_cat
 from notifications.webhook_dispatcher import dispatch
 
 logger = logging.getLogger(__name__)
-
-_LUSAKA_TZ = zoneinfo.ZoneInfo("Africa/Lusaka")
-
-
-def _fmt_date(dt) -> str:
-    local = dt.astimezone(_LUSAKA_TZ)
-    return local.strftime("%A, %d %B %Y")
-
-
-def _fmt_time(dt) -> str:
-    local = dt.astimezone(_LUSAKA_TZ)
-    return local.strftime("%I:%M %p").lstrip("0")
 
 
 def _build_payload(appt, tenant, event: str) -> dict:
@@ -31,8 +18,8 @@ def _build_payload(appt, tenant, event: str) -> dict:
         "business_name":   tenant.business_name,
         "service_name":    appt.service.name,
         "staff_name":      appt.staff.full_name if appt.staff else None,
-        "date":            _fmt_date(appt.starts_at),
-        "time":            _fmt_time(appt.starts_at),
+        "date":            fmt_date_cat(appt.starts_at),
+        "time":            fmt_time_cat(appt.starts_at),
         "owner_whatsapp":  tenant.whatsapp_number or "",
         "deposit_amount":  deposit,
     }

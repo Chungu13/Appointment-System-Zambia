@@ -73,13 +73,9 @@ class LipilaProvider(BasePaymentProvider):
 
     @staticmethod
     def _normalise_phone(raw_phone: str) -> str:
-        """Normalise to 260XXXXXXXXX format. Handles +260, 0, and bare 9-digit formats."""
-        phone = raw_phone.strip().lstrip("+").replace(" ", "").replace("-", "")
-        if phone.startswith("0"):
-            phone = "260" + phone[1:]
-        if not phone.startswith("260"):
-            phone = "260" + phone
-        return phone
+        """Normalise to 260XXXXXXXXX format required by the Lipila API (no + prefix)."""
+        from core.phone import normalise_phone
+        return normalise_phone(raw_phone).lstrip("+")
 
     def initiate_collection(
         self,

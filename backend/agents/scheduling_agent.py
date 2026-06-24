@@ -5,8 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 from openai import OpenAI
 
-from agents.models import AgentLog
-from agents.log_labels import friendly_tool_label
+from agents.agent_log import log_tool_call
+from agents.openai_utils import message_to_dict
+from bookings.models import Appointment
 
 logger = logging.getLogger(__name__)
 
@@ -78,22 +79,6 @@ _TOOLS = [
 ]
 
 
-def _message_to_dict(msg) -> dict:
-    d = {"role": msg.role}
-    if msg.content is not None:
-        d["content"] = msg.content
-    if getattr(msg, "tool_calls", None):
-        d["tool_calls"] = [
-            {
-                "id": tc.id,
-                "type": "function",
-                "function": {"name": tc.function.name, "arguments": tc.function.arguments},
-            }
-            for tc in msg.tool_calls
-        ]
-    return d
-
-
 class SchedulingAgent:
     def __init__(self, tenant):
         self.tenant = tenant
@@ -112,12 +97,13 @@ class SchedulingAgent:
     # ------------------------------------------------------------------
 
     def _run_tool(self, name: str, inputs: dict) -> dict:
-        from bookings.models import Appointment, Waitlist
+        from agents.models import AgentLog
+        from bookings.models import Waitlist
 
         if name == "get_cancelled_slot":
             try:
                 appt = Appointment.objects.select_related("customer", "staff", "service").get(
-                    pk=inputs["appointment_id"], status="cancelled"
+                    pk=inputs["appointment_id"], status=Appointment.STATUS_CANCELLED
                 )
             except Appointment.DoesNotExist:
                 return {"error": f"Cancelled appointment {inputs['appointment_id']} not found."}
@@ -134,15 +120,11 @@ class SchedulingAgent:
             }
 
         elif name == "get_waitlist_matches":
-            service_id = inputs["service_id"]
-            date_str = inputs["date"]
-            staff_id = inputs.get("staff_id")
-
             entries = (
                 Waitlist.objects
                 .filter(
-                    service_id=service_id,
-                    preferred_date=date_str,
+                    service_id=inputs["service_id"],
+                    preferred_date=inputs["date"],
                     is_active=True,
                     notified_at__isnull=True,
                 )
@@ -150,22 +132,21 @@ class SchedulingAgent:
                 .order_by("id")[:3]
             )
 
-            results = []
-            for e in entries:
-                results.append({
+            results = [
+                {
                     "waitlist_id": e.pk,
                     "customer_phone": e.customer.phone,
                     "customer_name": e.customer.full_name,
                     "service_name": e.service.name,
                     "preferred_date": str(e.preferred_date),
-                })
+                }
+                for e in entries
+            ]
             return {"matches": results, "count": len(results)}
 
         elif name == "notify_customer":
-            msg = (
-                f"SMS to {inputs['customer_phone']}: {inputs['message']}"
-            )
-            logger.info(msg)
+            notification_message = f"SMS to {inputs['customer_phone']}: {inputs['message']}"
+            logger.info(notification_message)
 
             try:
                 appt = Appointment.objects.get(pk=inputs["appointment_id"])
@@ -174,7 +155,7 @@ class SchedulingAgent:
 
             AgentLog.objects.create(
                 agent_type="scheduling",
-                action=msg,
+                action=notification_message,
                 related_appointment=appt,
                 outcome="success",
                 metadata={
@@ -210,30 +191,18 @@ class SchedulingAgent:
                 tool_choice="auto",
             )
             choice = response.choices[0]
-            assistant_dict = _message_to_dict(choice.message)
+            messages.append(message_to_dict(choice.message))
 
             if choice.finish_reason == "stop":
-                messages.append(assistant_dict)
                 return choice.message.content or ""
 
             elif choice.finish_reason == "tool_calls":
-                messages.append(assistant_dict)
                 for tc in choice.message.tool_calls:
                     inputs = json.loads(tc.function.arguments or "{}")
                     result = self._run_tool(tc.function.name, inputs)
                     logger.info("SchedulingAgent tool %s → %s", tc.function.name, result)
 
-                    AgentLog.objects.create(
-                        agent_type="scheduling",
-                        action=friendly_tool_label(tc.function.name),
-                        outcome="success" if "error" not in result else "failed",
-                        metadata={
-                            "tool": tc.function.name,
-                            "input": inputs,
-                            "result": result,
-                            "tenant": self.tenant.schema_name,
-                        },
-                    )
+                    log_tool_call("scheduling", tc.function.name, inputs, result, self.tenant.schema_name)
 
                     messages.append({
                         "role": "tool",
