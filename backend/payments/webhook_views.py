@@ -171,7 +171,7 @@ def _disburse_to_business(payment, appt) -> None:
             phone=payout_phone,
             amount=disburse_amount,
             reference=disburse_ref,
-            narration=f"Booking payout - {appt.service.name}",
+            narration="Booking payout " + "".join(c for c in appt.service.name if c.isalnum() or c == " "),
         )
         if result.success:
             payment.disburse_transaction_id = result.provider_ref
