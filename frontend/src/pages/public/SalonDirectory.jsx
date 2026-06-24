@@ -30,7 +30,8 @@ function Hero() {
         <Eyebrow>Beauty marketplace · Zambia</Eyebrow>
 
         <h1 style={{ fontFamily: serif, fontSize: 68, fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.05, color: '#1a1a1a', margin: '0 0 24px', maxWidth: 680 }} className="max-sm:text-4xl">
-          The booking platform built for you.
+          The booking platform{' '}
+          <em style={{ color: PRIMARY, fontStyle: 'italic' }}>built for you.</em>
         </h1>
 
         <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: '#333', lineHeight: 1.7, maxWidth: 480, margin: '0 0 28px' }}>
