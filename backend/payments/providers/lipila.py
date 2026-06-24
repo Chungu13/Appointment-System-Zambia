@@ -53,11 +53,12 @@ class LipilaProvider(BasePaymentProvider):
     def __init__(self):
         self.api_key = settings.LIPILA_API_KEY
         env = getattr(settings, "LIPILA_ENV", "sandbox")
-        self.base_url = (
+        default_url = (
             "https://blz.lipila.io/api/v1"
             if env == "production"
             else "https://api.lipila.dev/api/v1"
         )
+        self.base_url = getattr(settings, "LIPILA_BASE_URL", "").rstrip("/") or default_url
         self.callback_url = getattr(settings, "LIPILA_CALLBACK_URL", "")
 
     def _headers(self) -> dict:

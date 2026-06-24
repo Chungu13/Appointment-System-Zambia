@@ -209,6 +209,7 @@ OPENAI_API_KEY   = config("OPENAI_API_KEY",   default="")
 # ---------------------------------------------------------------------------
 LIPILA_API_KEY      = config("LIPILA_API_KEY",      default="")
 LIPILA_ENV          = config("LIPILA_ENV",          default="sandbox")
+LIPILA_BASE_URL     = config("LIPILA_BASE_URL",     default="")
 LIPILA_CALLBACK_URL = config("LIPILA_CALLBACK_URL", default="")
 
 # ---------------------------------------------------------------------------
