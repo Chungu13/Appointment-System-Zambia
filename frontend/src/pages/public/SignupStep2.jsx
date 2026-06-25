@@ -147,6 +147,8 @@ export default function SignupStep2() {
           email: step1.email,
           password: step1.isGoogle ? '' : step1.password,
           googleToken: step1.googleToken || '',
+          honeypot: step1.honeypot || '',
+          turnstileToken: step1.turnstileToken || '',
         },
       })
 

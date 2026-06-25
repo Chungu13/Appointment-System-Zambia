@@ -12,6 +12,8 @@ export const REGISTER_TENANT = gql`
     $address: String
     $password: String
     $googleToken: String
+    $honeypot: String
+    $turnstileToken: String
   ) {
     registerTenant(
       businessName: $businessName
@@ -24,9 +26,10 @@ export const REGISTER_TENANT = gql`
       address: $address
       password: $password
       googleToken: $googleToken
+      honeypot: $honeypot
+      turnstileToken: $turnstileToken
     ) {
-      tenantSubdomain
-      staffAccessKey
+      message
     }
   }
 `

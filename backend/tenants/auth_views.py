@@ -40,6 +40,7 @@ def send_email(to: str, subject: str, html: str) -> None:
 # ── Email helpers ─────────────────────────────────────────────────────────────
 
 def send_verification_email(user_pk: int, schema_name: str, email: str, full_name: str) -> None:
+    """Verification email for already-created tenant owner users (legacy path)."""
     token = signing.dumps({"schema": schema_name, "pk": user_pk}, salt="email-verification")
     verify_url = f"{_api_url()}/auth/verify-email/?token={token}"
 
@@ -50,6 +51,25 @@ def send_verification_email(user_pk: int, schema_name: str, email: str, full_nam
             f"<p>Hi {full_name},</p>"
             "<p>Click the link below to verify your email and activate your Kimawa account.</p>"
             f'<p><a href="{verify_url}">{verify_url}</a></p>'
+            "<p>This link expires in 24 hours.</p>"
+        ),
+    )
+
+
+def send_pending_verification_email(pending_id: int, email: str, full_name: str) -> None:
+    """Verification email for a new PendingRegistration before admin approval."""
+    token = signing.dumps({"pending_id": pending_id}, salt="email-verification")
+    verify_url = f"{_api_url()}/auth/verify-email/?token={token}"
+
+    send_email(
+        to=email,
+        subject="Verify your email — Kimawa",
+        html=(
+            f"<p>Hi {full_name},</p>"
+            "<p>Click the link below to verify your email address.</p>"
+            f'<p><a href="{verify_url}">{verify_url}</a></p>'
+            "<p>After verification, your business application will be reviewed by our team. "
+            "We'll email you within 24 hours once approved.</p>"
             "<p>This link expires in 24 hours.</p>"
         ),
     )
@@ -71,9 +91,9 @@ def send_admin_notification(
 
     send_email(
         to=admin_email,
-        subject=f"New business signup - {business_name}",
+        subject=f"New business signup — {business_name}",
         html=(
-            "<p>New business registered on Kimawa:</p>"
+            "<p>New business registered on Kimawa (pending approval):</p>"
             "<ul>"
             f"<li><b>Business name:</b> {business_name}</li>"
             f"<li><b>Business type:</b> {business_type}</li>"
@@ -84,7 +104,7 @@ def send_admin_notification(
             f"<li><b>Owner email:</b> {email}</li>"
             f"<li><b>Signed up:</b> {timestamp}</li>"
             "</ul>"
-            f'<p><a href="{api_base}/admin/tenants/tenant/">Review and approve in Django admin</a></p>'
+            f'<p><a href="{api_base}/admin/tenants/pendingregistration/">Review and approve in Django admin</a></p>'
         ),
     )
 
@@ -94,11 +114,25 @@ def send_approval_email(owner_name: str, business_name: str, owner_email: str) -
 
     send_email(
         to=owner_email,
-        subject="Your Kimawa account is approved - you're live!",
+        subject="Your Kimawa account is approved — you're live!",
         html=(
             f"<p>Hi {owner_name},</p>"
             f"<p>Your business <b>{business_name}</b> has been approved on Kimawa.</p>"
             f'<p><a href="{app_base}/login">Log in to your dashboard to get started</a></p>'
+        ),
+    )
+
+
+def send_signup_spike_alert(count: int) -> None:
+    admin_email = getattr(settings, "ADMIN_EMAIL", "admin@kimawa.pro")
+    api_base    = getattr(settings, "API_BASE_URL", "https://api.kimawa.pro")
+
+    send_email(
+        to=admin_email,
+        subject=f"[Kimawa] Signup spike alert — {count} registrations in 1 hour",
+        html=(
+            f"<p><b>{count}</b> new business registrations in the last hour — possible bot activity.</p>"
+            f'<p><a href="{api_base}/admin/tenants/pendingregistration/">Review in Django admin</a></p>'
         ),
     )
 
@@ -120,6 +154,19 @@ def verify_email(request):
     except signing.BadSignature:
         return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
 
+    # New pending registration flow
+    if "pending_id" in data:
+        from tenants.models import PendingRegistration
+        try:
+            pending = PendingRegistration.objects.get(pk=data["pending_id"])
+            if not pending.email_verified:
+                pending.email_verified = True
+                pending.save(update_fields=["email_verified"])
+        except PendingRegistration.DoesNotExist:
+            return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
+        return HttpResponseRedirect(f"{app_base}/pending-approval?verified=true")
+
+    # Legacy flow (existing tenant owner users)
     schema_name = data.get("schema")
     user_pk = data.get("pk")
     if not schema_name or not user_pk:
@@ -192,6 +239,16 @@ def resend_verification(request):
     if not email:
         return JsonResponse({"ok": True})
 
+    # Check pending registrations first
+    from tenants.models import PendingRegistration
+    try:
+        pending = PendingRegistration.objects.get(email=email, email_verified=False)
+        send_pending_verification_email(pending.pk, pending.email, pending.full_name)
+        return JsonResponse({"ok": True})
+    except PendingRegistration.DoesNotExist:
+        pass
+
+    # Check existing tenant schemas
     from tenants.models import Tenant
     from django_tenants.utils import schema_context
 

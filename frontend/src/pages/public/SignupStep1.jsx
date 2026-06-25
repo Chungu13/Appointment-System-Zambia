@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { useSignup } from '../../context/SignupContext'
 
 const BURG      = '#6B2737'
@@ -17,6 +18,8 @@ const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
 const PUBLIC_REST_URL = (
   import.meta.env.VITE_PUBLIC_API_URL || 'http://localhost:8000/graphql/'
 ).replace(/\/graphql\/?$/, '')
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 
 function StepIndicator({ step }) {
   return (
@@ -67,11 +70,15 @@ export default function SignupStep1() {
   const { setStep1 } = useSignup()
 
   const [form, setForm] = useState({ fullName: '', email: '', password: '' })
+  const [honeypot, setHoneypot] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [errors, setErrors] = useState({})
   const [googleError, setGoogleError] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const formLoadTime = useRef(Date.now())
 
   function set(k) {
     return (e) => {
@@ -91,7 +98,24 @@ export default function SignupStep1() {
 
   function handleSubmit(e) {
     e.preventDefault()
+
+    // Honeypot: silently do nothing if a bot filled the hidden field
+    if (honeypot) return
+
+    // Time-based check: reject if form submitted in under 5 seconds
+    const elapsed = (Date.now() - formLoadTime.current) / 1000
+    if (elapsed < 5) {
+      setErrors({ terms: 'Please take a moment to fill in the form.' })
+      return
+    }
+
     const errs = validate()
+
+    // Require Turnstile token when site key is configured
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      errs.turnstile = 'Please complete the security check.'
+    }
+
     if (Object.keys(errs).length) { setErrors(errs); return }
 
     setStep1({
@@ -101,6 +125,8 @@ export default function SignupStep1() {
       agreedToTerms: true,
       isGoogle: false,
       googleToken: '',
+      honeypot,
+      turnstileToken,
     })
     navigate('/signup/business')
   }
@@ -124,6 +150,8 @@ export default function SignupStep1() {
           agreedToTerms: true,
           isGoogle: true,
           googleToken: data.google_token || '',
+          honeypot: '',
+          turnstileToken,
         })
         navigate('/signup/business')
       } catch {
@@ -206,6 +234,18 @@ export default function SignupStep1() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Honeypot — hidden from real users, bots fill it */}
+            <input
+              type="text"
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+            />
+
             <div>
               <Label>Full name</Label>
               <Input value={form.fullName} onChange={set('fullName')} placeholder="Your full name" autoComplete="name" />
@@ -267,6 +307,21 @@ export default function SignupStep1() {
               </label>
               {errors.terms && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.terms}</p>}
             </div>
+
+            {/* Cloudflare Turnstile */}
+            {TURNSTILE_SITE_KEY && (
+              <div>
+                <Turnstile
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={setTurnstileToken}
+                  onExpire={() => setTurnstileToken('')}
+                  options={{ theme: 'light', size: 'normal' }}
+                />
+                {errors.turnstile && (
+                  <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.turnstile}</p>
+                )}
+              </div>
+            )}
 
             <button
               type="submit"

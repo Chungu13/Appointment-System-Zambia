@@ -10,6 +10,8 @@ export function SignupProvider({ children }) {
     agreedToTerms: false,
     isGoogle: false,
     googleToken: '',
+    honeypot: '',
+    turnstileToken: '',
   })
 
   return (

@@ -94,3 +94,27 @@ class TenantSubscription(models.Model):
 
     def __str__(self):
         return f"{self.tenant} — {self.plan} ({self.status})"
+
+
+class PendingRegistration(models.Model):
+    """Staging model — holds signup data until an admin approves and creates the real tenant."""
+
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password_hash = models.CharField(max_length=255, blank=True)
+    business_name = models.CharField(max_length=100)
+    business_type = models.CharField(max_length=50)
+    city = models.CharField(max_length=50)
+    area = models.CharField(max_length=50, blank=True)
+    phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=200, blank=True)
+    google_token = models.CharField(max_length=500, blank=True)
+    email_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.business_name} ({self.email})"
