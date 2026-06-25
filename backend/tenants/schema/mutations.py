@@ -5,8 +5,6 @@ from strawberry.types import Info
 
 from tenants.schema.types import (
     BusinessPoliciesInput,
-    CancelBookingResult,
-    CancelledAppointmentType,
     _check_staff_key,
 )
 
@@ -131,57 +129,3 @@ class TenantMutation:
         updated = Appointment.objects.filter(pk=appointment_id).update(status=status.lower())
         return updated > 0
 
-    @strawberry.mutation
-    def cancel_booking(
-        self,
-        info: Info,
-        appointment_id: int,
-        reason: Optional[str] = None,
-        cancelled_by: Optional[str] = None,
-    ) -> CancelBookingResult:
-        from beautybook.permissions import require_owner
-        from django.utils import timezone
-        from bookings.models import Appointment, AppointmentHistory
-
-        require_owner(info)
-
-        try:
-            appt = Appointment.objects.select_related("customer", "service", "staff").get(
-                pk=appointment_id
-            )
-        except Appointment.DoesNotExist:
-            raise ValueError(f"Appointment {appointment_id} not found.")
-
-        if appt.status == Appointment.STATUS_CANCELLED:
-            raise ValueError("Appointment is already cancelled.")
-        if appt.status in (Appointment.STATUS_COMPLETED, Appointment.STATUS_NO_SHOW):
-            raise ValueError("Completed appointments cannot be cancelled.")
-
-        old_status = appt.status
-        actor = (cancelled_by or "owner").lower()
-        if actor not in ("customer", "owner"):
-            actor = "owner"
-
-        appt.status = Appointment.STATUS_CANCELLED
-        appt.cancelled_at = timezone.now()
-        appt.cancellation_reason = reason or "Cancelled by owner"
-        appt.cancelled_by = actor
-        appt.save(update_fields=["status", "cancelled_at", "cancellation_reason", "cancelled_by", "updated_at"])
-
-        AppointmentHistory.objects.create(
-            appointment=appt,
-            changed_by=info.context.request.user if info.context.request.user.is_authenticated else None,
-            old_status=old_status,
-            new_status=Appointment.STATUS_CANCELLED,
-            note=appt.cancellation_reason,
-        )
-
-        return CancelBookingResult(
-            appointment=CancelledAppointmentType(
-                id=appt.pk,
-                status=appt.status,
-                cancellation_reason=appt.cancellation_reason,
-            ),
-            refund_status="manual",
-            message="Appointment cancelled successfully.",
-        )
