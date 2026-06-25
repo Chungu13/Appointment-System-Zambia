@@ -86,6 +86,8 @@ class ServicesQuery:
 
     @strawberry.field
     def salon_profile(self, info: Info) -> SalonProfileType:
+        from django.db import connection
+        from tenants.models import Tenant
         from services.models import StaffService
         from staff.models import WorkingHours
         from beautybook.cache_utils import (
@@ -93,10 +95,18 @@ class ServicesQuery:
             get_cached_hours, set_cached_hours,
         )
 
-        tenant = info.context.request.tenant
+        # Re-fetch the tenant from the DB using the schema that the middleware
+        # set on the connection. This avoids acting on a stale request.tenant
+        # object that could carry is_approved=False from an earlier state even
+        # after the admin has approved the tenant.
+        schema_name = connection.schema_name
+        try:
+            tenant = Tenant.objects.get(schema_name=schema_name)
+        except Tenant.DoesNotExist:
+            raise ValueError("SALON_NOT_FOUND")
+
         if not tenant.is_approved:
             raise ValueError("SALON_NOT_APPROVED")
-        schema_name = tenant.schema_name
 
         # Services — serve from cache when possible
         services = get_cached_services(schema_name)
