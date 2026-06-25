@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.static import serve
 from strawberry.django.views import GraphQLView
 from beautybook.schema_public import schema as public_schema
-from payments.webhook_views import payment_webhook
+from payments.webhooks import payment_webhook
 from tenants.auth_views import verify_email, google_auth_view, resend_verification
 
 

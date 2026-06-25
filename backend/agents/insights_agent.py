@@ -5,8 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 from openai import OpenAI
 
+from agents.agent_log import log_tool_call
 from agents.models import AgentLog
-from agents.log_labels import friendly_tool_label
+from agents.openai_utils import message_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -70,21 +71,6 @@ _TOOLS = [
     },
 ]
 
-
-def _message_to_dict(msg) -> dict:
-    d = {"role": msg.role}
-    if msg.content is not None:
-        d["content"] = msg.content
-    if getattr(msg, "tool_calls", None):
-        d["tool_calls"] = [
-            {
-                "id": tc.id,
-                "type": "function",
-                "function": {"name": tc.function.name, "arguments": tc.function.arguments},
-            }
-            for tc in msg.tool_calls
-        ]
-    return d
 
 
 class InsightsAgent:
@@ -237,7 +223,7 @@ class InsightsAgent:
                 tool_choice="auto",
             )
             choice = response.choices[0]
-            assistant_dict = _message_to_dict(choice.message)
+            assistant_dict = message_to_dict(choice.message)
 
             if choice.finish_reason == "stop":
                 messages.append(assistant_dict)
@@ -250,17 +236,7 @@ class InsightsAgent:
                     result = self._run_tool(tc.function.name, inputs)
                     logger.info("InsightsAgent tool %s → %s", tc.function.name, result)
 
-                    AgentLog.objects.create(
-                        agent_type="insights",
-                        action=friendly_tool_label(tc.function.name),
-                        outcome="success" if "error" not in result else "failed",
-                        metadata={
-                            "tool": tc.function.name,
-                            "input": inputs,
-                            "result": result,
-                            "tenant": self.tenant.schema_name,
-                        },
-                    )
+                    log_tool_call("insights", tc.function.name, inputs, result, self.tenant.schema_name)
 
                     messages.append({
                         "role": "tool",

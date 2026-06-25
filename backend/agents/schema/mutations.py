@@ -34,7 +34,7 @@ class AgentsMutation:
         session_id: str,
         customer_name: str = "",
     ) -> AgentChatResult:
-        from agents.booking_agent import BookingAgent, load_history, save_history
+        from agents.booking import BookingAgent, load_history, save_history
 
         history = load_history(session_id)
 

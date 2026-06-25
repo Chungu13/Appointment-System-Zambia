@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.static import serve
 from strawberry.django.views import GraphQLView
 from beautybook.schema_tenant import schema
-from payments.webhook_views import payment_webhook
+from payments.webhooks import payment_webhook
 from agents.stream_view import chat_stream
 
 # Tenant-specific URLs (routed per-tenant subdomain)
