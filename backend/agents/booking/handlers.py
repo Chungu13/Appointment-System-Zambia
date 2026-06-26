@@ -9,7 +9,7 @@ from django.utils import timezone
 from agents.models import AgentLog
 from bookings.conflict import cancel_stale_pending_appointments, has_booking_conflict
 from bookings.models import Appointment
-from core.phone import normalise_phone, build_phone_variants
+from core.phone import normalise_phone, build_phone_variants, is_valid_zambian_phone
 from payments.models import Payment
 
 logger = logging.getLogger(__name__)
@@ -360,6 +360,15 @@ def handle_initiate_payment(inputs: dict, customer_phone: str, tenant_schema_nam
             "service_name":  appt.service.name,
             "staff_name":    appt.staff.full_name,
             "starts_at":     appt.starts_at.strftime("%Y-%m-%dT%H:%M"),
+        }
+
+    # Validate the mobile money number before touching Lipila
+    if not is_valid_zambian_phone(mobile_money_phone):
+        return {
+            "error": (
+                "That doesn't look like a valid Zambian mobile money number. "
+                "Please enter a valid MTN, Airtel, or Zamtel number."
+            )
         }
 
     transaction_ref = f"KIMAWA-{_uuid.uuid4().hex[:12].upper()}"
