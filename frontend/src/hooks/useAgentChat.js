@@ -25,7 +25,7 @@ function getStreamUrl() {
   return `${base}/chat/stream/`
 }
 
-export function useAgentChat(customerPhone, customerName, salonName, initialMessage, confirmedBooking) {
+export function useAgentChat(customerPhone, customerName, salonName, initialMessage, confirmedBooking, sessionToken) {
   const [sessionId] = useState(generateSessionId)
   const [messages, setMessages] = useState(() => {
     const name = salonName || 'us'
@@ -41,12 +41,13 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
     return msgs
   })
   const [loading, setLoading] = useState(false)
+  const [limitReached, setLimitReached] = useState(false)
   const [chatMutation] = useMutation(AGENT_CHAT)
   const streamUrl = useRef(getStreamUrl()).current
 
   const sendMessage = useCallback(
     async (text) => {
-      if (!text.trim() || loading) return
+      if (!text.trim() || loading || limitReached) return
 
       setMessages((prev) => [...prev, { role: 'user', content: text }])
       setLoading(true)
@@ -62,10 +63,32 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
           body: JSON.stringify({
             message: text,
             session_id: sessionId,
+            session_token: sessionToken || '',
             customer_phone: customerPhone || '',
             customer_name: customerName || '',
           }),
         })
+
+        // Handle session / message-cap errors inline — don't fall back to GraphQL
+        if (res.status === 403 || res.status === 400) {
+          let errMsg = res.status === 403
+            ? 'Session expired. Please refresh to start a new conversation.'
+            : 'Invalid message.'
+          try {
+            const errData = await res.json()
+            if (errData.error) errMsg = errData.error
+          } catch { /* ignore */ }
+
+          setMessages((prev) => {
+            const next = prev.filter((m, i, arr) => !(i === arr.length - 1 && m.streaming))
+            return [...next, { role: 'assistant', content: errMsg }]
+          })
+
+          if (errMsg.toLowerCase().includes('message limit')) {
+            setLimitReached(true)
+          }
+          return
+        }
 
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
 
@@ -100,7 +123,6 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
             }
 
             if (parsed.done) {
-              // Finalise: remove streaming flag so renderMessage runs the full parser
               setMessages((prev) => {
                 const next = [...prev]
                 const last = next[next.length - 1]
@@ -146,7 +168,7 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
         setLoading(false)
       }
     },
-    [chatMutation, customerPhone, customerName, sessionId, streamUrl, loading],
+    [chatMutation, customerPhone, customerName, sessionId, streamUrl, loading, limitReached, sessionToken],
   )
 
   const sentRef = useRef(false)
@@ -157,5 +179,5 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
     }
   }, [sendMessage, initialMessage])
 
-  return { messages, sendMessage, loading, sessionId }
+  return { messages, sendMessage, loading, sessionId, limitReached }
 }

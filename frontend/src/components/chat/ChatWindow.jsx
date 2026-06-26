@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Send, Sparkles, ShieldCheck } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
+import Turnstile from "@marsidev/react-turnstile";
 import { useAgentChat } from "../../hooks/useAgentChat";
 import { playPopSound, playDingSound } from "../../lib/sounds";
 import { CHECK_PAYMENT_STATUS } from "../../graphql/queries/bookings";
@@ -633,13 +634,14 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
   );
 }
 
-function ChatInputBar({ onSend, loading }) {
+function ChatInputBar({ onSend, loading, disabled = false }) {
   const [value, setValue] = useState("");
-  function submit(e) { e.preventDefault(); if (!value.trim() || loading) return; onSend(value.trim()); setValue(""); }
+  const isDisabled = loading || disabled;
+  function submit(e) { e.preventDefault(); if (!value.trim() || isDisabled) return; onSend(value.trim()); setValue(""); }
   return (
     <form onSubmit={submit} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderTop: "0.5px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
-      <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Type a message…" disabled={loading} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 16, fontWeight: 300, color: "#fff", outline: "none" }} />
-      <button type="submit" disabled={!value.trim() || loading} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !value.trim() || loading ? 0.4 : 1 }}>
+      <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder={disabled ? "Just a moment…" : "Type a message…"} disabled={isDisabled} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 16, fontWeight: 300, color: "#fff", outline: "none" }} />
+      <button type="submit" disabled={!value.trim() || isDisabled} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !value.trim() || isDisabled ? 0.4 : 1 }}>
         {loading ? <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> : <Send size={15} color="#fff" />}
       </button>
     </form>
@@ -725,11 +727,55 @@ function IntakeForm({ salonName, onSubmit, onClose }) {
   );
 }
 
+function getChatVerifyUrl() {
+  const RESERVED = new Set(["www", "api", "app", "admin", "mail", "smtp", "ftp", "cdn"]);
+  const parts = window.location.hostname.split(".");
+  const sub =
+    parts.length >= 3 ? parts[0] :
+    parts.length === 2 && parts[1] === "localhost" ? parts[0] :
+    null;
+  const slug = sub && !RESERVED.has(sub) ? sub : null;
+  const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN;
+  if (slug) {
+    return apiDomain
+      ? `https://${slug}.${apiDomain}/chat/verify/`
+      : `http://${slug}.localhost:8000/chat/verify/`;
+  }
+  const base = (import.meta.env.VITE_PUBLIC_API_URL || "http://localhost:8000/graphql/").replace(/\/graphql\/?$/, "");
+  return `${base}/chat/verify/`;
+}
+
 // ── Chat body (rendered after intake) ────────────────────────────────────────
 
 function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooking }) {
-  const { messages, sendMessage, loading } = useAgentChat(
-    customer.phone, customer.name, salonName, initialMessage, confirmedBooking,
+  const [sessionToken, setSessionToken] = useState(null);
+  const [verifying, setVerifying] = useState(true);
+  const verifyUrl = useRef(getChatVerifyUrl()).current;
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
+  async function doVerify(turnstileToken) {
+    try {
+      const res = await fetch(verifyUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ turnstileToken: turnstileToken || "" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.sessionToken) setSessionToken(data.sessionToken);
+      }
+    } catch { /* Verification failed — chat still usable without a token */ }
+    finally { setVerifying(false); }
+  }
+
+  useEffect(() => {
+    // If no Turnstile key, verify immediately on mount (backend skips Turnstile check)
+    if (!turnstileSiteKey) doVerify("");
+    // If Turnstile key is set, doVerify is called from the Turnstile onSuccess callback
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { messages, sendMessage, loading, limitReached } = useAgentChat(
+    customer.phone, customer.name, salonName, initialMessage, confirmedBooking, sessionToken,
   );
   const [extraMessages, setExtraMessages] = useState([]);
   const [pollRef, setPollRef] = useState(null);
@@ -809,6 +855,18 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
       style={{ width: "min(380px, calc(100vw - 16px))", right: 8, maxHeight: 600, borderRadius: 20, backgroundColor: DARK, boxShadow: "0 8px 40px rgba(0,0,0,0.5)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
       <ChatHeader salonName={salonName} onClose={onClose} />
 
+      {/* Hidden Turnstile — runs silently; onSuccess/onError both call doVerify */}
+      {turnstileSiteKey && verifying && (
+        <div style={{ position: "absolute", opacity: 0, pointerEvents: "none", top: 0, left: 0 }}>
+          <Turnstile
+            siteKey={turnstileSiteKey}
+            onSuccess={(token) => doVerify(token)}
+            onError={() => doVerify("")}
+            onExpire={() => doVerify("")}
+          />
+        </div>
+      )}
+
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
         {displayMessages.map((msg, i) => (
           <MessageBubble key={i} message={msg} onSend={sendMessage} salonName={salonName} customerName={customer.name} />
@@ -822,10 +880,17 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
             </div>
           </div>
         )}
+        {limitReached && (
+          <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "12px 12px 12px 2px", padding: "10px 14px" }}>
+            <span style={{ fontFamily: sans, fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+              You've reached the message limit for this session. To continue, please refresh the page or contact the salon directly.
+            </span>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
-      <ChatInputBar onSend={sendMessage} loading={loading} />
+      <ChatInputBar onSend={sendMessage} loading={loading} disabled={verifying || limitReached} />
     </div>
   );
 }
