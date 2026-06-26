@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Send, Sparkles, ShieldCheck } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
-import Turnstile from "@marsidev/react-turnstile";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { useAgentChat } from "../../hooks/useAgentChat";
 import { playPopSound, playDingSound } from "../../lib/sounds";
 import { CHECK_PAYMENT_STATUS } from "../../graphql/queries/bookings";

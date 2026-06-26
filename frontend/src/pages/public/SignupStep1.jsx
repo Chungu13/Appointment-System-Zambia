@@ -79,6 +79,7 @@ export default function SignupStep1() {
   const [turnstileToken, setTurnstileToken] = useState('')
 
   const formLoadTime = useRef(Date.now())
+  const honeypotRef  = useRef(null)
 
   function set(k) {
     return (e) => {
@@ -99,8 +100,9 @@ export default function SignupStep1() {
   function handleSubmit(e) {
     e.preventDefault()
 
-    // Honeypot: silently do nothing if a bot filled the hidden field
-    if (honeypot) return
+    // Honeypot: silently do nothing if a bot filled the hidden field.
+    // Also check the raw DOM value — some autofill tools set it without firing React's onChange.
+    if (honeypot || honeypotRef.current?.value) return
 
     // Time-based check: reject if form submitted in under 5 seconds
     const elapsed = (Date.now() - formLoadTime.current) / 1000
@@ -236,12 +238,13 @@ export default function SignupStep1() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Honeypot — hidden from real users, bots fill it */}
             <input
+              ref={honeypotRef}
               type="text"
               name="website"
               value={honeypot}
               onChange={(e) => setHoneypot(e.target.value)}
               tabIndex={-1}
-              autoComplete="off"
+              autoComplete="nope"
               aria-hidden="true"
               style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
             />

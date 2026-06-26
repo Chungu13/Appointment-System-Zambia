@@ -248,6 +248,10 @@ class Mutation:
         ip_address = _get_client_ip(info)
 
         # ── Honeypot: silent reject ───────────────────────────────────────────
+        logger.info(
+            "[Signup] Honeypot value received: %r | ip=%s | email=%s",
+            honeypot, ip_address, email,
+        )
         if honeypot:
             logger.warning(
                 "registerTenant: honeypot triggered | ip=%s | email=%s",
