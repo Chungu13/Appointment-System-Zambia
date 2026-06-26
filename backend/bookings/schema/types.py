@@ -16,6 +16,7 @@ class BookingStatusEnum(Enum):
     COMPLETED = "completed"
     NO_SHOW = "no_show"
     CANCELLED = "cancelled"
+    EXPIRED = "expired"
 
 
 @strawberry.enum

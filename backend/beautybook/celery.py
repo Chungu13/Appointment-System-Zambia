@@ -17,6 +17,11 @@ app.conf.update(
 )
 
 app.conf.beat_schedule = {
+    # Every 15 minutes — expire pending appointments whose payment window has closed
+    "expire-pending-payments": {
+        "task": "agents.tasks.expire_pending_payments",
+        "schedule": 900.0,
+    },
     # Daily at 6 pm CAT — remind customers about tomorrow's appointments
     "send-appointment-reminders": {
         "task": "agents.tasks.send_appointment_reminders",

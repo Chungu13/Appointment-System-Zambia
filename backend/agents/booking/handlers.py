@@ -505,6 +505,8 @@ def handle_cancel_appointment(inputs: dict, customer_phone: str, tenant_schema_n
 
     if appt.status == Appointment.STATUS_CANCELLED:
         return {"error": "This appointment is already cancelled."}
+    if appt.status == Appointment.STATUS_EXPIRED:
+        return {"error": "This booking expired before payment was completed."}
     if appt.status in (Appointment.STATUS_COMPLETED, Appointment.STATUS_NO_SHOW):
         return {"error": "This appointment has already been completed and cannot be cancelled."}
     if appt.starts_at < timezone.now():

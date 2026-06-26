@@ -37,6 +37,7 @@ class Appointment(models.Model):
     STATUS_COMPLETED   = "completed"
     STATUS_NO_SHOW     = "no_show"
     STATUS_CANCELLED   = "cancelled"
+    STATUS_EXPIRED     = "expired"
 
     BOOKED_BY_CUSTOMER = "customer"
     BOOKED_BY_STAFF    = "staff"
@@ -49,6 +50,7 @@ class Appointment(models.Model):
         (STATUS_COMPLETED,   "Completed"),
         (STATUS_NO_SHOW,     "No Show"),
         (STATUS_CANCELLED,   "Cancelled"),
+        (STATUS_EXPIRED,     "Expired"),
     ]
     BOOKED_BY_CHOICES = [
         (BOOKED_BY_CUSTOMER, "Customer"),

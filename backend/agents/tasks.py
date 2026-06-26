@@ -72,7 +72,58 @@ def send_appointment_reminders():
 
 
 # ---------------------------------------------------------------------------
-# Task 2 — every 30 minutes
+# Task 2 — every 15 minutes
+# ---------------------------------------------------------------------------
+
+@shared_task(name="agents.tasks.expire_pending_payments")
+def expire_pending_payments():
+    """
+    Mark pending appointments older than 10 minutes as expired.
+    Pending = payment was initiated but never completed.
+    Using expired (not cancelled) keeps analytics clean — these were never real bookings.
+    """
+    import datetime
+    from django_tenants.utils import tenant_context
+    from agents.models import AgentLog
+    from bookings.models import Appointment
+
+    cutoff = timezone.now() - datetime.timedelta(minutes=10)
+    total = 0
+
+    for tenant in _active_tenants():
+        with tenant_context(tenant):
+            expired = (
+                Appointment.objects
+                .filter(status=Appointment.STATUS_PENDING, created_at__lt=cutoff)
+                .select_related("customer", "staff", "service")
+            )
+            for appt in expired:
+                appt.status = Appointment.STATUS_EXPIRED
+                appt.save(update_fields=["status", "updated_at"])
+
+                AgentLog.objects.create(
+                    agent_type="scheduling",
+                    action=(
+                        f"Booking expired (payment not completed): "
+                        f"{appt.service.name} for {appt.customer.full_name} "
+                        f"at {appt.starts_at:%Y-%m-%d %H:%M}"
+                    ),
+                    related_appointment=appt,
+                    outcome="success",
+                    metadata={
+                        "tenant": tenant.schema_name,
+                        "appointment_id": appt.pk,
+                        "created_at": appt.created_at.isoformat(),
+                    },
+                )
+                total += 1
+
+    logger.info("expire_pending_payments: expired %d unpaid bookings", total)
+    return total
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — every 30 minutes
 # ---------------------------------------------------------------------------
 
 @shared_task(name="agents.tasks.detect_no_shows")

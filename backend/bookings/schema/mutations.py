@@ -26,6 +26,7 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
     "completed":   set(),
     "no_show":     set(),
     "cancelled":   set(),
+    "expired":     set(),
 }
 
 
@@ -219,7 +220,7 @@ class BookingsMutation:
         appt = qs.filter(pk=appointment_id).first()
         if not appt:
             raise ValueError("Appointment not found or you don't have permission to cancel it.")
-        if appt.status in ("completed", "cancelled"):
+        if appt.status in ("completed", "cancelled", "expired"):
             raise ValueError(f"Cannot cancel a {appt.status} appointment.")
 
         now = timezone.now()

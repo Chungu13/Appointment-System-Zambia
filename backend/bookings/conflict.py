@@ -20,7 +20,7 @@ def cancel_stale_pending_appointments(staff, starts_at, ends_at) -> int:
         status=Appointment.STATUS_PENDING,
         starts_at__lt=ends_at,
         ends_at__gt=starts_at,
-    ).update(status=Appointment.STATUS_CANCELLED)
+    ).update(status=Appointment.STATUS_EXPIRED)
 
 
 def has_booking_conflict(staff, starts_at, ends_at, exclude_pk: int = None) -> bool:

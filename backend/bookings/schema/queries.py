@@ -86,6 +86,9 @@ class BookingsQuery:
             qs = qs.filter(starts_at__date__lte=date_to)
         if status:
             qs = qs.filter(status=status)
+        else:
+            # Exclude incomplete / never-paid bookings from the calendar by default
+            qs = qs.exclude(status__in=("expired", "pending"))
         return [appointment_to_type(a) for a in qs]
 
     @strawberry.field
@@ -142,6 +145,7 @@ class BookingsQuery:
             .aggregate(t=Sum("amount_zmw"))["t"] or 0
         )
 
+        # Only real cancellations — exclude expired (never-paid) to keep analytics clean
         cancelled_today = appts.filter(status="cancelled").count()
 
         pending_completion = appts.filter(
