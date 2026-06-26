@@ -357,6 +357,21 @@ class Mutation:
                 "Please choose a different name."
             )
 
+        # ── Phone uniqueness ──────────────────────────────────────────────────
+        normalized_phone = re.sub(r'\D', '', phone.strip())
+        if PendingRegistration.objects.filter(phone__icontains=normalized_phone[-9:]).exists():
+            raise ValueError(
+                "This phone number is already linked to a pending registration. "
+                "If this is your number, please check your email for the verification link."
+            )
+        if Tenant.objects.exclude(schema_name="public").filter(
+            phone__icontains=normalized_phone[-9:]
+        ).exists():
+            raise ValueError(
+                "This phone number is already registered on Kimawa. "
+                "Please use a different number or log in to your existing account."
+            )
+
         # ── Create PendingRegistration ────────────────────────────────────────
         pending = PendingRegistration.objects.create(
             full_name=owner_name.strip(),
