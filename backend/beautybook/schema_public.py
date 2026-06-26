@@ -266,7 +266,7 @@ class Mutation:
             if not turnstile_token:
                 raise ValueError("Bot protection check is required.")
             if not _verify_turnstile(turnstile_token, turnstile_key, ip_address):
-                raise ValueError("Bot protection check failed. Please refresh and try again.")
+                raise ValueError("Something went wrong. Please refresh the page and try again.")
 
         # ── Validate Google token ─────────────────────────────────────────────
         is_google = False
