@@ -31,8 +31,8 @@ class BookingAgent:
             result, slots = handlers.handle_check_availability(inputs)
             self._last_availability_slots = slots
             return result
-        elif name == "get_staff_for_service":
-            return handlers.handle_get_staff_for_service(inputs)
+        elif name == "get_best_staff":
+            return handlers.handle_get_best_staff(inputs)
         elif name == "create_booking":
             return handlers.handle_create_booking(inputs, customer_phone, schema, session_id, last_slots)
         elif name == "initiate_payment":

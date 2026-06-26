@@ -84,37 +84,114 @@ def handle_check_availability(inputs: dict) -> tuple:
             seen[sid] = {"staff_id": sid, "staff_name": s["staff_name"], "times": []}
         seen[sid]["times"].append(s["starts_at"].strftime("%I:%M %p").lstrip("0"))
 
-    service_obj = Service.objects.filter(pk=inputs["service_id"]).values("deposit_zmw", "price_zmw").first()
+    service_obj = Service.objects.filter(pk=inputs["service_id"]).values("deposit_zmw", "price_zmw", "duration_minutes").first()
     if service_obj:
         deposit        = float(service_obj["deposit_zmw"])
         price          = float(service_obj["price_zmw"])
         customer_total = _calculate_customer_total(deposit)
         service_fee    = round(customer_total - deposit, 2)
         balance_salon  = round(price - deposit, 2)
+        duration_mins  = service_obj["duration_minutes"]
     else:
         deposit = customer_total = service_fee = balance_salon = 0.0
+        duration_mins = 0
 
     result = {
-        "service_id":     inputs["service_id"],
-        "date":           inputs["date"],
-        "service":        raw_slots[0]["service_name"],
-        "deposit_zmw":    deposit,
-        "customer_total": customer_total,
-        "service_fee":    service_fee,
+        "service_id":       inputs["service_id"],
+        "date":             inputs["date"],
+        "service":          raw_slots[0]["service_name"],
+        "duration_minutes": duration_mins,
+        "deposit_zmw":      deposit,
+        "customer_total":   customer_total,
+        "service_fee":      service_fee,
         "balance_at_salon": balance_salon,
         "available_staff":  list(seen.values()),
-        "total_slots":    len(raw_slots),
+        "total_slots":      len(raw_slots),
     }
     return result, raw_slots
 
 
-def handle_get_staff_for_service(inputs: dict) -> dict:
+def handle_get_best_staff(inputs: dict) -> dict:
+    import datetime
+    import zoneinfo
     from django.contrib.auth import get_user_model
-    from services.models import StaffService
+    from django.utils import timezone as tz_module
+    from services.models import Service, StaffService
 
     User = get_user_model()
-    staff_ids = StaffService.objects.filter(service_id=inputs["service_id"]).values_list("staff_id", flat=True)
-    return {"staff": list(User.objects.filter(pk__in=staff_ids).values("id", "full_name"))}
+
+    service_id = inputs.get("service_id")
+    date_str = inputs.get("date", "")
+    start_time_str = inputs.get("start_time", "")
+
+    try:
+        date = datetime.date.fromisoformat(date_str)
+        hour, minute = map(int, start_time_str.split(":"))
+    except (ValueError, AttributeError):
+        return {"error": "Invalid date or start_time. Use YYYY-MM-DD and HH:MM (24-hour)."}
+
+    # Always look up actual service duration from DB — don't trust the AI's value
+    svc = Service.objects.filter(pk=service_id, is_active=True).values("duration_minutes", "buffer_minutes").first()
+    if not svc:
+        return {"error": f"Service {service_id} not found."}
+    total_duration = svc["duration_minutes"] + svc["buffer_minutes"]
+
+    cat = zoneinfo.ZoneInfo("Africa/Lusaka")
+    requested_start = tz_module.make_aware(
+        datetime.datetime(date.year, date.month, date.day, hour, minute), cat
+    )
+    requested_end = requested_start + datetime.timedelta(minutes=total_duration)
+
+    qualified_ids = list(
+        StaffService.objects.filter(service_id=service_id, is_active=True)
+        .values_list("staff_id", flat=True)
+    )
+    if not qualified_ids:
+        return {"error": "No staff are assigned to this service."}
+
+    busy_ids = set(
+        Appointment.objects.filter(
+            staff_id__in=qualified_ids,
+            status__in=[
+                Appointment.STATUS_CONFIRMED,
+                Appointment.STATUS_IN_PROGRESS,
+                Appointment.STATUS_PENDING,
+            ],
+            starts_at__lt=requested_end,
+            ends_at__gt=requested_start,
+        ).values_list("staff_id", flat=True)
+    )
+
+    available_ids = [sid for sid in qualified_ids if sid not in busy_ids]
+    if not available_ids:
+        return {"error": "No staff available at that time — all qualified staff are booked."}
+
+    # Pick the staff member with the fewest total booked minutes today
+    staff_workload = []
+    for staff_id in available_ids:
+        today_appts = Appointment.objects.filter(
+            staff_id=staff_id,
+            starts_at__date=date,
+            status__in=[
+                Appointment.STATUS_CONFIRMED,
+                Appointment.STATUS_IN_PROGRESS,
+                Appointment.STATUS_PENDING,
+            ],
+        ).only("starts_at", "ends_at")
+        booked_minutes = sum(
+            int((a.ends_at - a.starts_at).total_seconds() / 60)
+            for a in today_appts
+        )
+        staff_workload.append((staff_id, booked_minutes))
+
+    staff_workload.sort(key=lambda x: x[1])
+    best_id = staff_workload[0][0]
+
+    staff = User.objects.get(pk=best_id)
+    return {
+        "staff_id":   staff.pk,
+        "staff_name": staff.full_name or staff.username,
+    }
 
 
 def handle_create_booking(

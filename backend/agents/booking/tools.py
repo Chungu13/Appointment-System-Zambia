@@ -52,14 +52,33 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_staff_for_service",
-            "description": "List staff members qualified to perform a service.",
+            "name": "get_best_staff",
+            "description": (
+                "Find the best available staff member for a service at a specific date and time, "
+                "based on workload. Returns the staff member with the fewest booked hours today "
+                "who is qualified and free at the requested slot."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "service_id": {"type": "integer", "description": "ID of the service."},
+                    "service_id": {
+                        "type": "integer",
+                        "description": "ID of the service.",
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "Date in YYYY-MM-DD format.",
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "description": "Start time in HH:MM 24-hour format, e.g. '14:30'.",
+                    },
+                    "duration_minutes": {
+                        "type": "integer",
+                        "description": "Duration of the service in minutes, from the check_availability result.",
+                    },
                 },
-                "required": ["service_id"],
+                "required": ["service_id", "date", "start_time", "duration_minutes"],
             },
         },
     },
