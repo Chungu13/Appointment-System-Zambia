@@ -296,6 +296,10 @@ class Mutation:
         if not is_google and len(password) < 8:
             raise ValueError("Password must be at least 8 characters.")
 
+        # Normalize capitalization so stored values are always Title Case
+        business_name = business_name.strip().title()
+        owner_name = owner_name.strip().title()
+
         # ── Disposable email check ────────────────────────────────────────────
         email_domain = email.split("@")[-1].lower() if "@" in email else ""
         if email_domain in _DISPOSABLE_DOMAINS:
@@ -344,13 +348,13 @@ class Mutation:
                 )
 
         # ── Business name uniqueness ──────────────────────────────────────────
-        if PendingRegistration.objects.filter(business_name__iexact=business_name.strip()).exists():
+        if PendingRegistration.objects.filter(business_name__iexact=business_name).exists():
             raise ValueError(
                 "A business with this name is already pending registration. "
                 "Please choose a different name."
             )
         if Tenant.objects.exclude(schema_name="public").filter(
-            business_name__iexact=business_name.strip()
+            business_name__iexact=business_name
         ).exists():
             raise ValueError(
                 "A business with this name already exists on Kimawa. "
@@ -374,10 +378,10 @@ class Mutation:
 
         # ── Create PendingRegistration ────────────────────────────────────────
         pending = PendingRegistration.objects.create(
-            full_name=owner_name.strip(),
+            full_name=owner_name,
             email=email,
             password_hash=make_password(password) if not is_google else "",
-            business_name=business_name.strip(),
+            business_name=business_name,
             business_type=business_type,
             city=city,
             area=area.strip(),
