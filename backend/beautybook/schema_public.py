@@ -28,18 +28,15 @@ _DISPOSABLE_DOMAINS = frozenset({
     "getairmail.com", "filzmail.com", "tempmailo.com",
 })
 
-_ZAMBIAN_PREFIXES = ("095", "096", "097", "076", "077", "078", "050", "051", "052")
-
-
 def _is_valid_zambian_phone(phone: str) -> bool:
-    digits = re.sub(r'\D', '', phone.strip())
-    if digits.startswith('260') and len(digits) == 12:
-        digits = digits[3:]
-    elif digits.startswith('0') and len(digits) == 10:
-        digits = digits[1:]
-    else:
-        return False
-    return digits[:3] in _ZAMBIAN_PREFIXES and len(digits) == 9
+    cleaned = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+    cleaned = cleaned.lstrip('+')
+    if cleaned.startswith('260'):
+        cleaned = cleaned[3:]
+    if cleaned.startswith('0'):
+        cleaned = cleaned[1:]
+    # MTN: 76, 96 | Airtel: 57, 77, 97 | Zamtel: 95
+    return bool(re.match(r'^(76|96|57|77|97|95)\d{7}$', cleaned))
 
 
 def _verify_turnstile(token: str, secret_key: str, ip: str) -> bool:
@@ -307,8 +304,8 @@ class Mutation:
         # ── Zambian phone validation ──────────────────────────────────────────
         if not _is_valid_zambian_phone(phone):
             raise ValueError(
-                "Enter a valid Zambian mobile number (e.g. +260 97 123 4567). "
-                "Supported: MTN 095–097, Airtel 076–078, Zamtel 050–052."
+                "Enter a valid Zambian mobile number. "
+                "Supported: MTN (076, 096), Airtel (057, 077, 097), Zamtel (095)."
             )
 
         # ── Business name slug check ──────────────────────────────────────────
