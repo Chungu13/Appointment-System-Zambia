@@ -135,6 +135,7 @@ export default function SignupStep2() {
       : form.area.trim()
 
     try {
+      console.log('[Debug] Honeypot value being sent:', step1.honeypot || '')
       await register({
         variables: {
           businessName: form.businessName.trim(),
