@@ -45,6 +45,8 @@ class BookingAgent:
             return handlers.handle_reschedule_appointment(inputs, customer_phone, schema)
         elif name == "retry_payment":
             return handlers.handle_retry_payment(inputs, customer_phone, schema)
+        elif name == "validate_phone_number":
+            return handlers.handle_validate_phone(inputs)
         return {"error": f"Unknown tool: {name}"}
 
     # ------------------------------------------------------------------

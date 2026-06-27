@@ -676,6 +676,13 @@ def handle_reschedule_appointment(inputs: dict, customer_phone: str, tenant_sche
     }
 
 
+def handle_validate_phone(inputs: dict) -> dict:
+    phone = inputs.get("phone", "").strip()
+    if is_valid_zambian_phone(phone):
+        return {"valid": True, "message": "This is a valid Zambian mobile money number."}
+    return {"valid": False, "message": "This is not a valid Zambian mobile money number."}
+
+
 def handle_retry_payment(inputs: dict, customer_phone: str, tenant_schema_name: str) -> dict:
     from payments.provider_factory import get_provider
 
