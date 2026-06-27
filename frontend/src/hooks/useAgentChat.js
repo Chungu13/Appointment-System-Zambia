@@ -42,12 +42,13 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
   })
   const [loading, setLoading] = useState(false)
   const [limitReached, setLimitReached] = useState(false)
+  const [sessionEnded, setSessionEnded] = useState(false)
   const [chatMutation] = useMutation(AGENT_CHAT)
   const streamUrl = useRef(getStreamUrl()).current
 
   const sendMessage = useCallback(
     async (text) => {
-      if (!text.trim() || loading || limitReached) return
+      if (!text.trim() || loading || limitReached || sessionEnded) return
 
       setMessages((prev) => [...prev, { role: 'user', content: text }])
       setLoading(true)
@@ -127,7 +128,11 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
                 const next = [...prev]
                 const last = next[next.length - 1]
                 if (last?.streaming) {
-                  next[next.length - 1] = { role: 'assistant', content: last.content }
+                  const finalContent = last.content
+                  next[next.length - 1] = { role: 'assistant', content: finalContent }
+                  if (finalContent.toLowerCase().includes('start a new chat to try again')) {
+                    setSessionEnded(true)
+                  }
                 }
                 return next
               })
@@ -168,7 +173,7 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
         setLoading(false)
       }
     },
-    [chatMutation, customerPhone, customerName, sessionId, streamUrl, loading, limitReached, sessionToken],
+    [chatMutation, customerPhone, customerName, sessionId, streamUrl, loading, limitReached, sessionEnded, sessionToken],
   )
 
   const sentRef = useRef(false)
@@ -179,5 +184,5 @@ export function useAgentChat(customerPhone, customerName, salonName, initialMess
     }
   }, [sendMessage, initialMessage])
 
-  return { messages, sendMessage, loading, sessionId, limitReached }
+  return { messages, sendMessage, loading, sessionId, limitReached, sessionEnded }
 }

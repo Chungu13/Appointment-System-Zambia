@@ -711,7 +711,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
     // If Turnstile key is set, doVerify is called from the Turnstile onSuccess callback
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { messages, sendMessage, loading, limitReached } = useAgentChat(
+  const { messages, sendMessage, loading, limitReached, sessionEnded } = useAgentChat(
     customer.phone, customer.name, salonName, initialMessage, confirmedBooking, sessionToken,
   );
   const [extraMessages, setExtraMessages] = useState([]);
@@ -824,10 +824,17 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
             </span>
           </div>
         )}
+        {sessionEnded && (
+          <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "12px 12px 12px 2px", padding: "10px 14px" }}>
+            <span style={{ fontFamily: sans, fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+              Close and reopen the chat to start a new booking.
+            </span>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
-      <ChatInputBar onSend={sendMessage} loading={loading} disabled={verifying || limitReached} />
+      <ChatInputBar onSend={sendMessage} loading={loading} disabled={verifying || limitReached || sessionEnded} />
     </div>
   );
 }
