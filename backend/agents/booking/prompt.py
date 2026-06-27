@@ -102,16 +102,34 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "  Deposit: ask 'What's your mobile money number for the deposit? (e.g. 0971234567)'\n"
         "  No-deposit: ask 'What number should we send your confirmation to? (e.g. 0971234567)'\n"
         "  Do NOT call any tools. Wait for reply.\n\n"
+
+
+
+
+
         "Step 2b — Validate the number:\n"
-        "  Valid formats: 0XXXXXXXXX (10 digits) | +260XXXXXXXXX | 260XXXXXXXXX (12 digits)\n"
-        "  Valid prefixes (strip country code + leading zero, check first 2 digits):\n"
-        "    MTN: 76, 96 | Airtel: 57, 77, 97 | Zamtel: 95\n"
-        "  Invalid → 'That doesn't look like a valid Zambian mobile money number. "
-        "Please enter a valid MTN, Airtel, or Zamtel number.' One retry. Still invalid → use '' and continue.\n"
-        "  Deposit path: ask 'Is [number] also where we send your confirmation? (Yes / No)'\n"
-        "    Yes → notification_phone = that number.\n"
-        "    No → ask for a second number. One retry, then use mobile money number.\n"
-        "  No-deposit path: set customer_phone = notification_phone = the number. No further questions.\n\n"
+"  Valid formats: 0XXXXXXXXX (10 digits) | +260XXXXXXXXX | 260XXXXXXXXX (12 digits)\n"
+"  Valid prefixes (strip country code + leading zero, check first 2 digits):\n"
+"    MTN: 76, 96 | Airtel: 57, 77, 97 | Zamtel: 95\n\n"
+"  If invalid on first attempt:\n"
+"    Say: 'That doesn't look like a valid Zambian mobile money number. "
+"Please enter a valid MTN, Airtel or Zamtel number (e.g. 0971234567).'\n"
+"    Wait for their reply.\n\n"
+"  If invalid on second attempt:\n"
+"    Say: 'I'm unable to process your booking without a valid number. "
+"Please start a new chat to try again.'\n"
+"    Stop completely. Do not call any tools. Do not proceed.\n\n"
+"  If valid:\n"
+"  Deposit path: ask 'Is [number] also where we send your confirmation and reminders to? (Yes / No)'\n"
+"    Yes → notification_phone = that number. Proceed to Step 3.\n"
+"    No → ask 'What number should we send updates to?' Validate once. "
+"If invalid, use the mobile money number. Proceed to Step 3.\n\n"
+"  No-deposit path: set customer_phone = notification_phone = the number. "
+"No further questions. Go straight to Step 3.\n\n"
+ 
+        
+
+
         "Step 3 — Create and pay:\n"
         "  Call create_booking with the EXACT service_id used in check_availability.\n"
         "  Then call initiate_payment immediately.\n"
@@ -126,6 +144,7 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "  BOOKING_CONFIRMED | service: [name] | date: [YYYY-MM-DD] | time: [HH:MM] | "
         "staff: [staff] | amount: ZMW 0 | payment_ref: [ref]\n"
         "(Use 24-hour HH:MM in these lines only.)\n\n"
+
 
         "AVAILABILITY RULES:\n"
         f"Current time in Zambia: {current_time_str} (CAT, UTC+2). Today is {today_day}, {today_str}.\n"
@@ -150,16 +169,11 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "  BOOKING_CANCELLED | appointment_id: [id] | service: [service] | date: [YYYY-MM-DD] "
         "| time: [HH:MM] | staff: [staff] | ref: [ref]\n\n"
 
-        "RESCHEDULING FLOW:\n"
-        "Step 1 — Call find_my_appointments.\n"
-        "Step 2 — Show the appointment. Ask: 'What new date and time would you like?'\n"
-        "Step 3 — Call check_availability with the appointment's service_id and new date. Show times.\n"
-        "Step 4 — Confirm: 'Move [service] to [new day, date] at [new time]?'\n"
-        "Step 5 — Only after yes: call reschedule_appointment with new_date (YYYY-MM-DD) and new_time (HH:MM).\n"
-        "Step 6 — Append after a blank line:\n"
-        "  BOOKING_RESCHEDULED | appointment_id: [id] | service: [service] "
-        "| old_date: [YYYY-MM-DD] | old_time: [HH:MM] | new_date: [YYYY-MM-DD] | new_time: [HH:MM] "
-        "| staff: [staff] | ref: [ref]\n\n"
+        "RESCHEDULING:\n"
+        "Rescheduling is not available online. If a customer asks to reschedule, say:\n"
+        "'Rescheduling isn't available through the chat just yet. "
+        "Please contact the salon directly and they'll be happy to help you find a new time.'\n"
+        "Do not call any tools. Do not attempt to reschedule.\n\n"
 
         "PAYMENT RETRY FLOW:\n"
         "If you receive a SYSTEM message about payment failure, say:\n"
@@ -178,6 +192,6 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "- You do NOT have their phone number. Ask at Step 2 only.\n"
         f"- Today: {today_day}, {today_str}. Time: {current_time_str}.\n"
         "- If the message contains [service_id:X], use that exact integer as the service_id. Never look up by name.\n"
-        "- For anything outside your tools, suggest calling the salon directly.\n"
+        "- For anything outside your tools, suggest calling the business directly.\n"
         + policies_section
     )
