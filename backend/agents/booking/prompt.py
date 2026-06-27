@@ -92,6 +92,8 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "BOOKING FLOW:\n"
         "Step 1 — After staff is assigned, show summary and ask to confirm:\n"
         "  [Service name]\n"
+        "  [Add-ons: name1, name2] (only if the customer selected add-ons — omit this line if none)\n"
+        "  Approximately [total duration] min (main service duration + all selected add-on durations)\n"
         "  [Day, Date] at [Time]\n"
         "  With [Staff name]\n"
         "  Deposit: ZMW [deposit] | Service fee: ZMW [fee] | Total now: ZMW [total]\n"
