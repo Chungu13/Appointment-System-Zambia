@@ -145,31 +145,17 @@ function WeeklySchedule({ isAlsoStaff }) {
   )
 }
 
-function AIInsightCard({ bookedByAgent, slotsRecovered }) {
+function AIInsightCard({ bookedByAgent }) {
   return (
     <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: 20 }}>
       <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>
         AI Insight
       </p>
-      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, lineHeight: 1.7, color: TEXT, margin: '0 0 16px' }}>
+      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, lineHeight: 1.7, color: TEXT, margin: 0 }}>
         Your AI agent booked{' '}
         <span style={{ fontWeight: 600, color: BURG }}>{bookedByAgent ?? '—'}</span>{' '}
-        appointments and recovered{' '}
-        <span style={{ fontWeight: 600, color: BURG }}>{slotsRecovered ?? '—'}</span>{' '}
-        cancelled slots this week.
+        appointments this week.
       </p>
-      <button
-        disabled
-        style={{
-          width: '100%', padding: '10px',
-          background: OFF_WHITE, border: `0.5px solid ${BORDER}`,
-          cursor: 'not-allowed',
-          fontFamily: sans, fontSize: 10, fontWeight: 300,
-          letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED,
-        }}
-      >
-        Generate Campaign · Coming Soon
-      </button>
     </div>
   )
 }
@@ -263,7 +249,7 @@ export default function OwnerDashboard() {
         <WeeklySchedule isAlsoStaff={isAlsoStaff} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <AIInsightCard bookedByAgent={stats?.bookedByAgent} slotsRecovered={stats?.slotsRecovered} />
+          <AIInsightCard bookedByAgent={stats?.bookedByAgent} />
           <AgentFeed limit={8} />
         </div>
       </div>
