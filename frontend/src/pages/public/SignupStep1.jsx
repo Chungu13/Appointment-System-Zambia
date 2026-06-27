@@ -70,7 +70,6 @@ export default function SignupStep1() {
   const { setStep1 } = useSignup()
 
   const [form, setForm] = useState({ fullName: '', email: '', password: '' })
-  const [honeypot, setHoneypot] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [errors, setErrors] = useState({})
@@ -101,14 +100,9 @@ export default function SignupStep1() {
     e.preventDefault()
 
     // Honeypot: silently do nothing if a bot filled the hidden field.
-    // Also check the raw DOM value — some autofill tools set it without firing React's onChange.
-    const domHoneypot = document.querySelector('input[name="website"]')?.value || ''
-    console.log('[Honeypot Debug]', {
-      honeypotState: honeypot,
-      honeypotRef: honeypotRef.current?.value,
-      domValue: domHoneypot,
-    })
-    if (honeypot || honeypotRef.current?.value || domHoneypot) return
+    // Uncontrolled input — read directly from the DOM so React's reconciliation
+    // can't reset the value before we check it.
+    if (honeypotRef.current?.value) return
 
     // Time-based check: reject if form submitted in under 5 seconds
     const elapsed = (Date.now() - formLoadTime.current) / 1000
@@ -133,7 +127,7 @@ export default function SignupStep1() {
       agreedToTerms: true,
       isGoogle: false,
       googleToken: '',
-      honeypot,
+      honeypot: '',
       turnstileToken,
     })
     navigate('/signup/business')
@@ -247,8 +241,7 @@ export default function SignupStep1() {
               ref={honeypotRef}
               type="text"
               name="website"
-              value={honeypot}
-              onChange={(e) => setHoneypot(e.target.value)}
+              defaultValue=""
               tabIndex={-1}
               autoComplete="nope"
               aria-hidden="true"
