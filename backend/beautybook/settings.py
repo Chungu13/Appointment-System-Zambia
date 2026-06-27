@@ -247,3 +247,40 @@ CELERY_RESULT_EXPIRES    = 3600
 # Email (Resend HTTP API — bypasses SMTP, works on Railway)
 # ---------------------------------------------------------------------------
 RESEND_API_KEY = config("RESEND_API_KEY", default="")
+
+# ---------------------------------------------------------------------------
+# Logging — INFO from our own code, WARNING from Django internals
+# Railway captures stdout, so StreamHandler is all we need.
+# ---------------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "[{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        # Our app modules — show INFO and above
+        "beautybook":     {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        "agents":         {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        "bookings":       {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        "tenants":        {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        "notifications":  {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        "payments":       {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        "staff":          {"handlers": ["console"], "level": "INFO",    "propagate": False},
+        # Django internals — WARNING only to keep logs clean
+        "django":         {"handlers": ["console"], "level": "WARNING", "propagate": False},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}
