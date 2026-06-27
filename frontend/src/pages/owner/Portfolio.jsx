@@ -71,20 +71,20 @@ function UploadModal({ services, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 440 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
-          <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: 0 }}>Add portfolio photo</h2>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 420, maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
+          <h2 style={{ fontFamily: serif, fontSize: 18, fontWeight: 300, color: TEXT, margin: 0 }}>Add portfolio photo</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
             <X size={18} />
           </button>
         </div>
 
-        <div style={{ padding: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', flex: 1 }}>
           {error && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#dc2626', margin: 0 }}>{error}</p>}
 
           {preview ? (
             <div style={{ position: 'relative' }}>
-              <img src={preview} alt="Preview" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }} />
+              <img src={preview} alt="Preview" style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }} />
               <button
                 onClick={() => { setPreview(null); setDataUrl(null) }}
                 style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
@@ -148,7 +148,7 @@ function UploadModal({ services, onClose, onSave }) {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 12, padding: 20 }}>
+        <div style={{ display: 'flex', gap: 12, padding: 16, borderTop: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
           <Button variant="ghost" onClick={onClose} className="flex-1">Cancel</Button>
           <Button onClick={submit} disabled={!dataUrl} className="flex-1">Add photo</Button>
         </div>
