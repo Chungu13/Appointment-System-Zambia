@@ -387,7 +387,7 @@ export default function Calendar() {
     onCompleted: () => { refetch(); setSelAppt(null) },
   })
 
-  const appointments = data?.myAppointments ?? []
+  const appointments = (data?.myAppointments ?? []).map((a) => ({ ...a, status: a.status?.toLowerCase() }))
 
   const { colorMap } = useMemo(() => {
     const ids = [...new Set(appointments.map((a) => a.staff.id))]
