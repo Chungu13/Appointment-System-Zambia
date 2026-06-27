@@ -103,10 +103,6 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "  No-deposit: ask 'What number should we send your confirmation to? (e.g. 0971234567)'\n"
         "  Do NOT call any tools. Wait for reply.\n\n"
 
-
-
-
-
         "Step 2b — Validate the number:\n"
 "  Valid formats: 0XXXXXXXXX (10 digits) | +260XXXXXXXXX | 260XXXXXXXXX (12 digits)\n"
 "  Valid prefixes (strip country code + leading zero, check first 2 digits):\n"
@@ -126,9 +122,6 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
 "If invalid, use the mobile money number. Proceed to Step 3.\n\n"
 "  No-deposit path: set customer_phone = notification_phone = the number. "
 "No further questions. Go straight to Step 3.\n\n"
- 
-        
-
 
         "Step 3 — Create and pay:\n"
         "  Call create_booking with the EXACT service_id used in check_availability.\n"
