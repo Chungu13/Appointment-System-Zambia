@@ -143,7 +143,7 @@ def handle_get_best_staff(inputs: dict) -> dict:
     requested_end = requested_start + datetime.timedelta(minutes=total_duration)
 
     qualified_ids = list(
-        StaffService.objects.filter(service_id=service_id, is_active=True)
+        StaffService.objects.filter(service_id=service_id, staff__is_active=True)
         .values_list("staff_id", flat=True)
     )
     if not qualified_ids:
