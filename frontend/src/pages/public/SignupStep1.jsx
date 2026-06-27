@@ -102,7 +102,13 @@ export default function SignupStep1() {
 
     // Honeypot: silently do nothing if a bot filled the hidden field.
     // Also check the raw DOM value — some autofill tools set it without firing React's onChange.
-    if (honeypot || honeypotRef.current?.value) return
+    const domHoneypot = document.querySelector('input[name="website"]')?.value || ''
+    console.log('[Honeypot Debug]', {
+      honeypotState: honeypot,
+      honeypotRef: honeypotRef.current?.value,
+      domValue: domHoneypot,
+    })
+    if (honeypot || honeypotRef.current?.value || domHoneypot) return
 
     // Time-based check: reject if form submitted in under 5 seconds
     const elapsed = (Date.now() - formLoadTime.current) / 1000
