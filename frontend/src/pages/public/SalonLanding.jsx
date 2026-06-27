@@ -829,6 +829,8 @@ function Lightbox({ images, startIndex, onClose }) {
 
 function PortfolioSection({ images }) {
   const [lightboxIdx, setLightboxIdx] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+
   if (!images || images.length === 0) {
     return (
       <section>
@@ -841,15 +843,7 @@ function PortfolioSection({ images }) {
             textAlign: "center",
           }}
         >
-          <p
-            style={{
-              fontFamily: sans,
-              fontSize: 13,
-              fontWeight: 300,
-              color: "#666",
-              margin: 0,
-            }}
-          >
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: "#666", margin: 0 }}>
             No portfolio photos yet.
           </p>
         </div>
@@ -857,12 +851,16 @@ function PortfolioSection({ images }) {
     );
   }
 
+  const PREVIEW_COUNT = 5;
+  const visible = showAll ? images : images.slice(0, PREVIEW_COUNT);
+  const hasMore = !showAll && images.length > PREVIEW_COUNT;
+
   return (
     <section>
       <Eyebrow>Portfolio</Eyebrow>
       {/* 2-col on mobile, 3-col on desktop; first image spans 2 rows on desktop only */}
       <div className="salon-portfolio-grid">
-        {images.slice(0, 7).map((img, i) => (
+        {visible.map((img, i) => (
           <div
             key={img.id}
             onClick={() => setLightboxIdx(i)}
@@ -882,16 +880,28 @@ function PortfolioSection({ images }) {
                 display: "block",
                 transition: "transform 0.2s",
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.03)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             />
           </div>
         ))}
       </div>
+
+      {hasMore && (
+        <button
+          onClick={() => setShowAll(true)}
+          style={{
+            display: "block", margin: "14px auto 0",
+            background: "none", border: `0.5px solid ${BORDER}`,
+            padding: "10px 24px", cursor: "pointer",
+            fontFamily: sans, fontSize: 12, fontWeight: 300, color: "#6B2737",
+            letterSpacing: "0.06em",
+          }}
+        >
+          See all photos ({images.length})
+        </button>
+      )}
+
       {lightboxIdx !== null && (
         <Lightbox
           images={images}

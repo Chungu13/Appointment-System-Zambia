@@ -258,6 +258,7 @@ export default function Portfolio() {
 
   const images = data?.portfolioImages ?? []
   const services = servicesData?.services ?? []
+  const atLimit = images.length >= 10
 
   async function handleSave({ imageUrl, caption, serviceId }) {
     await addImage({ variables: { imageUrl, caption: caption || '', serviceId: serviceId || null } })
@@ -282,19 +283,25 @@ export default function Portfolio() {
         title="Portfolio"
         subtitle={images.length > 0 ? `${images.length} photo${images.length === 1 ? '' : 's'}` : 'Showcase your work to attract more customers'}
         action={
-          <button
-            onClick={() => setShowModal(true)}
-            disabled={adding}
-            style={{
-              background: BURG, color: '#fff', padding: '10px 20px',
-              fontFamily: sans, fontSize: 10, fontWeight: 300,
-              letterSpacing: '0.1em', textTransform: 'uppercase',
-              border: 'none', cursor: adding ? 'not-allowed' : 'pointer',
-              opacity: adding ? 0.7 : 1,
-            }}
-          >
-            {adding ? 'Uploading…' : 'Add Photo'}
-          </button>
+          atLimit ? (
+            <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', color: MUTED }}>
+              10 / 10 — limit reached
+            </span>
+          ) : (
+            <button
+              onClick={() => setShowModal(true)}
+              disabled={adding}
+              style={{
+                background: BURG, color: '#fff', padding: '10px 20px',
+                fontFamily: sans, fontSize: 10, fontWeight: 300,
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                border: 'none', cursor: adding ? 'not-allowed' : 'pointer',
+                opacity: adding ? 0.7 : 1,
+              }}
+            >
+              {adding ? 'Uploading…' : 'Add Photo'}
+            </button>
+          )
         }
       />
 
@@ -333,20 +340,22 @@ export default function Portfolio() {
             />
           ))}
 
-          <button
-            onClick={() => setShowModal(true)}
-            style={{
-              aspectRatio: '1', border: `0.5px solid ${BORDER}`, background: '#fff',
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 8, cursor: 'pointer',
-              transition: 'background-color 0.1s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BLUSH)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
-          >
-            <Plus size={20} color="#d4a8b0" />
-            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>Add photo</span>
-          </button>
+          {!atLimit && (
+            <button
+              onClick={() => setShowModal(true)}
+              style={{
+                aspectRatio: '1', border: `0.5px solid ${BORDER}`, background: '#fff',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 8, cursor: 'pointer',
+                transition: 'background-color 0.1s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BLUSH)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
+            >
+              <Plus size={20} color="#d4a8b0" />
+              <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>Add photo</span>
+            </button>
+          )}
         </div>
       )}
 

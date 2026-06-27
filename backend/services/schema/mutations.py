@@ -120,6 +120,9 @@ class ServicesMutation:
         if not image_url.strip():
             raise ValueError("Image URL is required.")
 
+        if PortfolioImage.objects.count() >= 10:
+            raise ValueError("Portfolio limit reached. You can have a maximum of 10 photos. Delete one to add a new one.")
+
         # Reject oversized uploads before touching disk
         from django.conf import settings as _settings
         max_mb = getattr(_settings, "MEDIA_MAX_SIZE_MB", 10)
