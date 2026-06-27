@@ -534,13 +534,13 @@ function BusinessPoliciesCard({ current }) {
     lateArrivalPolicy: p?.lateArrivalPolicy || '',
     lateArrivalOther: '',
     lateFee: p?.lateFee?.startsWith('Late fee applies') ? 'fee_applies'
-           : p?.lateFee === 'No charge — we accommodate late arrivals' ? 'no_charge'
+           : p?.lateFee === 'No charge, we accommodate late arrivals' ? 'no_charge'
            : p?.lateFee === 'Appointment cancelled and deposit forfeited' ? 'deposit_forfeited'
            : p?.lateFee ? 'other' : '',
     lateFeeAmount: p?.lateFee?.match(/ZMW (\d+)/)?.[1] || '',
     lateFeeOther: (!['no_charge','fee_applies','deposit_forfeited',''].includes(
       p?.lateFee?.startsWith('Late fee applies') ? 'fee_applies'
-      : p?.lateFee === 'No charge — we accommodate late arrivals' ? 'no_charge'
+      : p?.lateFee === 'No charge, we accommodate late arrivals' ? 'no_charge'
       : p?.lateFee === 'Appointment cancelled and deposit forfeited' ? 'deposit_forfeited'
       : p?.lateFee ? 'other' : ''
     )) ? (p?.lateFee || '') : '',
@@ -576,7 +576,7 @@ function BusinessPoliciesCard({ current }) {
       form.lateFee === 'fee_applies' && form.lateFeeAmount
         ? `Late fee applies: ZMW ${form.lateFeeAmount}`
         : form.lateFee === 'other' ? form.lateFeeOther
-        : form.lateFee === 'no_charge' ? 'No charge — we accommodate late arrivals'
+        : form.lateFee === 'no_charge' ? 'No charge, we accommodate late arrivals'
         : form.lateFee === 'deposit_forfeited' ? 'Appointment cancelled and deposit forfeited'
         : form.lateFee
 
@@ -637,7 +637,7 @@ function BusinessPoliciesCard({ current }) {
 
         <div style={divider}>
           <PolicyGroup title="Late arrival policy">
-            {['We allow up to 15 minutes late', 'We allow up to 30 minutes late', 'No late arrivals — appointment cancelled if late'].map((opt) => (
+            {['We allow up to 15 minutes late', 'We allow up to 30 minutes late', 'No late arrivals, appointment cancelled if late'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)} />
             ))}
             <PolicyRadio label="Other" value="other" current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)}>
@@ -648,8 +648,8 @@ function BusinessPoliciesCard({ current }) {
 
         <div style={divider}>
           <PolicyGroup title="Late fee">
-            <PolicyRadio label="No charge — we accommodate late arrivals" value="no_charge" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
-            <PolicyRadio label="Yes — a late fee applies" value="fee_applies" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
+            <PolicyRadio label="No charge, we accommodate late arrivals" value="no_charge" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
+            <PolicyRadio label="Yes, a late fee applies" value="fee_applies" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
               <div style={{ marginTop: 8, marginLeft: 26, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>ZMW</span>
                 <input

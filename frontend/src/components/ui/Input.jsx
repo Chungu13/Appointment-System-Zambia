@@ -5,7 +5,7 @@ const inputStyle = (error) => ({
   boxSizing: 'border-box',
   padding: '10px 12px',
   border: `1px solid ${error ? '#F87171' : '#D4B0B8'}`,
-  borderRadius: 10,
+  borderRadius: 0,
   fontSize: 13,
   color: '#1A0A0D',
   backgroundColor: '#fff',

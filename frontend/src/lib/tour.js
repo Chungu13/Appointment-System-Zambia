@@ -37,8 +37,8 @@ const DESKTOP_STEPS = [
   {
     element: '#tour-activity',
     popover: {
-      title: 'AI activity',
-      description: 'A live log of every action your AI agents take: bookings made, deposits chased, slots recovered, and weekly insights.',
+      title: 'Analytics',
+      description: 'Detailed analytics coming soon — revenue trends, booking patterns, and peak-hour insights to help you make data-driven decisions.',
       side: 'right', align: 'start',
     },
   },
@@ -111,8 +111,8 @@ const MOBILE_STEPS = [
   },
   {
     popover: {
-      title: 'AI activity',
-      description: "Tap More → Activity to see a live log of every action your AI agents take: bookings made, deposits chased, and weekly insights.",
+      title: 'Analytics',
+      description: "Tap More → Activity to see detailed analytics — revenue trends, booking patterns, and peak-hour insights. Coming soon.",
     },
   },
   {

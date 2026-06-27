@@ -832,7 +832,7 @@ function PoliciesStep({ policies, setPolicies }) {
         {[
           'We allow up to 15 minutes late',
           'We allow up to 30 minutes late',
-          'No late arrivals — appointment cancelled if late',
+          'No late arrivals, appointment cancelled if late',
         ].map((opt) => (
           <RadioOption
             key={opt}
@@ -849,12 +849,12 @@ function PoliciesStep({ policies, setPolicies }) {
       {/* Late fee */}
       <PolicySection title="Is there a late fee?">
         <RadioOption
-          label="No charge — we accommodate late arrivals"
+          label="No charge, we accommodate late arrivals"
           selected={policies.lateFee === 'no_charge'}
           onClick={() => set('lateFee', 'no_charge')}
         />
         <RadioOption
-          label="Yes — a late fee applies"
+          label="Yes, a late fee applies"
           selected={policies.lateFee === 'fee_applies'}
           onClick={() => set('lateFee', 'fee_applies')}
         >
@@ -1263,7 +1263,7 @@ export default function Onboarding() {
             : policies.lateFee === 'other'
             ? policies.lateFeeOther
             : policies.lateFee === 'no_charge'
-            ? 'No charge — we accommodate late arrivals'
+            ? 'No charge, we accommodate late arrivals'
             : policies.lateFee === 'deposit_forfeited'
             ? 'Appointment cancelled and deposit forfeited'
             : policies.lateFee

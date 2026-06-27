@@ -328,6 +328,9 @@ function ApptModal({ appt, onClose, onAction, loading }) {
             {appt.status === 'pending' && (
               <Button size="sm" loading={loading} onClick={() => onAction(appt.id, 'CONFIRMED')}>Confirm</Button>
             )}
+            {['confirmed', 'in_progress'].includes(appt.status) && (
+              <Button size="sm" variant="warning" loading={loading} onClick={() => onAction(appt.id, 'NO_SHOW')}>No Show</Button>
+            )}
             {!['completed', 'cancelled', 'no_show'].includes(appt.status) && (
               <Button size="sm" variant="danger" loading={loading} onClick={() => onAction(appt.id, 'CANCELLED')}>Cancel</Button>
             )}

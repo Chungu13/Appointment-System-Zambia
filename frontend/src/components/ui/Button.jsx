@@ -6,6 +6,7 @@ const variants = {
   outline: 'border border-primary text-primary hover:bg-primary/5',
   ghost: 'text-on-surface-variant hover:bg-surface-container',
   danger: 'bg-red-600 text-white hover:bg-red-700',
+  warning: 'bg-amber-500 text-white hover:bg-amber-600',
 }
 
 const sizes = {
