@@ -60,8 +60,8 @@ export const DASHBOARD_STATS = gql`
 `
 
 export const AGENT_ACTIVITY = gql`
-  query AgentActivity($limit: Int, $agentType: String) {
-    agentActivity(limit: $limit, agentType: $agentType) {
+  query AgentActivity($limit: Int, $agentType: String, $date: Date) {
+    agentActivity(limit: $limit, agentType: $agentType, date: $date) {
       id
       agentType
       action

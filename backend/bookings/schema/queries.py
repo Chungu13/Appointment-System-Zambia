@@ -215,6 +215,7 @@ class BookingsQuery:
         info: Info,
         limit: int = 20,
         agent_type: Optional[str] = None,
+        date: Optional[datetime.date] = None,
     ) -> List[AgentLogType]:
         from agents.models import AgentLog
 
@@ -222,4 +223,6 @@ class BookingsQuery:
         qs = AgentLog.objects.order_by("-created_at")
         if agent_type:
             qs = qs.filter(agent_type=agent_type)
+        if date:
+            qs = qs.filter(created_at__date=date)
         return [agent_log_to_type(log) for log in qs[:limit]]
