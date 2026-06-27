@@ -70,10 +70,36 @@ def handle_check_availability(inputs: dict) -> tuple:
     raw_slots = build_availability_slots(inputs["service_id"], date)
 
     if not raw_slots:
+        from services.models import StaffService
+        from staff.models import WorkingHours
+
+        cat = _zi.ZoneInfo("Africa/Lusaka")
+        day_of_week = date.weekday()
+        qualified_ids = list(
+            StaffService.objects.filter(service_id=inputs["service_id"])
+            .values_list("staff_id", flat=True)
+        )
+        open_today = WorkingHours.objects.filter(
+            staff_id__in=qualified_ids,
+            day_of_week=day_of_week,
+            is_day_off=False,
+        ).exists()
+
+        if not open_today:
+            reason = "closed"
+            message = "The salon is closed on this day."
+        elif date == timezone.now().astimezone(cat).date():
+            reason = "past_closing"
+            message = "It is past closing time for today."
+        else:
+            reason = "fully_booked"
+            message = "All slots are fully booked for this day."
+
         return {
             "date": inputs["date"],
             "available_slots": [],
-            "message": "No slots available on this date.",
+            "reason": reason,
+            "message": message,
         }, []
 
     # Group by staff so the AI can pick a staff_id without a separate lookup
