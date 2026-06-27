@@ -5,7 +5,6 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import { useAgentChat } from "../../hooks/useAgentChat";
 import { playPopSound, playDingSound } from "../../lib/sounds";
 import { CHECK_PAYMENT_STATUS } from "../../graphql/queries/bookings";
-import { PUBLIC_STAFF } from "../../graphql/queries/staff";
 
 const DARK    = "#1A0A0D";
 const PRIMARY = "#6B2737";
@@ -210,100 +209,38 @@ function ServiceCard({ data, onSend }) {
   );
 }
 
-function StaffPicker({ onPick }) {
-  const { data, loading } = useQuery(PUBLIC_STAFF, { fetchPolicy: "cache-first" });
-  const staff = data?.publicStaff ?? [];
-
-  // If loaded with no public staff, skip straight to "anyone"
-  useEffect(() => {
-    if (!loading && staff.length === 0) onPick(null);
-  }, [loading, staff.length]);
-
-  const pillBase = {
-    padding: "6px 14px", borderRadius: 6, fontFamily: sans,
-    fontSize: 12, fontWeight: 400, cursor: "pointer",
-    transition: "background 0.12s", border: "none",
-  };
-
-  return (
-    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "0.5px solid rgba(255,255,255,0.08)" }}>
-      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: "rgba(255,255,255,0.55)", margin: "0 0 8px" }}>
-        Who would you like?
-      </p>
-      {loading ? (
-        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-          {[0, 1, 2].map((i) => (
-            <span key={i} className="animate-bounce" style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.35)", display: "inline-block", animationDelay: `${i * 0.15}s` }} />
-          ))}
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          <button
-            onClick={() => onPick(null)}
-            style={{ ...pillBase, backgroundColor: "rgba(255,255,255,0.12)", border: "0.5px solid rgba(255,255,255,0.25)", color: "#fff" }}
-          >
-            Anyone
-          </button>
-          {staff.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => onPick(s.fullName)}
-              style={{ ...pillBase, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.12)", color: "#fff" }}
-            >
-              {s.fullName}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function SlotGrid({ data, onSend }) {
-  const [selected, setSelected] = useState(null);
   const [done, setDone] = useState(false);
 
   function pickSlot(slot) {
     if (done) return;
-    setSelected(slot);
-  }
-
-  function pickStaff(staffName) {
-    if (done || !selected) return;
     setDone(true);
-    const msg = staffName
-      ? `I want to book at ${selected} with ${staffName}`
-      : `I want to book at ${selected}`;
-    onSend(msg);
+    onSend(`I want to book at ${slot}`);
   }
 
   return (
     <div style={{ marginTop: 4 }}>
       {data.header && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: "rgba(255,255,255,0.55)", margin: "0 0 8px" }}>{data.header}</p>}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {data.slots.map((slot) => {
-          const isSelected = selected === slot;
-          return (
-            <button
-              key={slot}
-              onClick={() => pickSlot(slot)}
-              disabled={done}
-              style={{
-                padding: "6px 12px",
-                backgroundColor: isSelected ? PRIMARY : "rgba(255,255,255,0.06)",
-                border: `0.5px solid ${isSelected ? PRIMARY : "rgba(255,255,255,0.12)"}`,
-                borderRadius: 6, color: "#fff", fontFamily: sans, fontSize: 12,
-                fontWeight: 400, cursor: done ? "default" : "pointer",
-                transition: "background 0.12s",
-                opacity: done && !isSelected ? 0.35 : 1,
-              }}
-            >
-              {slot}
-            </button>
-          );
-        })}
+        {data.slots.map((slot) => (
+          <button
+            key={slot}
+            onClick={() => pickSlot(slot)}
+            disabled={done}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: "rgba(255,255,255,0.06)",
+              border: "0.5px solid rgba(255,255,255,0.12)",
+              borderRadius: 6, color: "#fff", fontFamily: sans, fontSize: 12,
+              fontWeight: 400, cursor: done ? "default" : "pointer",
+              transition: "background 0.12s",
+              opacity: done ? 0.35 : 1,
+            }}
+          >
+            {slot}
+          </button>
+        ))}
       </div>
-      {selected && !done && <StaffPicker onPick={pickStaff} />}
       {data.footer && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: "rgba(255,255,255,0.55)", margin: "10px 0 0" }}>{data.footer}</p>}
     </div>
   );
