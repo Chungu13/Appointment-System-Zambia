@@ -121,3 +121,34 @@ export const CUSTOMER_APPOINTMENTS = gql`
     }
   }
 `
+
+export const CUSTOMER_DETAIL = gql`
+  query CustomerDetail($id: Int!) {
+    customer(id: $id) {
+      id
+      fullName
+      phone
+      notes
+      visitCount
+      noShowCount
+      lastVisitAt
+      createdAt
+    }
+  }
+`
+
+export const CUSTOMER_APPOINTMENTS_BY_ID = gql`
+  query CustomerAppointmentsById($customerId: Int!) {
+    customerAppointmentsById(customerId: $customerId) {
+      id
+      status
+      startsAt
+      endsAt
+      bookedBy
+      service { id name priceZmw }
+      staff { id fullName }
+      payments { id amountZmw status paymentType }
+      addonServices { id name priceZmw }
+    }
+  }
+`

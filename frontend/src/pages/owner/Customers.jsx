@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
 import { Search, Users } from 'lucide-react'
 import { CUSTOMERS } from '../../graphql/queries/bookings'
@@ -77,14 +78,18 @@ function SkeletonRow() {
 }
 
 function CustomerRow({ customer, isLast }) {
+  const navigate = useNavigate()
   const displayName = customer.fullName?.trim() || 'Unknown'
   return (
     <div
+      role="button"
+      onClick={() => navigate(`/owner/customers/${customer.id}`)}
       style={{
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '14px 20px',
         borderBottom: isLast ? 'none' : `0.5px solid ${BORDER}`,
         transition: 'background 0.1s',
+        cursor: 'pointer',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BLUSH)}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}

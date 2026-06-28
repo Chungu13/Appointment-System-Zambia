@@ -210,4 +210,21 @@ TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "validate_phone_number",
+            "description": "Check whether a phone number is a valid Zambian mobile money number. ALWAYS call this before telling a customer their number is invalid.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "description": "The phone number exactly as entered by the customer.",
+                    },
+                },
+                "required": ["phone"],
+            },
+        },
+    },
 ]

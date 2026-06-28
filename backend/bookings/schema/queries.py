@@ -47,7 +47,12 @@ class BookingsQuery:
         search: Optional[str] = None,
     ) -> List[CustomerType]:
         require_owner(info)
-        qs = Customer.objects.all().order_by("-last_visit_at", "full_name")
+        qs = (
+            Customer.objects
+            .filter(appointments__payments__status="completed")
+            .distinct()
+            .order_by("-last_visit_at", "full_name")
+        )
         if search:
             qs = qs.filter(
                 Q(full_name__icontains=search) | Q(phone__icontains=search)
@@ -103,6 +108,32 @@ class BookingsQuery:
         qs = (
             Appointment.objects
             .filter(customer=customer)
+            .select_related("customer", "staff", "service")
+            .prefetch_related("payments", "addon_services")
+            .order_by("-starts_at")
+        )
+        return [appointment_to_type(a) for a in qs]
+
+    @strawberry.field
+    def customer(
+        self,
+        info: Info,
+        id: int,
+    ) -> Optional[CustomerType]:
+        require_owner(info)
+        c = Customer.objects.filter(pk=id).first()
+        return customer_to_type(c) if c else None
+
+    @strawberry.field
+    def customer_appointments_by_id(
+        self,
+        info: Info,
+        customer_id: int,
+    ) -> List[AppointmentType]:
+        require_owner(info)
+        qs = (
+            Appointment.objects
+            .filter(customer_id=customer_id)
             .select_related("customer", "staff", "service")
             .prefetch_related("payments", "addon_services")
             .order_by("-starts_at")

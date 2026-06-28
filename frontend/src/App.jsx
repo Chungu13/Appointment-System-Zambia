@@ -35,7 +35,8 @@ const OwnerDashboard = lazy(() => import('./pages/owner/OwnerDashboard'))
 const Calendar       = lazy(() => import('./pages/owner/Calendar'))
 const Services       = lazy(() => import('./pages/owner/Services'))
 const Staff          = lazy(() => import('./pages/owner/Staff'))
-const Customers      = lazy(() => import('./pages/owner/Customers'))
+const Customers       = lazy(() => import('./pages/owner/Customers'))
+const CustomerDetail  = lazy(() => import('./pages/owner/CustomerDetail'))
 const Analytics      = lazy(() => import('./pages/owner/Analytics'))
 const Settings       = lazy(() => import('./pages/owner/Settings'))
 const Portfolio      = lazy(() => import('./pages/owner/Portfolio'))
@@ -139,6 +140,7 @@ export default function App() {
                           <Route path="services" element={<Services />} />
                           <Route path="staff" element={<Staff />} />
                           <Route path="customers" element={<Customers />} />
+                          <Route path="customers/:id" element={<CustomerDetail />} />
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="portfolio" element={<Portfolio />} />
                           <Route path="settings" element={<Settings />} />
