@@ -46,7 +46,30 @@ class BookingAgent:
         elif name == "retry_payment":
             return handlers.handle_retry_payment(inputs, customer_phone, schema)
         elif name == "validate_phone_number":
-            return handlers.handle_validate_phone(inputs)
+            result = handlers.handle_validate_phone(inputs)
+            if not result.get("valid"):
+                msgs = getattr(self, "_messages", [])
+                prior_failures = 0
+                for m in msgs:
+                    if m.get("role") == "tool" and isinstance(m.get("content"), str):
+                        try:
+                            c = json.loads(m["content"])
+                            if isinstance(c, dict) and c.get("valid") is False:
+                                prior_failures += 1
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+                attempt = prior_failures + 1
+                result["attempt"] = attempt
+                if attempt >= 2:
+                    result["stop"] = True
+                    result["instruction"] = (
+                        "The customer has now provided 2 invalid numbers. "
+                        "Say EXACTLY this and nothing else: "
+                        "'I'm unable to process your booking without a valid number. "
+                        "Please start a new chat to try again.' "
+                        "Do NOT ask for another number. Do NOT call any tools."
+                    )
+            return result
         return {"error": f"Unknown tool: {name}"}
 
     # ------------------------------------------------------------------
@@ -71,6 +94,7 @@ class BookingAgent:
         messages.append({"role": "user", "content": message})
 
         while True:
+            self._messages = messages
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "system", "content": build_system_prompt(self.tenant, customer_name)}] + messages,
@@ -134,6 +158,7 @@ class BookingAgent:
         messages.append({"role": "user", "content": message})
 
         while True:
+            self._messages = messages
             stream = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "system", "content": build_system_prompt(self.tenant, customer_name)}] + messages,
