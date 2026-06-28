@@ -284,13 +284,14 @@ def handle_create_booking(
     ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes + addon_duration)
 
     resolved_phone = (inputs.get("customer_phone") or "").strip() or customer_phone.strip()
-    if resolved_phone:
-        resolved_phone = normalise_phone(resolved_phone)
-    else:
-        logger.warning(
-            "create_booking: no customer_phone for %s — saving empty string",
-            inputs.get("customer_name", "unknown"),
-        )
+    if not resolved_phone or not is_valid_zambian_phone(resolved_phone):
+        return {
+            "error": (
+                "Cannot create booking: the phone number is missing or invalid. "
+                "Go back to Step 2 and ask the customer for a valid Zambian mobile money number."
+            )
+        }
+    resolved_phone = normalise_phone(resolved_phone)
 
     customer, _ = Customer.objects.get_or_create(
         phone=resolved_phone,
