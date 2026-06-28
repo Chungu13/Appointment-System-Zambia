@@ -12,8 +12,7 @@ const TEXT      = '#1a0a0d'
 const MUTED     = '#b09090'
 const BORDER    = '#ede5e7'
 
-const serif = '"Cormorant Garamond", Georgia, serif'
-const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
+const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const BUSINESS_TYPES = [
   { value: 'salon',         label: 'Salon' },
@@ -42,7 +41,7 @@ function Label({ children }) {
   )
 }
 
-function Input({ style: override = {}, ...props }) {
+function Input({ onBlur: outerBlur, style: override = {}, ...props }) {
   return (
     <input
       style={{
@@ -54,7 +53,7 @@ function Input({ style: override = {}, ...props }) {
         ...override,
       }}
       onFocus={(e) => (e.target.style.borderColor = BURG)}
-      onBlur={(e) => (e.target.style.borderColor = BORDER)}
+      onBlur={(e) => { e.target.style.borderColor = BORDER; outerBlur?.() }}
       {...props}
     />
   )
@@ -78,9 +77,16 @@ function SelectField({ children, ...props }) {
   )
 }
 
+function validatePhone(raw) {
+  const digits = raw.replace(/\D/g, '')
+  if (digits.startsWith('260') && digits.length === 12) return true
+  if (digits.startsWith('0')   && digits.length === 10) return true
+  return false
+}
+
 export default function SignupStep2() {
-  const navigate    = useNavigate()
-  const { step1 }  = useSignup()
+  const navigate   = useNavigate()
+  const { step1 } = useSignup()
 
   const [form, setForm] = useState({
     businessName: '',
@@ -91,7 +97,7 @@ export default function SignupStep2() {
     phone: '+260',
     address: '',
   })
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors]           = useState({})
   const [serverError, setServerError] = useState('')
 
   const [register, { loading }] = useMutation(REGISTER_TENANT, { client: publicClient })
@@ -101,19 +107,21 @@ export default function SignupStep2() {
       const val = e.target.value
       setForm((f) => {
         const next = { ...f, [k]: val }
-        if (k === 'city')  { next.area = ''; next.areaOther = '' }
-        if (k === 'area')  { next.areaOther = '' }
+        if (k === 'city') { next.area = ''; next.areaOther = '' }
+        if (k === 'area') { next.areaOther = '' }
         return next
       })
       setErrors((er) => ({ ...er, [k]: '' }))
     }
   }
 
-  function validatePhone(raw) {
-    const digits = raw.replace(/\D/g, '')
-    if (digits.startsWith('260') && digits.length === 12) return true
-    if (digits.startsWith('0')   && digits.length === 10) return true
-    return false
+  function blurValidate(field) {
+    if (field === 'businessName' && !form.businessName.trim()) {
+      setErrors((er) => ({ ...er, businessName: 'Required' }))
+    }
+    if (field === 'phone' && !validatePhone(form.phone)) {
+      setErrors((er) => ({ ...er, phone: 'Enter a valid Zambian number — e.g. +260 97 123 4567' }))
+    }
   }
 
   function validate() {
@@ -135,7 +143,6 @@ export default function SignupStep2() {
       : form.area.trim()
 
     try {
-      console.log('[Debug] Honeypot value being sent:', step1.honeypot || '')
       await register({
         variables: {
           businessName: form.businessName.trim(),
@@ -152,7 +159,6 @@ export default function SignupStep2() {
           turnstileToken: step1.turnstileToken || '',
         },
       })
-
       navigate('/signup/verify-email', { state: { isGoogle: step1.isGoogle } })
     } catch (err) {
       const msg = err?.graphQLErrors?.[0]?.message || err?.message || 'Something went wrong.'
@@ -165,23 +171,15 @@ export default function SignupStep2() {
       {/* Left brand panel */}
       <div
         className="hidden sm:flex"
-        style={{
-          width: 240, minWidth: 240,
-          background: DARK_BURG,
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '48px 32px',
-        }}
+        style={{ width: 240, minWidth: 240, background: DARK_BURG, flexDirection: 'column', justifyContent: 'space-between', padding: '48px 32px' }}
       >
-        <div>
-          <span style={{ fontFamily: serif, fontSize: 20, color: '#fff', fontWeight: 400, letterSpacing: '0.04em' }}>
-            Kimawa
-          </span>
-        </div>
-        <p style={{ fontFamily: serif, fontSize: 17, color: 'rgba(255,255,255,0.55)', fontStyle: 'italic', fontWeight: 300, lineHeight: 1.6 }}>
+        <span style={{ fontFamily: sans, fontSize: 20, color: '#fff', fontWeight: 400, letterSpacing: '0.04em' }}>
+          Kimawa
+        </span>
+        <p style={{ fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: 300, lineHeight: 1.7, margin: 0 }}>
           Your salon,<br />always open.
         </p>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 300, letterSpacing: '0.08em' }}>
+        <span style={{ fontFamily: sans, fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 300, letterSpacing: '0.08em' }}>
           kimawa.pro
         </span>
       </div>
@@ -191,21 +189,26 @@ export default function SignupStep2() {
         <div style={{ width: '100%', maxWidth: 360 }}>
           <StepIndicator step={2} />
 
-          <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 10 }}>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 10 }}>
             New Business
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: TEXT, margin: '0 0 6px', lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: sans, fontSize: 28, fontWeight: 400, color: TEXT, margin: '0 0 6px', lineHeight: 1.2 }}>
             About your business
           </h1>
-          <p style={{ fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 28px' }}>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 28px' }}>
             This is how you'll appear on Kimawa.
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <Label>Business name</Label>
-              <Input value={form.businessName} onChange={set('businessName')} placeholder="e.g. Glow Salon Lusaka" />
-              {errors.businessName && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.businessName}</p>}
+              <Input
+                value={form.businessName}
+                onChange={set('businessName')}
+                placeholder="e.g. Glow Salon Lusaka"
+                onBlur={() => blurValidate('businessName')}
+              />
+              {errors.businessName && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.businessName}</p>}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -242,8 +245,15 @@ export default function SignupStep2() {
 
             <div>
               <Label>Phone number</Label>
-              <Input value={form.phone} onChange={set('phone')} type="tel" placeholder="+260971234567" maxLength={13} />
-              {errors.phone && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.phone}</p>}
+              <Input
+                value={form.phone}
+                onChange={set('phone')}
+                type="tel"
+                placeholder="+260971234567"
+                maxLength={13}
+                onBlur={() => blurValidate('phone')}
+              />
+              {errors.phone && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.phone}</p>}
             </div>
 
             <div>
@@ -252,7 +262,7 @@ export default function SignupStep2() {
             </div>
 
             {serverError && (
-              <div style={{ border: `0.5px solid #fca5a5`, background: '#fef2f2', padding: '10px 14px', fontSize: 12, color: '#dc2626' }}>
+              <div style={{ border: `0.5px solid #fca5a5`, background: '#fef2f2', padding: '10px 14px', fontFamily: sans, fontSize: 12, color: '#dc2626', fontWeight: 300 }}>
                 {serverError}
               </div>
             )}
@@ -260,14 +270,7 @@ export default function SignupStep2() {
             <button
               type="submit"
               disabled={loading}
-              style={{
-                width: '100%', padding: '11px 0',
-                background: BURG, color: '#fff',
-                border: 'none', borderRadius: 0,
-                fontSize: 11, fontWeight: 500, letterSpacing: '0.12em',
-                textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer',
-                fontFamily: sans, opacity: loading ? 0.7 : 1, marginTop: 4,
-              }}
+              style={{ width: '100%', padding: '11px 0', background: BURG, color: '#fff', border: 'none', borderRadius: 0, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1, marginTop: 4 }}
             >
               {loading ? 'Creating your account…' : 'Create my account'}
             </button>
@@ -275,7 +278,7 @@ export default function SignupStep2() {
             <button
               type="button"
               onClick={() => navigate('/signup')}
-              style={{ background: 'none', border: 'none', fontSize: 12, color: MUTED, cursor: 'pointer', textAlign: 'center', fontFamily: sans, fontWeight: 300 }}
+              style={{ background: 'none', border: 'none', fontFamily: sans, fontSize: 12, color: MUTED, cursor: 'pointer', textAlign: 'center', fontWeight: 300 }}
             >
               Back
             </button>

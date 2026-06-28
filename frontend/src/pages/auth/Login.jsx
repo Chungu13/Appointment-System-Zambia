@@ -8,21 +8,22 @@ import { publicClient } from '../../lib/apollo'
 import { OWNER_LOGIN } from '../../graphql/mutations/auth'
 import { setTokens, saveRole } from '../../lib/auth'
 
-const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
+const sans   = 'Inter, ui-sans-serif, system-ui, sans-serif'
 const BURG   = '#6B2737'
 const BORDER = '#ede5e7'
 
 const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
-  border: '0.5px solid #e0dbd6',
-  borderRadius: 5,
-  padding: '11px 14px',
-  fontSize: 13,
+  border: `0.5px solid ${BORDER}`,
+  borderRadius: 0,
+  padding: '10px 14px',
+  fontSize: 12,
   color: '#1a1a1a',
   outline: 'none',
   backgroundColor: '#fff',
   fontFamily: sans,
+  fontWeight: 300,
   WebkitBoxShadow: '0 0 0 1000px #fff inset',
 }
 
@@ -42,7 +43,7 @@ const GoogleSVG = () => (
 export default function Login() {
   const { isAuthenticated, isOwner } = useAuth()
   const { setStep1 } = useSignup()
-  const location = useLocation()
+  const location  = useLocation()
   const navigate  = useNavigate()
 
   const params   = new URLSearchParams(location.search)
@@ -52,6 +53,7 @@ export default function Login() {
   const [email,         setEmail]         = useState('')
   const [password,      setPassword]      = useState('')
   const [errorMsg,      setErrorMsg]      = useState('')
+  const [fieldErrors,   setFieldErrors]   = useState({})
   const [googleLoading, setGoogleLoading] = useState(false)
 
   const [ownerLogin, { loading }] = useMutation(OWNER_LOGIN, { client: publicClient })
@@ -78,6 +80,24 @@ export default function Login() {
     if (!isApproved && businessName) dest.searchParams.set('bn', businessName)
 
     window.location.href = dest.toString()
+  }
+
+  function blurEmail() {
+    if (!email.trim()) {
+      setFieldErrors((fe) => ({ ...fe, email: 'Email is required' }))
+    } else if (!email.includes('@') || !email.includes('.')) {
+      setFieldErrors((fe) => ({ ...fe, email: 'Enter a valid email address' }))
+    } else {
+      setFieldErrors((fe) => ({ ...fe, email: '' }))
+    }
+  }
+
+  function blurPassword() {
+    if (!password) {
+      setFieldErrors((fe) => ({ ...fe, password: 'Password is required' }))
+    } else {
+      setFieldErrors((fe) => ({ ...fe, password: '' }))
+    }
   }
 
   async function submit(e) {
@@ -117,7 +137,6 @@ export default function Login() {
         } catch (loginErr) {
           const msg = loginErr?.graphQLErrors?.[0]?.message || loginErr?.message || ''
           if (msg === 'NO_TENANT') {
-            // No account yet — pre-fill context and send to Step 2
             setStep1({
               fullName: gdata.name || '',
               email: gdata.email || '',
@@ -146,8 +165,7 @@ export default function Login() {
       <div
         className="hidden lg:flex"
         style={{ width: 280, minWidth: 280, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'flex-start' }}
-      >
-      </div>
+      />
 
       {/* Right form panel */}
       <div
@@ -155,36 +173,36 @@ export default function Login() {
         style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 56px' }}
       >
         <div style={{ width: '100%', maxWidth: 380 }}>
-          <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 12 }}>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 12 }}>
             Owner portal
           </p>
-          <h1 style={{ fontSize: 28, fontWeight: 500, color: '#1a1a1a', margin: '0 0 8px', lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: sans, fontSize: 28, fontWeight: 500, color: '#1a1a1a', margin: '0 0 8px', lineHeight: 1.2 }}>
             Sign in
           </h1>
-          <p style={{ fontSize: 13, color: '#666', margin: '0 0 28px', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: sans, fontSize: 13, color: '#666', margin: '0 0 28px', lineHeight: 1.6 }}>
             Staff?{' '}
             <Link to="/staff" style={{ color: BURG, textDecoration: 'none' }}>Use the staff portal</Link>
             {' '}(no account needed).
           </p>
 
           {verified && (
-            <div style={{ border: '0.5px solid #bbf7d0', backgroundColor: '#f0fdf4', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#166534', marginBottom: 20 }}>
+            <div style={{ border: '0.5px solid #bbf7d0', backgroundColor: '#f0fdf4', padding: '10px 14px', fontSize: 13, color: '#166534', marginBottom: 20 }}>
               Email verified! You can now sign in.
             </div>
           )}
           {tokenErr === 'token_expired' && (
-            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
               Your verification link has expired. Please sign up again to get a new link.
             </div>
           )}
           {tokenErr === 'invalid_token' && (
-            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
               Invalid verification link. Please try again or contact support.
             </div>
           )}
 
           {errorMsg && (
-            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 16 }}>
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 16 }}>
               {errorMsg}
             </div>
           )}
@@ -209,50 +227,54 @@ export default function Login() {
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
             <div style={{ flex: 1, height: '0.5px', background: BORDER }} />
-            <span style={{ fontSize: 11, color: '#b09090', fontWeight: 300 }}>or</span>
+            <span style={{ fontFamily: sans, fontSize: 11, color: '#b09090', fontWeight: 300 }}>or</span>
             <div style={{ flex: 1, height: '0.5px', background: BORDER }} />
           </div>
 
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#333', marginBottom: 6 }}>Email</label>
+              <label style={{ display: 'block', fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#b09090', marginBottom: 6, letterSpacing: '0.04em' }}>
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setFieldErrors((fe) => ({ ...fe, email: '' })) }}
                 autoComplete="email"
                 placeholder="your@email.com"
-                required
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = BURG)}
-                onBlur={(e)  => (e.target.style.borderColor = '#e0dbd6')}
+                onBlur={(e) => { e.target.style.borderColor = BORDER; blurEmail() }}
               />
+              {fieldErrors.email && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', margin: '4px 0 0', fontWeight: 300 }}>{fieldErrors.email}</p>}
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#333', marginBottom: 6 }}>Password</label>
+              <label style={{ display: 'block', fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#b09090', marginBottom: 6, letterSpacing: '0.04em' }}>
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setFieldErrors((fe) => ({ ...fe, password: '' })) }}
                 autoComplete="current-password"
-                required
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = BURG)}
-                onBlur={(e)  => (e.target.style.borderColor = '#e0dbd6')}
+                onBlur={(e) => { e.target.style.borderColor = BORDER; blurPassword() }}
               />
+              {fieldErrors.password && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', margin: '4px 0 0', fontWeight: 300 }}>{fieldErrors.password}</p>}
             </div>
 
             <button
               type="submit"
               disabled={loading || googleLoading}
-              style={{ width: '100%', padding: 13, backgroundColor: BURG, color: '#fff', border: 'none', borderRadius: 5, fontSize: 13, fontWeight: 500, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1, fontFamily: sans }}
+              style={{ width: '100%', padding: '11px 0', backgroundColor: BURG, color: '#fff', border: 'none', borderRadius: 0, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1 }}
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
 
-          <p style={{ fontSize: 12, color: '#666', textAlign: 'center', marginTop: 24 }}>
+          <p style={{ fontFamily: sans, fontSize: 12, color: '#666', textAlign: 'center', marginTop: 24 }}>
             New business?{' '}
             <Link to="/signup" style={{ color: BURG, textDecoration: 'none' }}>Create an account</Link>
             {' · '}

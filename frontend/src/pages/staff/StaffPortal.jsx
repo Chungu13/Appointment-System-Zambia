@@ -13,7 +13,6 @@ const HINT      = '#c0a8a8'
 const BORDER    = '#ede5e7'
 const OFF_WHITE = '#faf7f7'
 
-const serif = "'Cormorant Garamond', Georgia, serif"
 const sans  = "'Inter', sans-serif"
 
 const SESSION_KEY = 'beautybook_staff_key'
@@ -71,7 +70,7 @@ function KeyEntry({ onVerified }) {
         }}
       >
         <div>
-          <p style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: '#fff', margin: 0, letterSpacing: '0.02em' }}>
+          <p style={{ fontFamily: sans, fontSize: 22, fontWeight: 400, color: '#fff', margin: 0, letterSpacing: '0.02em' }}>
             Kimawa
           </p>
           <div style={{ width: 24, height: 1, backgroundColor: 'rgba(255,255,255,0.3)', margin: '16px 0 20px' }} />
@@ -91,7 +90,7 @@ function KeyEntry({ onVerified }) {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUTED, margin: '0 0 12px' }}>
             Staff portal
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 400, color: TEXT, margin: '0 0 6px', lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: sans, fontSize: 32, fontWeight: 400, color: TEXT, margin: '0 0 6px', lineHeight: 1.1 }}>
             Staff access
           </h1>
           <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 32px', lineHeight: 1.6 }}>
@@ -123,7 +122,10 @@ function KeyEntry({ onVerified }) {
                 transition: 'border-color 0.15s',
               }}
               onFocus={(e) => (e.target.style.borderColor = BURG)}
-              onBlur={(e) => (e.target.style.borderColor = BORDER)}
+              onBlur={(e) => {
+                e.target.style.borderColor = BORDER
+                if (!key.trim()) setError('Please enter your salon access key.')
+              }}
             />
             {error && (
               <p style={{ fontFamily: sans, fontSize: 11, color: '#b91c1c', margin: 0, lineHeight: 1.5 }}>
@@ -186,7 +188,7 @@ function AppointmentCard({ appt, faded }) {
     }}>
       {/* Time block */}
       <div style={{ flexShrink: 0, width: 52, paddingTop: 2 }}>
-        <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: 0, lineHeight: 1 }}>
+        <p style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: TEXT, margin: 0, lineHeight: 1 }}>
           {t}
         </p>
         <p style={{ fontFamily: sans, fontSize: 9, fontWeight: 300, color: HINT, margin: '3px 0 0', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
@@ -258,11 +260,11 @@ function DaySchedule({ staffKey, onSignOut }) {
             <p style={{ fontFamily: sans, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', margin: '0 0 8px' }}>
               Today
             </p>
-            <h1 style={{ fontFamily: serif, fontSize: 26, fontWeight: 400, color: '#fff', margin: 0, lineHeight: 1.1 }}>
+            <h1 style={{ fontFamily: sans, fontSize: 26, fontWeight: 400, color: '#fff', margin: 0, lineHeight: 1.1 }}>
               {new Date().toLocaleDateString('en-ZM', { weekday: 'long', day: 'numeric', month: 'long' })}
             </h1>
             {isFiltering && filtered[0]?.staffName && (
-              <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: 'rgba(255,255,255,0.65)', margin: '6px 0 0', lineHeight: 1.1 }}>
+              <p style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: 'rgba(255,255,255,0.65)', margin: '6px 0 0', lineHeight: 1.1 }}>
                 {filtered[0].staffName}
               </p>
             )}
@@ -334,7 +336,7 @@ function DaySchedule({ staffKey, onSignOut }) {
 
         {!todayLoading && todayAppts.length === 0 && (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
-            <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>All clear</p>
+            <p style={{ fontFamily: sans, fontSize: 28, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>All clear</p>
             <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>
               No appointments scheduled for today.
             </p>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
@@ -10,16 +10,38 @@ const DARK_BURG = '#4A1A25'
 const TEXT      = '#1a0a0d'
 const MUTED     = '#b09090'
 const BORDER    = '#ede5e7'
-const OFF_WHITE = '#faf7f7'
 
-const serif = '"Cormorant Garamond", Georgia, serif'
-const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
+const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const PUBLIC_REST_URL = (
   import.meta.env.VITE_PUBLIC_API_URL || 'http://localhost:8000/graphql/'
 ).replace(/\/graphql\/?$/, '')
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+
+const PW_RULES = [
+  { label: 'At least 8 characters',  test: (pw) => pw.length >= 8 },
+  { label: 'At least one letter',     test: (pw) => /[a-zA-Z]/.test(pw) },
+  { label: 'At least one number',     test: (pw) => /[0-9]/.test(pw) },
+]
+
+function PasswordChecklist({ password }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 8 }}>
+      {PW_RULES.map((rule) => {
+        const met = rule.test(password)
+        return (
+          <div key={rule.label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, backgroundColor: met ? '#16a34a' : BORDER, transition: 'background-color 0.15s' }} />
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: met ? '#16a34a' : MUTED, transition: 'color 0.15s' }}>
+              {rule.label}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 function StepIndicator({ step }) {
   return (
@@ -38,7 +60,7 @@ function Label({ children }) {
   )
 }
 
-function Input({ style: override = {}, ...props }) {
+function Input({ onBlur: outerBlur, style: override = {}, ...props }) {
   return (
     <input
       style={{
@@ -50,7 +72,7 @@ function Input({ style: override = {}, ...props }) {
         ...override,
       }}
       onFocus={(e) => (e.target.style.borderColor = BURG)}
-      onBlur={(e) => (e.target.style.borderColor = BORDER)}
+      onBlur={(e) => { e.target.style.borderColor = BORDER; outerBlur?.() }}
       {...props}
     />
   )
@@ -69,16 +91,20 @@ export default function SignupStep1() {
   const navigate    = useNavigate()
   const { setStep1 } = useSignup()
 
-  const [form, setForm] = useState({ fullName: '', email: '', password: '' })
-  const [agreed, setAgreed] = useState(false)
-  const [showPw, setShowPw] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [form, setForm]               = useState({ fullName: '', email: '', password: '' })
+  const [agreed, setAgreed]           = useState(false)
+  const [showPw, setShowPw]           = useState(false)
+  const [pwTouched, setPwTouched]     = useState(false)
+  const [errors, setErrors]           = useState({})
   const [googleError, setGoogleError] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
 
   const formLoadTime = useRef(Date.now())
   const honeypotRef  = useRef(null)
+
+  const pwMet = PW_RULES.map((r) => r.test(form.password))
+  const pwValid = pwMet.every(Boolean)
 
   function set(k) {
     return (e) => {
@@ -87,24 +113,32 @@ export default function SignupStep1() {
     }
   }
 
+  function blurValidate(field) {
+    if (field === 'fullName' && !form.fullName.trim()) {
+      setErrors((er) => ({ ...er, fullName: 'Required' }))
+    }
+    if (field === 'email') {
+      if (!form.email.trim()) setErrors((er) => ({ ...er, email: 'Required' }))
+      else if (!form.email.includes('@') || !form.email.includes('.')) setErrors((er) => ({ ...er, email: 'Enter a valid email address' }))
+    }
+    if (field === 'password' && pwTouched && !pwValid) {
+      setErrors((er) => ({ ...er, password: 'Please meet all the requirements above' }))
+    }
+  }
+
   function validate() {
     const errs = {}
     if (!form.fullName.trim()) errs.fullName = 'Required'
     if (!form.email.trim() || !form.email.includes('@')) errs.email = 'Enter a valid email'
-    if (form.password.length < 8) errs.password = 'At least 8 characters'
+    if (!pwValid) errs.password = 'Please meet all the requirements above'
     if (!agreed) errs.terms = 'You must agree to the terms to continue'
     return errs
   }
 
   function handleSubmit(e) {
     e.preventDefault()
-
-    // Honeypot: silently do nothing if a bot filled the hidden field.
-    // Uncontrolled input — read directly from the DOM so React's reconciliation
-    // can't reset the value before we check it.
     if (honeypotRef.current?.value) return
 
-    // Time-based check: reject if form submitted in under 5 seconds
     const elapsed = (Date.now() - formLoadTime.current) / 1000
     if (elapsed < 5) {
       setErrors({ terms: 'Please take a moment to fill in the form.' })
@@ -112,12 +146,7 @@ export default function SignupStep1() {
     }
 
     const errs = validate()
-
-    // Require Turnstile token when site key is configured
-    if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      errs.turnstile = 'Please complete the security check.'
-    }
-
+    if (TURNSTILE_SITE_KEY && !turnstileToken) errs.turnstile = 'Please complete the security check.'
     if (Object.keys(errs).length) { setErrors(errs); return }
 
     setStep1({
@@ -170,23 +199,15 @@ export default function SignupStep1() {
       {/* Left brand panel */}
       <div
         className="hidden sm:flex"
-        style={{
-          width: 240, minWidth: 240,
-          background: DARK_BURG,
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '48px 32px',
-        }}
+        style={{ width: 240, minWidth: 240, background: DARK_BURG, flexDirection: 'column', justifyContent: 'space-between', padding: '48px 32px' }}
       >
-        <div>
-          <span style={{ fontFamily: serif, fontSize: 20, color: '#fff', fontWeight: 400, letterSpacing: '0.04em' }}>
-            Kimawa
-          </span>
-        </div>
-        <p style={{ fontFamily: serif, fontSize: 17, color: 'rgba(255,255,255,0.55)', fontStyle: 'italic', fontWeight: 300, lineHeight: 1.6 }}>
+        <span style={{ fontFamily: sans, fontSize: 20, color: '#fff', fontWeight: 400, letterSpacing: '0.04em' }}>
+          Kimawa
+        </span>
+        <p style={{ fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: 300, lineHeight: 1.7, margin: 0 }}>
           Your salon,<br />always open.
         </p>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 300, letterSpacing: '0.08em' }}>
+        <span style={{ fontFamily: sans, fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 300, letterSpacing: '0.08em' }}>
           kimawa.pro
         </span>
       </div>
@@ -196,13 +217,13 @@ export default function SignupStep1() {
         <div style={{ width: '100%', maxWidth: 360 }}>
           <StepIndicator step={1} />
 
-          <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 10 }}>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 10 }}>
             New Business
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: TEXT, margin: '0 0 6px', lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: sans, fontSize: 28, fontWeight: 400, color: TEXT, margin: '0 0 6px', lineHeight: 1.2 }}>
             Create your account
           </h1>
-          <p style={{ fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 28px' }}>
+          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 28px' }}>
             Already have an account?{' '}
             <Link to="/login" style={{ color: BURG, textDecoration: 'none' }}>Sign in</Link>
           </p>
@@ -224,19 +245,16 @@ export default function SignupStep1() {
             {googleLoading ? 'Verifying…' : 'Continue with Google'}
           </button>
 
-          {googleError && (
-            <p style={{ fontSize: 12, color: '#dc2626', marginTop: 6 }}>{googleError}</p>
-          )}
+          {googleError && <p style={{ fontFamily: sans, fontSize: 12, color: '#dc2626', marginTop: 6, fontWeight: 300 }}>{googleError}</p>}
 
-          {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
             <div style={{ flex: 1, height: '0.5px', background: BORDER }} />
-            <span style={{ fontSize: 11, color: MUTED, fontWeight: 300 }}>or</span>
+            <span style={{ fontFamily: sans, fontSize: 11, color: MUTED, fontWeight: 300 }}>or</span>
             <div style={{ flex: 1, height: '0.5px', background: BORDER }} />
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Honeypot — hidden from real users, bots fill it */}
+            {/* Honeypot */}
             <input
               ref={honeypotRef}
               type="text"
@@ -250,14 +268,27 @@ export default function SignupStep1() {
 
             <div>
               <Label>Full name</Label>
-              <Input value={form.fullName} onChange={set('fullName')} placeholder="Your full name" autoComplete="name" />
-              {errors.fullName && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.fullName}</p>}
+              <Input
+                value={form.fullName}
+                onChange={set('fullName')}
+                placeholder="Your full name"
+                autoComplete="name"
+                onBlur={() => blurValidate('fullName')}
+              />
+              {errors.fullName && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.fullName}</p>}
             </div>
 
             <div>
               <Label>Email address</Label>
-              <Input value={form.email} onChange={set('email')} type="email" placeholder="you@example.com" autoComplete="email" />
-              {errors.email && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.email}</p>}
+              <Input
+                value={form.email}
+                onChange={set('email')}
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                onBlur={() => blurValidate('email')}
+              />
+              {errors.email && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.email}</p>}
             </div>
 
             <div>
@@ -265,11 +296,12 @@ export default function SignupStep1() {
               <div style={{ position: 'relative' }}>
                 <Input
                   value={form.password}
-                  onChange={set('password')}
+                  onChange={(e) => { set('password')(e); setPwTouched(true) }}
                   type={showPw ? 'text' : 'password'}
-                  placeholder="At least 8 characters"
+                  placeholder="Create a password"
                   autoComplete="new-password"
                   style={{ paddingRight: 40 }}
+                  onBlur={() => blurValidate('password')}
                 />
                 <button
                   type="button"
@@ -279,20 +311,15 @@ export default function SignupStep1() {
                   {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
-              {errors.password && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.password}</p>}
+              {pwTouched && <PasswordChecklist password={form.password} />}
+              {errors.password && !pwTouched && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.password}</p>}
             </div>
 
-            {/* Terms */}
             <div>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
                 <div
                   onClick={() => setAgreed((v) => !v)}
-                  style={{
-                    marginTop: 2, width: 14, height: 14, flexShrink: 0,
-                    border: `0.5px solid ${agreed ? BURG : BORDER}`,
-                    background: agreed ? BURG : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
+                  style={{ marginTop: 2, width: 14, height: 14, flexShrink: 0, border: `0.5px solid ${agreed ? BURG : BORDER}`, background: agreed ? BURG : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   {agreed && (
                     <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
@@ -300,17 +327,16 @@ export default function SignupStep1() {
                     </svg>
                   )}
                 </div>
-                <span style={{ fontSize: 11, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>
+                <span style={{ fontFamily: sans, fontSize: 11, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>
                   I agree to Kimawa's{' '}
                   <a href="#" style={{ color: BURG }}>Terms of Service</a>
                   {' '}and{' '}
                   <a href="#" style={{ color: BURG }}>Privacy Policy</a>
                 </span>
               </label>
-              {errors.terms && <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.terms}</p>}
+              {errors.terms && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.terms}</p>}
             </div>
 
-            {/* Cloudflare Turnstile */}
             {TURNSTILE_SITE_KEY && (
               <div>
                 <Turnstile
@@ -319,22 +345,13 @@ export default function SignupStep1() {
                   onExpire={() => setTurnstileToken('')}
                   options={{ theme: 'light', size: 'normal' }}
                 />
-                {errors.turnstile && (
-                  <p style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.turnstile}</p>
-                )}
+                {errors.turnstile && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.turnstile}</p>}
               </div>
             )}
 
             <button
               type="submit"
-              style={{
-                width: '100%', padding: '11px 0',
-                background: BURG, color: '#fff',
-                border: 'none', borderRadius: 0,
-                fontSize: 11, fontWeight: 500, letterSpacing: '0.12em',
-                textTransform: 'uppercase', cursor: 'pointer', fontFamily: sans,
-                marginTop: 4,
-              }}
+              style={{ width: '100%', padding: '11px 0', background: BURG, color: '#fff', border: 'none', borderRadius: 0, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', marginTop: 4 }}
             >
               Continue
             </button>
