@@ -29,7 +29,7 @@ const MORE_LINKS = [
   { to: '/owner/staff',     icon: Users,    label: 'Staff' },
   { to: '/owner/profile',   icon: User,     label: 'Profile' },
   { to: '/owner/settings',  icon: Settings, label: 'Settings' },
-  { to: '/how-it-works',    icon: HelpCircle, label: 'Support' },
+  { to: '/owner/support',   icon: HelpCircle, label: 'Support' },
 ]
 
 export default function BottomNav() {

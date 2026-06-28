@@ -34,7 +34,7 @@ const mainLinks = [
 const bottomLinks = [
   { to: '/owner/settings', icon: Settings,   label: 'Settings', id: 'tour-settings' },
   { to: '/owner/profile',  icon: User,       label: 'Profile',  id: 'tour-profile'  },
-  { to: '/how-it-works',   icon: HelpCircle, label: 'Support' },
+  { to: '/owner/support',  icon: HelpCircle, label: 'Support' },
 ]
 
 const BUSINESS_TYPE_LABELS = {

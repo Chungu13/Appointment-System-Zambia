@@ -40,6 +40,7 @@ const Analytics      = lazy(() => import('./pages/owner/Analytics'))
 const Settings       = lazy(() => import('./pages/owner/Settings'))
 const Portfolio      = lazy(() => import('./pages/owner/Portfolio'))
 const Profile        = lazy(() => import('./pages/owner/Profile'))
+const Support        = lazy(() => import('./pages/owner/Support'))
 const PendingApproval = lazy(() => import('./pages/owner/PendingApproval'))
 
 // Staff portal
@@ -142,6 +143,7 @@ export default function App() {
                           <Route path="portfolio" element={<Portfolio />} />
                           <Route path="settings" element={<Settings />} />
                           <Route path="profile" element={<Profile />} />
+                          <Route path="support" element={<Support />} />
                         </Routes>
                       </AppShell>
                     </ProtectedRoute>
