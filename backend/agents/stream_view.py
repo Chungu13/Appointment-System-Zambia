@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import secrets
 import urllib.parse
 import urllib.request
@@ -11,6 +12,36 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
+
+_PHONE_RE = re.compile(r'^[\d\s\-+().]{7,18}$')
+
+def _looks_like_phone(msg: str) -> bool:
+    return bool(_PHONE_RE.match(msg.strip()))
+
+def _count_phone_rejections(history: list) -> int:
+    """
+    Count prior invalid-phone rejections using two independent signals so the
+    limit holds whether or not the AI called the validate_phone_number tool.
+    """
+    tool_count = 0
+    msg_count  = 0
+    for m in history:
+        role    = m.get("role")
+        content = m.get("content") or ""
+        if role == "tool" and isinstance(content, str):
+            try:
+                c = json.loads(content)
+                if isinstance(c, dict) and c.get("valid") is False:
+                    tool_count += 1
+            except (json.JSONDecodeError, TypeError):
+                pass
+        elif role == "assistant" and isinstance(content, str):
+            low = content.lower()
+            if "valid" in low and "number" in low and any(
+                w in low for w in ("mtn", "airtel", "zamtel", "mobile money")
+            ):
+                msg_count += 1
+    return max(tool_count, msg_count)
 
 
 def _get_client_ip(request):
@@ -136,6 +167,24 @@ def chat_stream(request):
     from agents.booking import BookingAgent, load_history, save_history
 
     history = load_history(session_id)
+
+    # Enforce 2-attempt phone limit in Python — before the AI sees the message.
+    # Works regardless of whether the AI called validate_phone_number or not.
+    if _looks_like_phone(message) and _count_phone_rejections(history) >= 2:
+        stop_msg = (
+            "I'm unable to process your booking without a valid number. "
+            "Please start a new chat to try again."
+        )
+
+        def _stop_stream():
+            yield f"data: {json.dumps({'token': stop_msg})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
+
+        resp = StreamingHttpResponse(_stop_stream(), content_type="text/event-stream")
+        resp["Cache-Control"] = "no-cache"
+        resp["X-Accel-Buffering"] = "no"
+        return resp
+
     agent = BookingAgent(request.tenant)
 
     def event_stream():
