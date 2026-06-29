@@ -4,6 +4,6 @@
   "installCommand": "cd frontend && npm install --include=dev",
   "framework": null,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?:[^/]+/)*[^./]+)", "destination": "/index.html" }
   ]
 }
