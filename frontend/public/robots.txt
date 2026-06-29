@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /owner/
+Disallow: /staff/
+Disallow: /signup/
+Disallow: /login/
+
+Sitemap: https://kimawa.pro/sitemap.xml
