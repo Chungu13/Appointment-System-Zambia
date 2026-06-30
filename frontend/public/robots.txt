@@ -7,3 +7,4 @@ Disallow: /signup/
 Disallow: /login/
 
 Sitemap: https://kimawa.pro/sitemap.xml
+Sitemap: https://api.kimawa.pro/salon-sitemap.xml
