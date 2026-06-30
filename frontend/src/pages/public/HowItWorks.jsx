@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
@@ -81,6 +82,11 @@ function StepCard({ step, dark }) {
 export default function HowItWorks() {
   return (
     <div style={{ fontFamily: sans }}>
+      <Helmet>
+        <title>How It Works — Kimawa Beauty Booking Zambia</title>
+        <meta name="description" content="See how Kimawa works for customers and salon owners in Zambia. Find a salon, book in seconds, get reminders — no account needed." />
+        <link rel="canonical" href="https://kimawa.pro/how-it-works" />
+      </Helmet>
       <LandingNav />
 
       {/* ── Hero ── */}

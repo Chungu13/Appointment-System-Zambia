@@ -1,4 +1,5 @@
 import { Check, Phone, CalendarX, MessageSquare, Bot, CreditCard, Zap, Globe, Users, Calendar } from 'lucide-react'
+import { Helmet } from 'react-helmet-async'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
@@ -40,6 +41,13 @@ const STATS = [
 export default function ForBusinesses() {
   return (
     <div style={{ fontFamily: sans }}>
+      <Helmet>
+        <title>List Your Salon on Kimawa — Free Beauty Booking Software Zambia</title>
+        <meta name="description" content="Get your salon on Kimawa for free. AI booking agent, WhatsApp notifications, deposit collection, and a full calendar — built for Zambian beauty businesses." />
+        <meta property="og:title" content="List Your Salon on Kimawa" />
+        <meta property="og:description" content="Free salon booking software for Zambia. AI-powered, WhatsApp-ready, zero setup fee." />
+        <link rel="canonical" href="https://kimawa.pro/for-businesses" />
+      </Helmet>
       <LandingNav />
 
       {/* ── Hero ── */}

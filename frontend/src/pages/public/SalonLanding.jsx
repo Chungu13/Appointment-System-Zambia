@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useQuery } from "@apollo/client/react";
 import {
   MapPin,
@@ -1302,8 +1303,24 @@ export default function SalonLanding() {
     setChatOpen(true);
   }
 
+  const canonicalSlug = window.location.hostname.split('.')[0]
+  const locationStr = [profile.area, profile.city].filter(Boolean).join(', ')
+  const typeLabel = TYPE_LABELS[profile.businessType] ?? 'Beauty Salon'
+  const metaTitle = `${profile.businessName} — ${typeLabel} in ${locationStr || 'Zambia'} | Book Online`
+  const metaDesc = `Book appointments at ${profile.businessName}, a ${typeLabel.toLowerCase()} in ${locationStr || 'Zambia'}. Online booking, instant confirmation.`
+
   return (
     <div style={{ backgroundColor: "#fff" }}>
+      <Helmet>
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDesc} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDesc} />
+        <meta property="og:type" content="local.business" />
+        <meta property="og:url" content={`https://${canonicalSlug}.kimawa.pro`} />
+        {profile.coverImageUrl && <meta property="og:image" content={profile.coverImageUrl} />}
+        <link rel="canonical" href={`https://${canonicalSlug}.kimawa.pro`} />
+      </Helmet>
       <style>{`
         .salon-hero { height: 400px; }
         .salon-hero-name { font-size: 52px; }

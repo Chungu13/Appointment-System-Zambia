@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client/react'
+import { Helmet } from 'react-helmet-async'
 import { publicClient } from '../../lib/apollo'
 import { ALL_SALONS } from '../../graphql/queries/salons'
 import LandingNav from '../../components/landing/LandingNav'
@@ -241,6 +242,15 @@ function BottomCTA() {
 export default function SalonDirectory() {
   return (
     <div style={{ backgroundColor: '#fff' }}>
+      <Helmet>
+        <title>Kimawa — Book Beauty Salons in Zambia</title>
+        <meta name="description" content="Find and book hair salons, nail technicians, spas and beauty services in Lusaka and across Zambia. Instant online booking, AI-powered." />
+        <meta property="og:title" content="Kimawa — Book Beauty Salons in Zambia" />
+        <meta property="og:description" content="Lusaka's beauty booking platform. Hair, nails, lashes, spas — book online instantly." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kimawa.pro" />
+        <link rel="canonical" href="https://kimawa.pro" />
+      </Helmet>
       <LandingNav />
       <Hero />
       <StatsBar />
