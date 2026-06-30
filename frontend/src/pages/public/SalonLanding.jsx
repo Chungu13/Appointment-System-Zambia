@@ -1308,6 +1308,41 @@ export default function SalonLanding() {
   const typeLabel = TYPE_LABELS[profile.businessType] ?? 'Beauty Salon'
   const metaTitle = `${profile.businessName} — ${typeLabel} in ${locationStr || 'Zambia'} | Book Online`
   const metaDesc = `Book appointments at ${profile.businessName}, a ${typeLabel.toLowerCase()} in ${locationStr || 'Zambia'}. Online booking, instant confirmation.`
+  const salonUrl = `https://${canonicalSlug}.kimawa.pro`
+
+  const SCHEMA_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BeautySalon",
+    "name": profile.businessName,
+    "url": salonUrl,
+    "telephone": profile.phone,
+    "priceRange": "ZMW",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": profile.address || undefined,
+      "addressLocality": profile.area || profile.city,
+      "addressRegion": profile.city,
+      "addressCountry": "ZM"
+    },
+    ...(profile.coverImageUrl ? { "image": profile.coverImageUrl } : {}),
+    "openingHoursSpecification": profile.openingHours
+      ?.filter((h) => !h.isClosed && h.opensAt && h.closesAt)
+      .map((h) => ({
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": `https://schema.org/${SCHEMA_DAYS[h.dayOfWeek]}`,
+        "opens": h.opensAt,
+        "closes": h.closesAt,
+      })),
+    "makesOffer": profile.services
+      ?.filter((s) => s.isActive)
+      .map((s) => ({
+        "@type": "Offer",
+        "itemOffered": { "@type": "Service", "name": s.name },
+        "priceCurrency": "ZMW",
+        "price": s.priceZmw,
+      })),
+  }
 
   return (
     <div style={{ backgroundColor: "#fff" }}>
@@ -1317,9 +1352,10 @@ export default function SalonLanding() {
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDesc} />
         <meta property="og:type" content="local.business" />
-        <meta property="og:url" content={`https://${canonicalSlug}.kimawa.pro`} />
+        <meta property="og:url" content={salonUrl} />
         {profile.coverImageUrl && <meta property="og:image" content={profile.coverImageUrl} />}
-        <link rel="canonical" href={`https://${canonicalSlug}.kimawa.pro`} />
+        <link rel="canonical" href={salonUrl} />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
       <style>{`
         .salon-hero { height: 400px; }
