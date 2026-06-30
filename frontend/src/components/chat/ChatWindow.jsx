@@ -834,7 +834,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
         <div ref={bottomRef} />
       </div>
 
-      <ChatInputBar onSend={sendMessage} loading={loading} disabled={verifying || limitReached || sessionEnded} />
+      <ChatInputBar onSend={sendMessage} loading={loading} disabled={limitReached || sessionEnded} />
     </div>
   );
 }
