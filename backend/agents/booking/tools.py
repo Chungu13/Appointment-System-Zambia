@@ -2,23 +2,6 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_addons",
-            "description": "List add-on services available to pair with a primary booking. Returns only active services with no deposit (deposit_zmw = 0), excluding the main service.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "main_service_id": {
-                        "type": "integer",
-                        "description": "ID of the primary service being booked. This service is excluded from results.",
-                    },
-                },
-                "required": ["main_service_id"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "get_services",
             "description": "List available services at the salon, optionally filtered by category.",
             "parameters": {
@@ -103,11 +86,6 @@ TOOLS = [
                         "description": "Phone number for booking confirmation and reminder notifications. May differ from customer_phone/mobile_money_phone. Always pass this — set it to the customer's confirmed notification number from Step 2b.",
                     },
                     "notes": {"type": "string", "description": "Optional customer notes."},
-                    "addon_service_ids": {
-                        "type": "array",
-                        "items": {"type": "integer"},
-                        "description": "IDs of add-on services to include. Pass [] if none were selected.",
-                    },
                 },
                 "required": ["service_id", "staff_id", "starts_at", "customer_name", "customer_phone", "notification_phone"],
             },

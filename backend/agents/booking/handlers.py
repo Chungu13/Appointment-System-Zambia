@@ -28,16 +28,6 @@ def _calculate_customer_total(deposit_zmw: float) -> float:
     return round(total, 2)
 
 
-def handle_get_addons(inputs: dict) -> dict:
-    from services.models import Service
-    main_id = inputs.get("main_service_id")
-    qs = Service.objects.filter(is_active=True, deposit_zmw=0)
-    if main_id:
-        qs = qs.exclude(pk=main_id)
-    rows = list(qs.values("id", "name", "category", "duration_minutes"))
-    return {"addons": rows}
-
-
 def handle_get_services(inputs: dict) -> dict:
     from services.models import Service
     qs = Service.objects.filter(is_active=True)
@@ -278,10 +268,7 @@ def handle_create_booking(
     except Exception:
         return {"error": f"Invalid datetime '{inputs['starts_at']}'."}
 
-    addon_ids = [int(i) for i in inputs.get("addon_service_ids", []) if i]
-    addon_objs = list(Service.objects.filter(pk__in=addon_ids, is_active=True)) if addon_ids else []
-    addon_duration = sum(s.duration_minutes for s in addon_objs)
-    ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes + addon_duration)
+    ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
 
     resolved_phone = (inputs.get("customer_phone") or "").strip() or customer_phone.strip()
     if not resolved_phone or not is_valid_zambian_phone(resolved_phone):
@@ -317,8 +304,6 @@ def handle_create_booking(
             notification_phone=inputs.get("notification_phone", ""),
             chat_session_id=session_id,
         )
-        if addon_objs:
-            appt.addon_services.set(addon_objs)
 
     AgentLog.objects.create(
         agent_type="booking",

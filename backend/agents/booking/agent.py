@@ -23,9 +23,7 @@ class BookingAgent:
         session_id = getattr(self, "_session_id", "")
         last_slots = getattr(self, "_last_availability_slots", [])
 
-        if name == "get_addons":
-            return handlers.handle_get_addons(inputs)
-        elif name == "get_services":
+        if name == "get_services":
             return handlers.handle_get_services(inputs)
         elif name == "check_availability":
             result, slots = handlers.handle_check_availability(inputs)
