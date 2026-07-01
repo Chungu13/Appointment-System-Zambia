@@ -173,9 +173,6 @@ export default function Login() {
         style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 56px' }}
       >
         <div style={{ width: '100%', maxWidth: 380 }}>
-          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: BURG, marginBottom: 12 }}>
-            Owner portal
-          </p>
           <h1 style={{ fontFamily: sans, fontSize: 28, fontWeight: 500, color: '#1a1a1a', margin: '0 0 8px', lineHeight: 1.2 }}>
             Sign in
           </h1>

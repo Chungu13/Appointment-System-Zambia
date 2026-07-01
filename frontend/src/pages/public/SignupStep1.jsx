@@ -6,7 +6,7 @@ import { Turnstile } from '@marsidev/react-turnstile'
 import { useSignup } from '../../context/SignupContext'
 
 const BURG      = '#6B2737'
-const DARK_BURG = '#4A1A25'
+const DARK_BURG = '#1A0A0D'
 const TEXT      = '#1a0a0d'
 const MUTED     = '#b09090'
 const BORDER    = '#ede5e7'

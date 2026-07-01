@@ -6,7 +6,7 @@ import { VERIFY_STAFF_KEY } from '../../graphql/mutations/tenant'
 import { toDateInputValue, addDays, formatTime } from '../../lib/utils'
 
 const BURG      = '#6B2737'
-const DARK_BURG = '#4A1A25'
+const DARK_BURG = '#1A0A0D'
 const TEXT      = '#1a0a0d'
 const MUTED     = '#b09090'
 const HINT      = '#c0a8a8'
@@ -87,9 +87,6 @@ function KeyEntry({ onVerified }) {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
         <div style={{ width: '100%', maxWidth: 340 }}>
 
-          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUTED, margin: '0 0 12px' }}>
-            Staff portal
-          </p>
           <h1 style={{ fontFamily: sans, fontSize: 32, fontWeight: 400, color: TEXT, margin: '0 0 6px', lineHeight: 1.1 }}>
             Staff access
           </h1>
@@ -107,14 +104,14 @@ function KeyEntry({ onVerified }) {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: '13px 16px',
+                padding: '10px 14px',
                 border: `0.5px solid ${BORDER}`,
                 borderRadius: 0,
-                fontSize: 18,
+                fontSize: 12,
                 fontFamily: sans,
-                fontWeight: 600,
+                fontWeight: 500,
                 textAlign: 'center',
-                letterSpacing: '0.22em',
+                letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 color: TEXT,
                 backgroundColor: OFF_WHITE,
@@ -137,7 +134,7 @@ function KeyEntry({ onVerified }) {
               disabled={!key.trim() || loading}
               style={{
                 width: '100%',
-                padding: '13px 0',
+                padding: '11px 0',
                 borderRadius: 0,
                 backgroundColor: BURG,
                 color: '#fff',
