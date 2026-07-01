@@ -378,7 +378,7 @@ class BookingsMutation:
         import datetime as dt
         from django.utils import timezone
 
-        require_auth(info)
+        user = require_auth(info)
 
         appt = (
             Appointment.objects
@@ -419,7 +419,7 @@ class BookingsMutation:
 
         AppointmentHistory.objects.create(
             appointment=appt,
-            changed_by=info.context.request.user,
+            changed_by=user,
             old_status="cancelled",
             new_status="confirmed",
             note=f"Rebooked from {old_starts:%Y-%m-%d %H:%M} to {new_starts_at:%Y-%m-%d %H:%M}",
