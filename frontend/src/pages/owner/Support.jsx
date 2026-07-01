@@ -12,7 +12,7 @@ const sans   = "'Inter', sans-serif"
 const FAQS = [
   {
     q: 'How do customers book through the AI agent?',
-    a: 'Customers click the chat button on your public salon page. The AI asks them which service they want, shows available times, and takes them through payment — no manual involvement needed from you.',
+    a: 'Customers click the chat button on your public salon page. The AI asks them which service they want, shows available times, and takes them through payment. No manual involvement needed from you.',
   },
   {
     q: 'What is the deposit and who receives it?',
@@ -39,7 +39,7 @@ const FAQS = [
     a: 'Go to Settings to update your business name, hours, policies, and AI assistant behaviour.',
   },
   {
-    q: 'My question isn\'t answered here — how do I get help?',
+    q: 'My question isn\'t answered here. How do I get help?',
     a: 'Email us at kimawa@gmail.com and we\'ll get back to you as soon as possible.',
   },
 ]
@@ -63,7 +63,7 @@ function FaqItem({ q, a }) {
           : <ChevronDown size={16} color={MUTED} style={{ flexShrink: 0 }} />}
       </button>
       {open && (
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, lineHeight: 1.8, margin: '0 0 16px' }}>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, lineHeight: 1.8, margin: '0 0 16px' }}>
           {a}
         </p>
       )}

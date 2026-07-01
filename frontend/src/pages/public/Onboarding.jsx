@@ -884,7 +884,7 @@ function PoliciesStep({ policies, setPolicies }) {
       {/* Waiting time */}
       <PolicySection title="How long should customers expect to wait if you're running behind?">
         {[
-          'We run on time — no waiting',
+          'We run on time, no waiting',
           'Allow up to 15 minutes waiting time',
           'Allow up to 30 minutes waiting time',
         ].map((opt) => (
@@ -906,7 +906,7 @@ function PoliciesStep({ policies, setPolicies }) {
           'Reference photos',
           'Their own hair extensions',
           'Their own nail polish colour',
-          'Nothing — we provide everything',
+          'Nothing, we provide everything',
         ].map((opt) => (
           <CheckOption
             key={opt}
@@ -933,7 +933,7 @@ function PoliciesStep({ policies, setPolicies }) {
           'Free parking on site',
           'Paid parking nearby',
           'Street parking available',
-          'No parking — public transport recommended',
+          'No parking, public transport recommended',
         ].map((opt) => (
           <RadioOption
             key={opt}

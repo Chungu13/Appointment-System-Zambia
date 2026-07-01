@@ -673,7 +673,7 @@ function BusinessPoliciesCard({ current }) {
 
         <div style={divider}>
           <PolicyGroup title="How long should customers expect to wait if running behind?">
-            {['We run on time — no waiting', 'Allow up to 15 minutes waiting time', 'Allow up to 30 minutes waiting time'].map((opt) => (
+            {['We run on time, no waiting', 'Allow up to 15 minutes waiting time', 'Allow up to 30 minutes waiting time'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.waitingTime} onChange={(v) => set('waitingTime', v)} />
             ))}
             <PolicyRadio label="Other" value="other" current={form.waitingTime} onChange={(v) => set('waitingTime', v)}>
@@ -684,7 +684,7 @@ function BusinessPoliciesCard({ current }) {
 
         <div style={divider}>
           <PolicyGroup title="What should customers bring? (select all that apply)">
-            {['Reference photos', 'Their own hair extensions', 'Their own nail polish colour', 'Nothing — we provide everything'].map((opt) => (
+            {['Reference photos', 'Their own hair extensions', 'Their own nail polish colour', 'Nothing, we provide everything'].map((opt) => (
               <CheckItem key={opt} label={opt} checked={form.whatToBring.includes(opt)} onChange={() => toggleBring(opt)} />
             ))}
             <div>
@@ -696,7 +696,7 @@ function BusinessPoliciesCard({ current }) {
 
         <div style={divider}>
           <PolicyGroup title="Parking">
-            {['Free parking on site', 'Paid parking nearby', 'Street parking available', 'No parking — public transport recommended'].map((opt) => (
+            {['Free parking on site', 'Paid parking nearby', 'Street parking available', 'No parking, public transport recommended'].map((opt) => (
               <PolicyRadio key={opt} label={opt} value={opt} current={form.parking} onChange={(v) => set('parking', v)} />
             ))}
             <PolicyRadio label="Other" value="other" current={form.parking} onChange={(v) => set('parking', v)}>
