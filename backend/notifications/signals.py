@@ -16,10 +16,10 @@ def on_appointment_status_changed(sender, instance, old_status, new_status, sche
     try:
         if new_status == Appointment.STATUS_CONFIRMED:
             from notifications.tasks import notify_booking_confirmed
-            notify_booking_confirmed.delay(instance.pk, schema_name)
+            notify_booking_confirmed(instance.pk, schema_name)
         elif new_status == Appointment.STATUS_CANCELLED:
             from notifications.tasks import notify_booking_cancelled
-            notify_booking_cancelled.delay(instance.pk, schema_name)
+            notify_booking_cancelled(instance.pk, schema_name)
     except Exception:
         logger.exception(
             "on_appointment_status_changed: failed to enqueue notification for pk=%s status=%s",

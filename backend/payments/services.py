@@ -221,3 +221,5 @@ def _notify_chat_session_of_failed_payment(appt) -> None:
         )
     except Exception:
         logger.exception("[Services] Failed to inject retry system message for appt %s", appt.pk)
+
+
