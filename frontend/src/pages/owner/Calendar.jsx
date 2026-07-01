@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { ChevronLeft, ChevronRight, X, LayoutGrid, Clock, List } from 'lucide-react'
-import { MY_APPOINTMENTS } from '../../graphql/queries/bookings'
-import { UPDATE_APPOINTMENT_STATUS } from '../../graphql/mutations/bookings'
+import { MY_APPOINTMENTS, AVAILABILITY } from '../../graphql/queries/bookings'
+import { UPDATE_APPOINTMENT_STATUS, REBOOK_APPOINTMENT } from '../../graphql/mutations/bookings'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -265,11 +265,87 @@ function ListView({ days, appointments, today, onSelect, onAction }) {
   )
 }
 
+// ── Rebook modal ──────────────────────────────────────────────────────────────
+function RebookModal({ appt, onClose, onRebooked }) {
+  const [date, setDate] = useState(toDateInputValue(new Date()))
+  const [rebookErr, setRebookErr] = useState('')
+
+  const { data, loading: slotsLoading } = useQuery(AVAILABILITY, {
+    variables: { serviceId: appt.service.id, date, staffId: appt.staff.id },
+    fetchPolicy: 'network-only',
+  })
+
+  const [rebook, { loading: rebooking }] = useMutation(REBOOK_APPOINTMENT, {
+    onCompleted: () => { onRebooked(); onClose() },
+    onError: (e) => setRebookErr(e.graphQLErrors?.[0]?.message || e.message),
+  })
+
+  const slots = data?.availability ?? []
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 400, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
+          <div>
+            <h2 style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: TEXT, margin: 0 }}>Rebook appointment</h2>
+            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: '2px 0 0' }}>
+              {appt.service.name} · {appt.staff.fullName}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}><X size={18} /></button>
+        </div>
+
+        <div style={{ padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
+          <label style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 6 }}>Select date</label>
+          <input
+            type="date"
+            value={date}
+            min={toDateInputValue(new Date())}
+            onChange={(e) => { setDate(e.target.value); setRebookErr('') }}
+            style={{ border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+            onFocus={(e) => (e.target.style.borderColor = BURG)}
+            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+          />
+        </div>
+
+        <div style={{ overflowY: 'auto', padding: '12px 20px 20px', flex: 1 }}>
+          {slotsLoading && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, textAlign: 'center', padding: '24px 0' }}>Loading slots…</p>}
+          {!slotsLoading && slots.length === 0 && (
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, textAlign: 'center', padding: '24px 0' }}>No available slots on this date.</p>
+          )}
+          {!slotsLoading && slots.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {slots.map((slot) => (
+                <button
+                  key={slot.startsAt}
+                  disabled={rebooking}
+                  onClick={() => rebook({ variables: { appointmentId: appt.id, newStartsAt: slot.startsAt } })}
+                  style={{
+                    fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT,
+                    border: `0.5px solid ${BORDER}`, background: '#fff',
+                    padding: '10px 0', cursor: rebooking ? 'default' : 'pointer',
+                    transition: 'all 0.1s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = BURG; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = BURG }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = TEXT; e.currentTarget.style.borderColor = BORDER }}
+                >
+                  {formatTime(slot.startsAt)}
+                </button>
+              ))}
+            </div>
+          )}
+          {rebookErr && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 12, fontWeight: 300 }}>{rebookErr}</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Appointment modal ─────────────────────────────────────────────────────────
 const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#7a5060', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
 const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#1a0a0d', margin: 0 }
 
-function ApptModal({ appt, onClose, onAction, loading }) {
+function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -328,6 +404,9 @@ function ApptModal({ appt, onClose, onAction, loading }) {
             {!['completed', 'cancelled', 'no_show'].includes(appt.status) && (
               <Button size="sm" variant="danger" loading={loading} onClick={() => onAction(appt.id, 'CANCELLED')}>Cancel</Button>
             )}
+            {appt.status === 'cancelled' && (
+              <Button size="sm" loading={loading} onClick={onRebook}>Rebook</Button>
+            )}
           </div>
 
           {['confirmed', 'no_show'].includes(appt.status) && (
@@ -362,6 +441,7 @@ export default function Calendar() {
   const [view, _setView]      = useState(getInitialView)
   const [selDay, setSelDay]   = useState(today)
   const [selAppt, setSelAppt] = useState(null)
+  const [rebookAppt, setRebookAppt] = useState(null)
 
   function setView(v) {
     _setView(v)
@@ -594,13 +674,23 @@ export default function Calendar() {
         </div>
       )}
 
-      {/* ── Modal ── */}
+      {/* ── Appointment modal ── */}
       {selAppt && (
         <ApptModal
           appt={selAppt}
           loading={acting}
           onClose={() => setSelAppt(null)}
           onAction={(id, status) => updateStatus({ variables: { appointmentId: id, status } })}
+          onRebook={() => { setRebookAppt(selAppt); setSelAppt(null) }}
+        />
+      )}
+
+      {/* ── Rebook modal ── */}
+      {rebookAppt && (
+        <RebookModal
+          appt={rebookAppt}
+          onClose={() => setRebookAppt(null)}
+          onRebooked={() => { setRebookAppt(null); refetch() }}
         />
       )}
     </PageWrapper>

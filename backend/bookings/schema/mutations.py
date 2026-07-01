@@ -367,3 +367,69 @@ class BookingsMutation:
         )
         return appointment_to_type(appt)
 
+    @strawberry.mutation
+    def rebook_appointment(
+        self,
+        info: Info,
+        appointment_id: int,
+        new_starts_at: datetime.datetime,
+    ) -> AppointmentType:
+        """Reassign a cancelled appointment to a new time slot. No payment triggered."""
+        import datetime as dt
+        from django.utils import timezone
+
+        require_auth(info)
+
+        appt = (
+            Appointment.objects
+            .select_related("customer", "staff", "service")
+            .prefetch_related("payments")
+            .filter(pk=appointment_id)
+            .first()
+        )
+        if not appt:
+            raise ValueError("Appointment not found.")
+        if appt.status != Appointment.STATUS_CANCELLED:
+            raise ValueError("Only cancelled appointments can be rebooked.")
+
+        service = appt.service
+        new_ends_at = new_starts_at + dt.timedelta(
+            minutes=service.duration_minutes + service.buffer_minutes
+        )
+
+        conflict = (
+            Appointment.objects
+            .filter(
+                staff=appt.staff,
+                status__in=("confirmed", "in_progress"),
+                starts_at__lt=new_ends_at,
+                ends_at__gt=new_starts_at,
+            )
+            .exclude(pk=appointment_id)
+            .exists()
+        )
+        if conflict:
+            raise ValueError("That time slot is no longer available.")
+
+        old_starts = appt.starts_at
+        appt.starts_at = new_starts_at
+        appt.ends_at   = new_ends_at
+        appt.status    = Appointment.STATUS_CONFIRMED
+        appt.save(update_fields=["starts_at", "ends_at", "status", "updated_at"])
+
+        AppointmentHistory.objects.create(
+            appointment=appt,
+            changed_by=info.context.request.user,
+            old_status="cancelled",
+            new_status="confirmed",
+            note=f"Rebooked from {old_starts:%Y-%m-%d %H:%M} to {new_starts_at:%Y-%m-%d %H:%M}",
+        )
+
+        appt = (
+            Appointment.objects
+            .select_related("customer", "staff", "service")
+            .prefetch_related("payments")
+            .get(pk=appt.pk)
+        )
+        return appointment_to_type(appt)
+

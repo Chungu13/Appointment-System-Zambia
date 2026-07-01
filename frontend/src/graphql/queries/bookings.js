@@ -122,6 +122,16 @@ export const CUSTOMER_APPOINTMENTS = gql`
   }
 `
 
+export const AVAILABILITY = gql`
+  query Availability($serviceId: Int!, $date: Date!, $staffId: Int) {
+    availability(serviceId: $serviceId, date: $date, staffId: $staffId) {
+      startsAt
+      endsAt
+      staff { id fullName }
+    }
+  }
+`
+
 export const CUSTOMER_DETAIL = gql`
   query CustomerDetail($id: Int!) {
     customer(id: $id) {

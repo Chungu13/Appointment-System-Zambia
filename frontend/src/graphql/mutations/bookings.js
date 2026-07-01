@@ -55,6 +55,17 @@ export const CANCEL_BOOKING = gql`
   }
 `
 
+export const REBOOK_APPOINTMENT = gql`
+  mutation RebookAppointment($appointmentId: Int!, $newStartsAt: DateTime!) {
+    rebookAppointment(appointmentId: $appointmentId, newStartsAt: $newStartsAt) {
+      id
+      status
+      startsAt
+      endsAt
+    }
+  }
+`
+
 export const UPDATE_APPOINTMENT_STATUS = gql`
   mutation UpdateAppointmentStatus(
     $appointmentId: Int!
