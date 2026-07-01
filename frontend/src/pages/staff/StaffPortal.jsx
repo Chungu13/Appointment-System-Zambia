@@ -69,18 +69,6 @@ function KeyEntry({ onVerified }) {
           padding: '48px 32px',
         }}
       >
-        <div>
-          <p style={{ fontFamily: sans, fontSize: 22, fontWeight: 400, color: '#fff', margin: 0, letterSpacing: '0.02em' }}>
-            Kimawa
-          </p>
-          <div style={{ width: 24, height: 1, backgroundColor: 'rgba(255,255,255,0.3)', margin: '16px 0 20px' }} />
-          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7, letterSpacing: '0.02em' }}>
-            Your salon,<br />always open.
-          </p>
-        </div>
-        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: 'rgba(255,255,255,0.25)', margin: 0, letterSpacing: '0.06em' }}>
-          kimawa.pro
-        </p>
       </div>
 
       {/* Right panel — form */}

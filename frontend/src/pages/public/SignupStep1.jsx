@@ -200,17 +200,7 @@ export default function SignupStep1() {
       <div
         className="hidden sm:flex"
         style={{ width: 240, minWidth: 240, background: DARK_BURG, flexDirection: 'column', justifyContent: 'space-between', padding: '48px 32px' }}
-      >
-        <span style={{ fontFamily: sans, fontSize: 20, color: '#fff', fontWeight: 400, letterSpacing: '0.04em' }}>
-          Kimawa
-        </span>
-        <p style={{ fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: 300, lineHeight: 1.7, margin: 0 }}>
-          Your salon,<br />always open.
-        </p>
-        <span style={{ fontFamily: sans, fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 300, letterSpacing: '0.08em' }}>
-          kimawa.pro
-        </span>
-      </div>
+      />
 
       {/* Right form panel */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '48px 44px', background: '#fff' }}>
