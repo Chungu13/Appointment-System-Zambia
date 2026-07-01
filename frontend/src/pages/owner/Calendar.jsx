@@ -236,7 +236,7 @@ function ListView({ days, appointments, today, onSelect, onAction }) {
                         {appt.service.name} · {appt.staff.fullName}
                       </p>
                     </div>
-                    {appt.status === 'confirmed' ? (
+                    {['confirmed', 'no_show'].includes(appt.status) ? (
                       <button
                         onClick={(e) => { e.stopPropagation(); onAction(appt.id, 'COMPLETED') }}
                         style={{
@@ -330,7 +330,7 @@ function ApptModal({ appt, onClose, onAction, loading }) {
             )}
           </div>
 
-          {appt.status === 'confirmed' && (
+          {['confirmed', 'no_show'].includes(appt.status) && (
             <Button loading={loading} className="w-full" onClick={() => onAction(appt.id, 'COMPLETED')}>
               Mark as Completed ✓
             </Button>

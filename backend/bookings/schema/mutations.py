@@ -24,7 +24,7 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
     "confirmed":   {"completed", "cancelled", "no_show"},
     "in_progress": {"completed", "cancelled", "no_show"},
     "completed":   set(),
-    "no_show":     set(),
+    "no_show":     {"completed"},
     "cancelled":   set(),
     "expired":     set(),
 }
