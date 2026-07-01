@@ -70,7 +70,7 @@ export default function Directory() {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>
             Beauty marketplace · Zambia
           </p>
-          <h1 style={{ fontFamily: serif, fontSize: 52, fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="max-sm:text-3xl">
+          <h1 style={{ fontFamily: serif, fontSize: 52, fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="max-sm:text-lg">
             Find Your Perfect{' '}
             <em style={{ color: PRIMARY, fontStyle: 'italic' }}>Beauty Professional</em>
           </h1>
