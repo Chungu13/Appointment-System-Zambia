@@ -319,9 +319,6 @@ function ApptModal({ appt, onClose, onAction, loading }) {
           )}
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {appt.status === 'confirmed' && (
-              <Button size="sm" loading={loading} onClick={() => onAction(appt.id, 'IN_PROGRESS')}>Start</Button>
-            )}
             {appt.status === 'in_progress' && (
               <Button size="sm" loading={loading} onClick={() => onAction(appt.id, 'COMPLETED')}>Mark complete</Button>
             )}
