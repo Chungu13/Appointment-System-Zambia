@@ -10,17 +10,19 @@ logger = logging.getLogger(__name__)
 
 
 def compute_disburse_amount(deposit_zmw: float) -> float:
-    """Gross up the deposit so the business receives exactly deposit_zmw after Lipila's 1.5% fee."""
-    grossed_up = Decimal(str(deposit_zmw)) / Decimal("0.985")
-    return float(grossed_up.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+    """Amount to disburse to the salon. Lipila charges the sender (Kimawa), not the recipient,
+    so the salon receives this exact amount with nothing deducted."""
+    return float(Decimal(str(deposit_zmw)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
 def compute_kimawa_net(deposit_zmw: float, collection_amount_zmw: float) -> float:
-    """Kimawa's net: collection minus Lipila's 2.5% collection fee and the grossed-up disbursement."""
+    """Kimawa's true net: collection minus Lipila's 2.5% collection fee, the disbursement to the
+    salon, and Lipila's 1.5% disbursement sender fee (charged to Kimawa's Lipila balance)."""
     collection = Decimal(str(collection_amount_zmw))
     lipila_collection_fee = (collection * Decimal("0.025")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     disburse_amount = Decimal(str(compute_disburse_amount(deposit_zmw)))
-    return float((collection - lipila_collection_fee - disburse_amount).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+    lipila_disburse_fee = (disburse_amount * Decimal("0.015")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return float((collection - lipila_collection_fee - disburse_amount - lipila_disburse_fee).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
 LIPILA_FAILURE_MESSAGES = {
