@@ -21,7 +21,7 @@ from .types import (
 # Terminal states and the transitions that are permitted out of each state.
 _VALID_TRANSITIONS: dict[str, set[str]] = {
     "pending":     {"confirmed", "cancelled", "no_show"},
-    "confirmed":   {"in_progress", "completed", "cancelled", "no_show"},
+    "confirmed":   {"completed", "cancelled", "no_show"},
     "in_progress": {"completed", "cancelled", "no_show"},
     "completed":   set(),
     "no_show":     set(),

@@ -11,13 +11,11 @@ import { LogOut } from 'lucide-react'
 const STATUS_COLOR = {
   confirmed:   'text-emerald-800 bg-emerald-50',
   pending:     'text-amber-800 bg-amber-50',
-  in_progress: 'text-primary bg-primary-container',
 }
-const STATUS_LABEL = { confirmed: 'Confirmed', pending: 'Waiting', in_progress: 'In progress' }
+const STATUS_LABEL = { confirmed: 'Confirmed', pending: 'Waiting' }
 
 function AppointmentBlock({ appt, onDone, loading }) {
   const done = ['completed', 'cancelled', 'no_show'].includes(appt.status)
-  const inProgress = appt.status === 'in_progress'
 
   return (
     <div className={`rounded-2xl p-5 ${done ? 'opacity-60' : ''}`} style={{ backgroundColor: '#fff', border: done ? '1px solid #E8D8DC' : '1.5px solid #6B2737' }}>
@@ -39,11 +37,11 @@ function AppointmentBlock({ appt, onDone, loading }) {
       {!done && (
         <button
           disabled={loading}
-          onClick={() => onDone(appt.id, inProgress ? 'COMPLETED' : 'IN_PROGRESS')}
+          onClick={() => onDone(appt.id, 'COMPLETED')}
           disabled={loading}
           style={{ width: '100%', padding: '12px 0', borderRadius: 10, fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, backgroundColor: '#1A0A0D', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, transition: 'opacity 0.15s' }}
         >
-          {loading ? '…' : inProgress ? 'Mark as done ✓' : 'Start appointment →'}
+          {loading ? '…' : 'Mark as done ✓'}
         </button>
       )}
     </div>

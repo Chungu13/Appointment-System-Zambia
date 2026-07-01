@@ -141,7 +141,7 @@ def detect_no_shows():
         with tenant_context(tenant):
             overdue = (
                 Appointment.objects
-                .filter(ends_at__lt=now, status="confirmed")
+                .filter(ends_at__lt=now, status__in=("confirmed", "in_progress"))
                 .select_related("customer", "staff", "service")
             )
             for appt in overdue:

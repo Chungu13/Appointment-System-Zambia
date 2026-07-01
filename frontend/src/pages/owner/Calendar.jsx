@@ -62,7 +62,7 @@ function heightPx(start, end) {
 
 // ── Status label (plain text, no badge pill) ──────────────────────────────────
 const STATUS_LABELS = {
-  pending: 'Pending', confirmed: 'Confirmed', in_progress: 'In progress',
+  pending: 'Pending', confirmed: 'Confirmed',
   completed: 'Done', cancelled: 'Cancelled', no_show: 'No show',
 }
 
@@ -236,7 +236,7 @@ function ListView({ days, appointments, today, onSelect, onAction }) {
                         {appt.service.name} · {appt.staff.fullName}
                       </p>
                     </div>
-                    {['confirmed', 'in_progress'].includes(appt.status) ? (
+                    {appt.status === 'confirmed' ? (
                       <button
                         onClick={(e) => { e.stopPropagation(); onAction(appt.id, 'COMPLETED') }}
                         style={{
@@ -319,13 +319,10 @@ function ApptModal({ appt, onClose, onAction, loading }) {
           )}
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {appt.status === 'in_progress' && (
-              <Button size="sm" loading={loading} onClick={() => onAction(appt.id, 'COMPLETED')}>Mark complete</Button>
-            )}
             {appt.status === 'pending' && (
               <Button size="sm" loading={loading} onClick={() => onAction(appt.id, 'CONFIRMED')}>Confirm</Button>
             )}
-            {['confirmed', 'in_progress'].includes(appt.status) && (
+            {appt.status === 'confirmed' && (
               <Button size="sm" variant="warning" loading={loading} onClick={() => onAction(appt.id, 'NO_SHOW')}>No Show</Button>
             )}
             {!['completed', 'cancelled', 'no_show'].includes(appt.status) && (
@@ -407,7 +404,7 @@ export default function Calendar() {
   const pendingToday = useMemo(() =>
     appointments.filter(
       (a) => toDateInputValue(new Date(a.startsAt)) === todayStr &&
-             ['confirmed', 'in_progress'].includes(a.status)
+             a.status === 'confirmed'
     ).length,
   [appointments, todayStr])
 
