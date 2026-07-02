@@ -104,6 +104,7 @@ export default function App() {
                 <Route path="/signup/verify-email" element={<SignupVerifyEmail />} />
 
                 <Route path="/login" element={<Login />} />
+                <Route path="/pending-approval" element={<PendingApproval />} />
 
                 {/* Staff portal — shared key, no individual auth */}
                 <Route path="/staff" element={<TenantRoute><StaffPortal /></TenantRoute>} />
