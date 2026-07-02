@@ -116,7 +116,12 @@ TOOLS = [
             "description": "Look up the customer's upcoming confirmed or pending appointments.",
             "parameters": {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "description": "Customer's mobile number. Pass the number they provided in this conversation if you asked for it.",
+                    },
+                },
                 "required": [],
             },
         },

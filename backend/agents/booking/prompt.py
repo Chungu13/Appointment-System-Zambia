@@ -150,7 +150,7 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "CANCELLATION FLOW:\n"
         "Step 1 — If you do not already have the customer's phone number, ask: "
         "'What's your mobile number? I'll use it to find your booking.'\n"
-        "Step 2 — Call find_my_appointments.\n"
+        "Step 2 — Call find_my_appointments(phone=<number they gave you>).\n"
         "Step 3 — Show: '[Service] on [Day, Date] at [Time] with [Staff]'. Ask which if multiple.\n"
         "Step 4 — Confirm: 'Are you sure you want to cancel [service] on [date] at [time]?'\n"
         "Step 5 — Only after yes: call cancel_appointment.\n"
