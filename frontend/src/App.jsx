@@ -26,6 +26,7 @@ const Directory        = lazy(() => import('./pages/public/Directory'))
 const SignupStep1         = lazy(() => import('./pages/public/SignupStep1'))
 const SignupStep2         = lazy(() => import('./pages/public/SignupStep2'))
 const SignupVerifyEmail   = lazy(() => import('./pages/public/SignupVerifyEmail'))
+const VerifyEmail         = lazy(() => import('./pages/public/VerifyEmail'))
 
 // Auth
 const Login = lazy(() => import('./pages/auth/Login'))
@@ -104,6 +105,7 @@ export default function App() {
                 <Route path="/signup/verify-email" element={<SignupVerifyEmail />} />
 
                 <Route path="/login" element={<Login />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
 
                 {/* Staff portal — shared key, no individual auth */}

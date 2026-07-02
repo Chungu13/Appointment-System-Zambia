@@ -59,7 +59,7 @@ def send_verification_email(user_pk: int, schema_name: str, email: str, full_nam
 def send_pending_verification_email(pending_id: int, email: str, full_name: str) -> None:
     """Verification email for a new PendingRegistration before admin approval."""
     token = signing.dumps({"pending_id": pending_id}, salt="email-verification")
-    verify_url = f"{_api_url()}/auth/verify-email/?token={token}"
+    verify_url = f"{_app_url()}/verify-email?token={token}"
 
     send_email(
         to=email,
@@ -143,16 +143,27 @@ def send_signup_spike_alert(count: int) -> None:
 def verify_email(request):
     token = request.GET.get("token", "")
     app_base = _app_url()
+    json_mode = request.GET.get("format") == "json"
+
+    def _err(code):
+        if json_mode:
+            return JsonResponse({"ok": False, "error": code}, status=400)
+        return HttpResponseRedirect(f"{app_base}/login?error={code}")
+
+    def _ok(redirect):
+        if json_mode:
+            return JsonResponse({"ok": True, "redirect": redirect})
+        return HttpResponseRedirect(redirect)
 
     if not token:
-        return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
+        return _err("invalid_token")
 
     try:
         data = signing.loads(token, max_age=86400, salt="email-verification")
     except signing.SignatureExpired:
-        return HttpResponseRedirect(f"{app_base}/login?error=token_expired")
+        return _err("token_expired")
     except signing.BadSignature:
-        return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
+        return _err("invalid_token")
 
     # New pending registration flow
     if "pending_id" in data:
@@ -163,14 +174,14 @@ def verify_email(request):
                 pending.email_verified = True
                 pending.save(update_fields=["email_verified"])
         except PendingRegistration.DoesNotExist:
-            return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
-        return HttpResponseRedirect(f"{app_base}/pending-approval?verified=true")
+            return _err("invalid_token")
+        return _ok(f"{app_base}/pending-approval?verified=true")
 
     # Legacy flow (existing tenant owner users)
     schema_name = data.get("schema")
     user_pk = data.get("pk")
     if not schema_name or not user_pk:
-        return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
+        return _err("invalid_token")
 
     try:
         from django_tenants.utils import schema_context
@@ -183,9 +194,9 @@ def verify_email(request):
                 user.save(update_fields=["is_active"])
     except Exception as exc:
         logger.error("verify_email: schema=%r pk=%r: %s", schema_name, user_pk, exc)
-        return HttpResponseRedirect(f"{app_base}/login?error=invalid_token")
+        return _err("invalid_token")
 
-    return HttpResponseRedirect(f"{app_base}/login?verified=true")
+    return _ok(f"{app_base}/login?verified=true")
 
 
 @csrf_exempt
