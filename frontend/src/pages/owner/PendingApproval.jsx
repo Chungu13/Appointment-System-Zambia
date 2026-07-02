@@ -12,9 +12,9 @@ const serif = '"Cormorant Garamond", Georgia, serif'
 const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const STEPS = [
-  { label: 'Email verified',                                    done: true  },
-  { label: 'Business under review · usually within 24 hours',  done: false },
-  { label: 'Account activated — go live on Kimawa',            done: false },
+  { label: 'Email verified',                                done: true  },
+  { label: 'Business under review, usually within 24 hours', done: false },
+  { label: 'Account activated, go live on Kimawa',           done: false },
 ]
 
 export default function PendingApproval() {
@@ -45,7 +45,7 @@ export default function PendingApproval() {
           <Clock size={18} color={BURG} />
         </div>
 
-        <h1 style={{ fontFamily: serif, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 8px' }}>
+        <h1 style={{ fontFamily: sans, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 8px' }}>
           You're almost live
         </h1>
 
