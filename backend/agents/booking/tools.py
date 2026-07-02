@@ -138,12 +138,16 @@ TOOLS = [
                         "type": "integer",
                         "description": "ID of the appointment to cancel, from find_my_appointments.",
                     },
+                    "phone": {
+                        "type": "string",
+                        "description": "Customer's mobile number, as provided in this conversation.",
+                    },
                     "reason": {
                         "type": "string",
                         "description": "Brief reason for cancellation (optional).",
                     },
                 },
-                "required": ["appointment_id"],
+                "required": ["appointment_id", "phone"],
             },
         },
     },

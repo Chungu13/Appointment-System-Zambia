@@ -520,7 +520,8 @@ def handle_cancel_appointment(inputs: dict, customer_phone: str, tenant_schema_n
     except Appointment.DoesNotExist:
         return {"error": f"Appointment {inputs['appointment_id']} not found."}
 
-    owner_phones = build_phone_variants(customer_phone)
+    phone = (inputs.get("phone") or customer_phone or "").strip()
+    owner_phones = build_phone_variants(phone)
     if appt.customer.phone not in owner_phones:
         return {"error": "This appointment does not belong to your account."}
 
