@@ -461,6 +461,13 @@ def handle_find_my_appointments(inputs: dict, customer_phone: str) -> dict:
     tz = _zi.ZoneInfo("Africa/Lusaka")
     now = timezone.now()
 
+    if not customer_phone or not customer_phone.strip():
+        return {
+            "appointments": [],
+            "message": "Phone number required. Ask the customer for their mobile number before calling this tool.",
+            "needs_phone": True,
+        }
+
     customer = None
     for phone_variant in build_phone_variants(customer_phone):
         customer = Customer.objects.filter(phone=phone_variant).first()
