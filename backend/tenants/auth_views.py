@@ -162,16 +162,22 @@ def send_approval_email(owner_name: str, business_name: str, owner_email: str) -
     app_base = _app_url()
 
     body = (
-        f'<p style="margin:0 0 8px;font-size:20px;font-weight:300;color:#1a0a0d;">You\'re approved, {owner_name}!</p>'
-        f'<p style="margin:16px 0 0;font-size:13px;font-weight:300;color:#6b6b6b;line-height:1.7;">'
-        f'<strong style="color:#1a0a0d;">{business_name}</strong> is now live on Kimawa. '
-        f'Log in to your dashboard to set up your services, staff, and start taking bookings.</p>'
-        + _btn(f"{app_base}/login", "Go to my dashboard")
+        f'<p style="margin:0 0 16px;font-size:22px;font-weight:300;color:#1a0a0d;">Welcome to Kimawa, {owner_name}!</p>'
+        f'<p style="margin:0 0 24px;font-size:13px;font-weight:300;color:#6b6b6b;line-height:1.7;">'
+        f'Your business <strong style="color:#1a0a0d;">{business_name}</strong> has been approved '
+        f'and is now live on Kimawa. Customers can already find and book you through the platform.</p>'
+        f'<p style="margin:0 0 8px;font-size:12px;font-weight:500;color:#1a0a0d;letter-spacing:0.05em;text-transform:uppercase;">Get started</p>'
+        f'<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">'
+        f'<tr><td style="padding:10px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#6b6b6b;">1. Add your services and prices</td></tr>'
+        f'<tr><td style="padding:10px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#6b6b6b;">2. Set up your staff and working hours</td></tr>'
+        f'<tr><td style="padding:10px 0;font-size:13px;color:#6b6b6b;">3. Share your booking link with customers</td></tr>'
+        f'</table>'
+        + _btn(f"{app_base}/login", "Open my dashboard")
         + '<p style="margin:0;font-size:12px;color:#b09090;">Questions? Reply to this email and we\'ll be happy to help.</p>'
     )
     send_email(
         to=owner_email,
-        subject=f"You're approved and live on Kimawa",
+        subject=f"You're live on Kimawa",
         html=_email_wrapper(body),
     )
 

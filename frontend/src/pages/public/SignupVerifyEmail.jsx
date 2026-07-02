@@ -62,7 +62,7 @@ export default function SignupVerifyEmail() {
 
         {isGoogle ? (
           <>
-            <h1 style={{ fontFamily: serif, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 12px' }}>
+            <h1 style={{ fontFamily: sans, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 12px' }}>
               Account created
             </h1>
             <p style={{ fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.7, margin: '0 0 8px' }}>
@@ -75,7 +75,7 @@ export default function SignupVerifyEmail() {
           </>
         ) : (
           <>
-            <h1 style={{ fontFamily: serif, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 12px' }}>
+            <h1 style={{ fontFamily: sans, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 12px' }}>
               Check your email
             </h1>
             <p style={{ fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.7, margin: '0 0 8px' }}>
