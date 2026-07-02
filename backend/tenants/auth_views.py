@@ -39,20 +39,65 @@ def send_email(to: str, subject: str, html: str) -> None:
 
 # ── Email helpers ─────────────────────────────────────────────────────────────
 
+def _email_wrapper(body_html: str) -> str:
+    return f"""
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#faf7f7;font-family:Inter,ui-sans-serif,system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#faf7f7;padding:48px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border:1px solid #ede5e7;">
+        <tr>
+          <td style="padding:8px 32px;background:#6B2737;">
+            <span style="color:#ffffff;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Kimawa</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px 32px 48px;">
+            {body_html}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px;border-top:1px solid #ede5e7;">
+            <p style="margin:0;font-size:11px;color:#b09090;">Kimawa, Lusaka, Zambia &nbsp;&middot;&nbsp; <a href="https://kimawa.pro" style="color:#b09090;">kimawa.pro</a></p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
+def _btn(url: str, label: str) -> str:
+    return (
+        f'<table cellpadding="0" cellspacing="0" style="margin:32px 0;">'
+        f'<tr><td style="background:#6B2737;">'
+        f'<a href="{url}" style="display:inline-block;padding:14px 32px;color:#ffffff;'
+        f'font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;'
+        f'text-decoration:none;">{label}</a>'
+        f'</td></tr></table>'
+    )
+
+
 def send_verification_email(user_pk: int, schema_name: str, email: str, full_name: str) -> None:
     """Verification email for already-created tenant owner users (legacy path)."""
     token = signing.dumps({"schema": schema_name, "pk": user_pk}, salt="email-verification")
-    verify_url = f"{_api_url()}/auth/verify-email/?token={token}"
+    verify_url = f"{_app_url()}/verify-email?token={token}"
 
+    body = (
+        f'<p style="margin:0 0 8px;font-size:20px;font-weight:300;color:#1a0a0d;">Hi {full_name},</p>'
+        '<p style="margin:16px 0 0;font-size:13px;font-weight:300;color:#6b6b6b;line-height:1.7;">'
+        'Please verify your email address to activate your Kimawa account.</p>'
+        + _btn(verify_url, "Verify my email")
+        + '<p style="margin:0;font-size:12px;color:#b09090;">This link expires in 24 hours. '
+        'If you did not sign up for Kimawa, you can ignore this email.</p>'
+    )
     send_email(
         to=email,
         subject="Verify your Kimawa account",
-        html=(
-            f"<p>Hi {full_name},</p>"
-            "<p>Click the link below to verify your email and activate your Kimawa account.</p>"
-            f'<p><a href="{verify_url}">{verify_url}</a></p>'
-            "<p>This link expires in 24 hours.</p>"
-        ),
+        html=_email_wrapper(body),
     )
 
 
@@ -61,17 +106,20 @@ def send_pending_verification_email(pending_id: int, email: str, full_name: str)
     token = signing.dumps({"pending_id": pending_id}, salt="email-verification")
     verify_url = f"{_app_url()}/verify-email?token={token}"
 
+    body = (
+        f'<p style="margin:0 0 8px;font-size:20px;font-weight:300;color:#1a0a0d;">Hi {full_name},</p>'
+        '<p style="margin:16px 0 0;font-size:13px;font-weight:300;color:#6b6b6b;line-height:1.7;">'
+        'Thanks for signing up on Kimawa. Tap the button below to verify your email address.</p>'
+        '<p style="margin:8px 0 0;font-size:13px;font-weight:300;color:#6b6b6b;line-height:1.7;">'
+        'Once verified, our team will review your business and get back to you within 24 hours.</p>'
+        + _btn(verify_url, "Verify my email")
+        + '<p style="margin:0;font-size:12px;color:#b09090;">This link expires in 24 hours. '
+        'If you did not sign up for Kimawa, you can ignore this email.</p>'
+    )
     send_email(
         to=email,
-        subject="Verify your email — Kimawa",
-        html=(
-            f"<p>Hi {full_name},</p>"
-            "<p>Click the link below to verify your email address.</p>"
-            f'<p><a href="{verify_url}">{verify_url}</a></p>'
-            "<p>After verification, your business application will be reviewed by our team. "
-            "We'll email you within 24 hours once approved.</p>"
-            "<p>This link expires in 24 hours.</p>"
-        ),
+        subject="Verify your email",
+        html=_email_wrapper(body),
     )
 
 
@@ -88,38 +136,43 @@ def send_admin_notification(
 ) -> None:
     admin_email = getattr(settings, "ADMIN_EMAIL", "admin@kimawa.pro")
     api_base    = getattr(settings, "API_BASE_URL", "https://api.kimawa.pro")
+    approve_url = f"{api_base}/admin/tenants/pendingregistration/"
 
+    body = (
+        '<p style="margin:0 0 16px;font-size:20px;font-weight:300;color:#1a0a0d;">New business signup</p>'
+        '<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:12px;color:#b09090;width:40%;">Business</td><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#1a0a0d;">{business_name}</td></tr>'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:12px;color:#b09090;">Type</td><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#1a0a0d;">{business_type}</td></tr>'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:12px;color:#b09090;">Location</td><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#1a0a0d;">{city}{", " + area if area else ""}</td></tr>'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:12px;color:#b09090;">Owner</td><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#1a0a0d;">{full_name}</td></tr>'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:12px;color:#b09090;">Email</td><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#1a0a0d;">{email}</td></tr>'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:12px;color:#b09090;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #ede5e7;font-size:13px;color:#1a0a0d;">{phone}</td></tr>'
+        f'<tr><td style="padding:8px 0;font-size:12px;color:#b09090;">Signed up</td><td style="padding:8px 0;font-size:13px;color:#1a0a0d;">{timestamp}</td></tr>'
+        '</table>'
+        + _btn(approve_url, "Review in admin")
+    )
     send_email(
         to=admin_email,
-        subject=f"New business signup — {business_name}",
-        html=(
-            "<p>New business registered on Kimawa (pending approval):</p>"
-            "<ul>"
-            f"<li><b>Business name:</b> {business_name}</li>"
-            f"<li><b>Business type:</b> {business_type}</li>"
-            f"<li><b>City:</b> {city}</li>"
-            f"<li><b>Area:</b> {area}</li>"
-            f"<li><b>Phone:</b> {phone}</li>"
-            f"<li><b>Owner name:</b> {full_name}</li>"
-            f"<li><b>Owner email:</b> {email}</li>"
-            f"<li><b>Signed up:</b> {timestamp}</li>"
-            "</ul>"
-            f'<p><a href="{api_base}/admin/tenants/pendingregistration/">Review and approve in Django admin</a></p>'
-        ),
+        subject=f"New signup: {business_name}",
+        html=_email_wrapper(body),
     )
 
 
 def send_approval_email(owner_name: str, business_name: str, owner_email: str) -> None:
     app_base = _app_url()
 
+    body = (
+        f'<p style="margin:0 0 8px;font-size:20px;font-weight:300;color:#1a0a0d;">You\'re approved, {owner_name}!</p>'
+        f'<p style="margin:16px 0 0;font-size:13px;font-weight:300;color:#6b6b6b;line-height:1.7;">'
+        f'<strong style="color:#1a0a0d;">{business_name}</strong> is now live on Kimawa. '
+        f'Log in to your dashboard to set up your services, staff, and start taking bookings.</p>'
+        + _btn(f"{app_base}/login", "Go to my dashboard")
+        + '<p style="margin:0;font-size:12px;color:#b09090;">Questions? Reply to this email and we\'ll be happy to help.</p>'
+    )
     send_email(
         to=owner_email,
-        subject="Your Kimawa account is approved — you're live!",
-        html=(
-            f"<p>Hi {owner_name},</p>"
-            f"<p>Your business <b>{business_name}</b> has been approved on Kimawa.</p>"
-            f'<p><a href="{app_base}/login">Log in to your dashboard to get started</a></p>'
-        ),
+        subject=f"You're approved and live on Kimawa",
+        html=_email_wrapper(body),
     )
 
 
@@ -129,10 +182,12 @@ def send_signup_spike_alert(count: int) -> None:
 
     send_email(
         to=admin_email,
-        subject=f"[Kimawa] Signup spike alert — {count} registrations in 1 hour",
-        html=(
-            f"<p><b>{count}</b> new business registrations in the last hour — possible bot activity.</p>"
-            f'<p><a href="{api_base}/admin/tenants/pendingregistration/">Review in Django admin</a></p>'
+        subject=f"Signup spike alert: {count} registrations in 1 hour",
+        html=_email_wrapper(
+            f'<p style="margin:0 0 16px;font-size:20px;font-weight:300;color:#1a0a0d;">Signup spike detected</p>'
+            f'<p style="margin:0 0 24px;font-size:13px;color:#6b6b6b;line-height:1.7;">'
+            f'<strong style="color:#1a0a0d;">{count}</strong> new business registrations in the last hour. Possible bot activity.</p>'
+            + _btn(f"{api_base}/admin/tenants/pendingregistration/", "Review in admin")
         ),
     )
 
