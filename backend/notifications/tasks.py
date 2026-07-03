@@ -21,6 +21,7 @@ def _build_payload(appt, tenant, event: str) -> dict:
         "date":            fmt_date_cat(appt.starts_at),
         "time":            fmt_time_cat(appt.starts_at),
         "owner_whatsapp":  tenant.whatsapp_number or "",
+        "business_phone":  tenant.phone or tenant.whatsapp_number or "",
         "deposit_amount":  deposit,
     }
     if event == "booking-cancelled":
