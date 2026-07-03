@@ -122,12 +122,16 @@ export default function SignupStep2() {
     if (field === 'phone' && !validatePhone(form.phone)) {
       setErrors((er) => ({ ...er, phone: 'Enter a valid Zambian number — e.g. +260 97 123 4567' }))
     }
+    if (field === 'address' && !form.address.trim()) {
+      setErrors((er) => ({ ...er, address: 'Required' }))
+    }
   }
 
   function validate() {
     const errs = {}
     if (!form.businessName.trim()) errs.businessName = 'Required'
     if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number — e.g. +260 97 123 4567'
+    if (!form.address.trim()) errs.address = 'Required'
     return errs
   }
 
@@ -217,6 +221,19 @@ export default function SignupStep2() {
             </div>
 
             <div>
+              <Label>Phone number</Label>
+              <Input
+                value={form.phone}
+                onChange={set('phone')}
+                type="tel"
+                placeholder="+260971234567"
+                maxLength={13}
+                onBlur={() => blurValidate('phone')}
+              />
+              {errors.phone && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.phone}</p>}
+            </div>
+
+            <div>
               <Label>Area</Label>
               {form.city === 'Lusaka' ? (
                 <>
@@ -234,21 +251,14 @@ export default function SignupStep2() {
             </div>
 
             <div>
-              <Label>Phone number</Label>
+              <Label>Detailed address / directions</Label>
               <Input
-                value={form.phone}
-                onChange={set('phone')}
-                type="tel"
-                placeholder="+260971234567"
-                maxLength={13}
-                onBlur={() => blurValidate('phone')}
+                value={form.address}
+                onChange={set('address')}
+                placeholder="e.g. Shop 4, Cairo Road"
+                onBlur={() => blurValidate('address')}
               />
-              {errors.phone && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.phone}</p>}
-            </div>
-
-            <div>
-              <Label>Detailed address / directions (optional)</Label>
-              <Input value={form.address} onChange={set('address')} placeholder="e.g. Shop 4, Cairo Road" />
+              {errors.address && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.address}</p>}
             </div>
 
             {serverError && (
