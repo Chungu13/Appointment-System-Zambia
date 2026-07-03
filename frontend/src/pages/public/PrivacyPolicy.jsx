@@ -225,7 +225,7 @@ export default function PrivacyPolicy() {
 
         <div style={{ marginTop: 56, borderTop: `0.5px solid ${BORDER}`, paddingTop: 24, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
           <Link to="/terms" style={{ fontFamily: sans, fontSize: 12, color: BURG, textDecoration: 'none' }}>Customer Terms</Link>
-          <Link to="/salon-terms" style={{ fontFamily: sans, fontSize: 12, color: BURG, textDecoration: 'none' }}>Salon Terms</Link>
+          <Link to="/business-terms" style={{ fontFamily: sans, fontSize: 12, color: BURG, textDecoration: 'none' }}>Business Terms</Link>
           <Link to="/" style={{ fontFamily: sans, fontSize: 12, color: MUTED, textDecoration: 'none' }}>Back to Kimawa</Link>
         </div>
       </div>

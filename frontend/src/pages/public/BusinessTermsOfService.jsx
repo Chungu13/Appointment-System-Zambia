@@ -176,11 +176,11 @@ function renderBody(items) {
   })
 }
 
-export default function SalonTermsOfService() {
+export default function BusinessTermsOfService() {
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: sans }}>
       <Helmet>
-        <title>Salon Terms of Service — Kimawa</title>
+        <title>Business Terms of Service — Kimawa</title>
       </Helmet>
       <LandingNav />
 
@@ -189,7 +189,7 @@ export default function SalonTermsOfService() {
           Legal
         </p>
         <h1 style={{ fontFamily: sans, fontSize: 32, fontWeight: 400, color: TEXT, margin: '0 0 8px', lineHeight: 1.2 }}>
-          Salon Terms of Service
+          Business Terms of Service
         </h1>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '0 0 48px' }}>
           Last updated: June 2026

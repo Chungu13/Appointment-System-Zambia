@@ -282,6 +282,11 @@ export default function SignupStep2() {
             >
               Back
             </button>
+
+            <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0 }}>
+              By creating an account you agree to our{' '}
+              <a href="/business-terms" target="_blank" rel="noopener noreferrer" style={{ color: BURG, textDecoration: 'none' }}>Business Terms of Service</a>
+            </p>
           </form>
         </div>
       </div>

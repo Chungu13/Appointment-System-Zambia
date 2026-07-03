@@ -191,7 +191,7 @@ export default function TermsOfService() {
 
         <div style={{ marginTop: 56, borderTop: `0.5px solid ${BORDER}`, paddingTop: 24, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
           <Link to="/privacy" style={{ fontFamily: sans, fontSize: 12, color: BURG, textDecoration: 'none' }}>Privacy Policy</Link>
-          <Link to="/salon-terms" style={{ fontFamily: sans, fontSize: 12, color: BURG, textDecoration: 'none' }}>Salon Terms</Link>
+          <Link to="/business-terms" style={{ fontFamily: sans, fontSize: 12, color: BURG, textDecoration: 'none' }}>Business Terms</Link>
           <Link to="/" style={{ fontFamily: sans, fontSize: 12, color: MUTED, textDecoration: 'none' }}>Back to Kimawa</Link>
         </div>
       </div>

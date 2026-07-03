@@ -22,7 +22,7 @@ const HowItWorks          = lazy(() => import('./pages/public/HowItWorks'))
 const ForBusinesses       = lazy(() => import('./pages/public/ForBusinesses'))
 const Directory           = lazy(() => import('./pages/public/Directory'))
 const TermsOfService      = lazy(() => import('./pages/public/TermsOfService'))
-const SalonTermsOfService = lazy(() => import('./pages/public/SalonTermsOfService'))
+const BusinessTermsOfService = lazy(() => import('./pages/public/BusinessTermsOfService'))
 const PrivacyPolicy       = lazy(() => import('./pages/public/PrivacyPolicy'))
 
 // Signup flow — lazy loaded
@@ -102,7 +102,7 @@ export default function App() {
                 <Route path="/pricing" element={<Navigate to="/" replace />} />
                 <Route path="/for-businesses" element={<ForBusinesses />} />
                 <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/salon-terms" element={<SalonTermsOfService />} />
+                <Route path="/business-terms" element={<BusinessTermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
 
                 {/* Multi-step signup flow */}
