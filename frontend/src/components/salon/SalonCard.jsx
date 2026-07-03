@@ -13,14 +13,6 @@ const TYPE_LABELS = {
   makeup_artist: 'Makeup Artist',
 }
 
-const TYPE_SERVICES = {
-  salon:         ['Haircut', 'Colour', 'Styling'],
-  barbershop:    ['Fade', 'Shape Up', 'Beard Trim'],
-  nail_tech:     ['Manicure', 'Pedicure', 'Nail Art'],
-  spa:           ['Massage', 'Facial', 'Body Wrap'],
-  lash_studio:   ['Lash Extensions', 'Lash Lift', 'Brow Tint'],
-  makeup_artist: ['Bridal Makeup', 'Party Glam', 'Natural Look'],
-}
 
 function gradientFor(name) {
   const hues = [340, 320, 350, 330, 345, 315]
@@ -64,7 +56,6 @@ export default function SalonCard({ salon, placeholder = false }) {
   const hasImage = !!(salon.coverImageUrl || salon.portfolioPreviewUrl)
   const imgSrc   = salon.coverImageUrl || salon.portfolioPreviewUrl
   const typeLabel = TYPE_LABELS[salon.businessType] ?? salon.businessType
-  const services  = TYPE_SERVICES[salon.businessType] ?? ['Booking', 'Services']
 
   return (
     <a
@@ -113,14 +104,6 @@ export default function SalonCard({ salon, placeholder = false }) {
             {[salon.city, salon.area].filter(Boolean).join(', ')}
           </p>
         )}
-        {/* Service tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
-          {services.slice(0, 3).map((s) => (
-            <span key={s} style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 400, color: '#888', backgroundColor: '#f7f5f3', padding: '3px 8px', borderRadius: 3 }}>
-              {s}
-            </span>
-          ))}
-        </div>
         {/* Footer */}
         <div style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: PRIMARY, letterSpacing: '0.02em' }}>
