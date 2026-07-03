@@ -28,8 +28,6 @@ function Hero() {
   return (
     <section style={{ paddingTop: 96, paddingBottom: 72, backgroundColor: '#fff' }} className="px-16 max-sm:px-5 max-sm:pt-14 max-sm:pb-12">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <Eyebrow>Beauty marketplace · Zambia</Eyebrow>
-
         <h1 style={{ fontFamily: serif, fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.05, color: '#1a1a1a', margin: '0 0 24px', maxWidth: 680 }} className="text-[68px] max-sm:text-[22px]">
           The booking platform{' '}
           <em style={{ color: PRIMARY, fontStyle: 'italic' }}>built for you.</em>
