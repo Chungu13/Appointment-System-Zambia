@@ -166,6 +166,8 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 100
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 TENANT_DOMAIN_SUFFIX     = config("TENANT_DOMAIN_SUFFIX",     default="kimawa.pro")
 TENANT_API_DOMAIN_SUFFIX = config("TENANT_API_DOMAIN_SUFFIX", default=f"api.{config('TENANT_DOMAIN_SUFFIX', default='kimawa.pro')}")
+# Frontend subdomain base — always kimawa.pro regardless of what TENANT_DOMAIN_SUFFIX is set to on Railway.
+TENANT_FRONTEND_DOMAIN   = config("TENANT_FRONTEND_DOMAIN",   default="kimawa.pro")
 
 # ---------------------------------------------------------------------------
 # CORS

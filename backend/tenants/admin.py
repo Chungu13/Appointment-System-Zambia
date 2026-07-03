@@ -91,7 +91,9 @@ def _create_tenant_from_pending(pending: PendingRegistration) -> None:
     words = ["GLOW", "LUXE", "SHINE", "BLOOM", "GRACE", "SPARK", "VIBE", "GLAM", "SILK", "PURE"]
     staff_key = random.choice(words) + "".join(random.choices(string.digits, k=4))
 
-    domain_suffix     = "localhost" if settings.DEBUG else getattr(settings, "TENANT_DOMAIN_SUFFIX", "kimawa.pro")
+    # Use TENANT_FRONTEND_DOMAIN for the customer-facing subdomain (e.g. kimawa.pro).
+    # TENANT_DOMAIN_SUFFIX on Railway is the API domain (api.kimawa.pro) — do NOT use it here.
+    domain_suffix     = "localhost" if settings.DEBUG else getattr(settings, "TENANT_FRONTEND_DOMAIN", "kimawa.pro")
     api_domain_suffix = None       if settings.DEBUG else getattr(settings, "TENANT_API_DOMAIN_SUFFIX", None)
 
     tenant = Tenant(

@@ -193,9 +193,8 @@ class Mutation:
         for tenant in tenants:
             with schema_context(tenant.schema_name):
                 from staff.models import User
-                try:
-                    user = User.objects.get(email=email, role="owner", is_active=True)
-                except User.DoesNotExist:
+                user = User.objects.filter(email=email, role="owner", is_active=True).first()
+                if user is None:
                     continue
                 if not google_token and not user.check_password(password):
                     raise ValueError("Invalid credentials.")
