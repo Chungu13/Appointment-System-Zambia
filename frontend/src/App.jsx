@@ -15,12 +15,15 @@ import Sidebar from './components/layout/Sidebar'
 import BottomNav from './components/layout/BottomNav'
 
 // Public pages — lazy loaded
-const SalonDirectory   = lazy(() => import('./pages/public/SalonDirectory'))
-const SalonLanding     = lazy(() => import('./pages/public/SalonLanding'))
-const SalonBooking     = lazy(() => import('./pages/public/SalonBooking'))
-const HowItWorks       = lazy(() => import('./pages/public/HowItWorks'))
-const ForBusinesses    = lazy(() => import('./pages/public/ForBusinesses'))
-const Directory        = lazy(() => import('./pages/public/Directory'))
+const SalonDirectory      = lazy(() => import('./pages/public/SalonDirectory'))
+const SalonLanding        = lazy(() => import('./pages/public/SalonLanding'))
+const SalonBooking        = lazy(() => import('./pages/public/SalonBooking'))
+const HowItWorks          = lazy(() => import('./pages/public/HowItWorks'))
+const ForBusinesses       = lazy(() => import('./pages/public/ForBusinesses'))
+const Directory           = lazy(() => import('./pages/public/Directory'))
+const TermsOfService      = lazy(() => import('./pages/public/TermsOfService'))
+const SalonTermsOfService = lazy(() => import('./pages/public/SalonTermsOfService'))
+const PrivacyPolicy       = lazy(() => import('./pages/public/PrivacyPolicy'))
 
 // Signup flow — lazy loaded
 const SignupStep1         = lazy(() => import('./pages/public/SignupStep1'))
@@ -98,6 +101,9 @@ export default function App() {
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/pricing" element={<Navigate to="/" replace />} />
                 <Route path="/for-businesses" element={<ForBusinesses />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/salon-terms" element={<SalonTermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
 
                 {/* Multi-step signup flow */}
                 <Route path="/signup" element={<SignupStep1 />} />

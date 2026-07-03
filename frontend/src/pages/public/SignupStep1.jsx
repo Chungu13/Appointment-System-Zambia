@@ -319,9 +319,9 @@ export default function SignupStep1() {
                 </div>
                 <span style={{ fontFamily: sans, fontSize: 11, color: MUTED, fontWeight: 300, lineHeight: 1.6 }}>
                   I agree to Kimawa's{' '}
-                  <a href="#" style={{ color: BURG }}>Terms of Service</a>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: BURG }}>Terms of Service</a>
                   {' '}and{' '}
-                  <a href="#" style={{ color: BURG }}>Privacy Policy</a>
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: BURG }}>Privacy Policy</a>
                 </span>
               </label>
               {errors.terms && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.terms}</p>}
