@@ -34,7 +34,7 @@ function Hero() {
         </h1>
 
         <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: '#333', lineHeight: 1.7, maxWidth: 480, margin: '0 0 28px' }}>
-          AI powered bookings, payments, and notifications — all in one place.
+          AI powered bookings, payments, and notifications, all in one place.
         </p>
 
         {/* Category tags */}

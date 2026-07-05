@@ -70,9 +70,9 @@ export default function Directory() {
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>
             Beauty marketplace · Zambia
           </p>
-          <h1 style={{ fontFamily: serif, fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="text-[52px] max-sm:text-[15px]">
+          <h1 style={{ fontFamily: serif, fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="text-[52px] max-sm:text-[32px]">
             Find Your Perfect{' '}
-            <em style={{ color: PRIMARY, fontStyle: 'italic' }}>Beauty Professional</em>
+            <em style={{ color: PRIMARY, fontStyle: 'normal' }}>Beauty Professional</em>
           </h1>
           <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: '#333', margin: '0 0 36px', maxWidth: 520 }}>
             Discover and book salons, barbershops, nail techs, spas and more across Zambia.
