@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
 import { Turnstile } from '@marsidev/react-turnstile'
 import { useSignup } from '../../context/SignupContext'
+import { getCanonicalAppUrl } from '../../router/TenantRoute'
 
 const BURG      = '#6B2737'
 const DARK_BURG = '#1A0A0D'
@@ -102,6 +103,11 @@ export default function SignupStep1() {
 
   const formLoadTime = useRef(Date.now())
   const honeypotRef  = useRef(null)
+
+  useEffect(() => {
+    const canonical = getCanonicalAppUrl(window.location.pathname + window.location.search)
+    if (canonical) window.location.replace(canonical)
+  }, [])
 
   const pwMet = PW_RULES.map((r) => r.test(form.password))
   const pwValid = pwMet.every(Boolean)

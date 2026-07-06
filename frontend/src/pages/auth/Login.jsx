@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, Navigate, useNavigate } from 'react-router-dom'
 import { useMutation } from '@apollo/client/react'
 import { useGoogleLogin } from '@react-oauth/google'
@@ -7,6 +7,7 @@ import { useSignup } from '../../context/SignupContext'
 import { publicClient } from '../../lib/apollo'
 import { OWNER_LOGIN } from '../../graphql/mutations/auth'
 import { setTokens, saveRole } from '../../lib/auth'
+import { getCanonicalAppUrl } from '../../router/TenantRoute'
 
 const sans   = 'Inter, ui-sans-serif, system-ui, sans-serif'
 const BURG   = '#6B2737'
@@ -57,6 +58,11 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   const [ownerLogin, { loading }] = useMutation(OWNER_LOGIN, { client: publicClient })
+
+  useEffect(() => {
+    const canonical = getCanonicalAppUrl(location.pathname + location.search)
+    if (canonical) window.location.replace(canonical)
+  }, [])
 
   if (isAuthenticated) {
     const dest = location.state?.from?.pathname ?? (isOwner ? '/owner' : '/staff')

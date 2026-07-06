@@ -29,6 +29,17 @@ export function getSubdomain() {
   return sub
 }
 
+// Canonical apex-domain URL for pages that must never run on a tenant
+// subdomain (e.g. Google Sign-In's JS origin check only allows the apex
+// domain, not every "*.kimawa.pro"). Returns null when already canonical.
+export function getCanonicalAppUrl(pathWithQuery) {
+  if (!getSubdomain()) return null
+  const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
+  if (appDomain) return `https://${appDomain}${pathWithQuery}`
+  const port = window.location.port || '3000'
+  return `http://localhost:${port}${pathWithQuery}`
+}
+
 function useTenantClient(slug) {
   return useMemo(() => {
     const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN

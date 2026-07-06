@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { getCanonicalAppUrl } from "../../router/TenantRoute";
 
 const PRIMARY = "#6B2737";
 const BORDER = "#f0ece8";
@@ -14,6 +15,8 @@ const NAV_LINKS = [
 export default function LandingNav({ variant = "public" }) {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const loginHref = getCanonicalAppUrl("/login") ?? "/login";
+  const signupHref = getCanonicalAppUrl("/signup") ?? "/signup";
 
   return (
     <nav
@@ -108,8 +111,8 @@ export default function LandingNav({ variant = "public" }) {
             flexShrink: 0,
           }}
         >
-          <Link
-            to="/login"
+          <a
+            href={loginHref}
             style={{
               fontFamily: "Inter, sans-serif",
               fontSize: 13,
@@ -119,9 +122,9 @@ export default function LandingNav({ variant = "public" }) {
             }}
           >
             Login
-          </Link>
-          <Link
-            to="/signup"
+          </a>
+          <a
+            href={signupHref}
             style={{
               fontFamily: "Inter, sans-serif",
               fontSize: 12,
@@ -136,7 +139,7 @@ export default function LandingNav({ variant = "public" }) {
             }}
           >
             List Your Business
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -210,8 +213,8 @@ export default function LandingNav({ variant = "public" }) {
               {label}
             </Link>
           ))}
-          <Link
-            to="/login"
+          <a
+            href={loginHref}
             onClick={() => setOpen(false)}
             style={{
               fontSize: 14,
@@ -222,10 +225,10 @@ export default function LandingNav({ variant = "public" }) {
             }}
           >
             Login
-          </Link>
+          </a>
           <div style={{ padding: "8px 16px" }}>
-            <Link
-              to="/signup"
+            <a
+              href={signupHref}
               onClick={() => setOpen(false)}
               style={{
                 fontSize: 12,
@@ -241,7 +244,7 @@ export default function LandingNav({ variant = "public" }) {
               }}
             >
               List Your Business
-            </Link>
+            </a>
           </div>
         </div>
       )}
