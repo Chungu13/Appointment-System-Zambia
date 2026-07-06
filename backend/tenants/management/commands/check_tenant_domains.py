@@ -45,8 +45,13 @@ class Command(BaseCommand):
             self.stdout.write(f"  {d.domain}{primary_tag}")
 
         # ── Derive expected domains ────────────────────────────────────────────
-        domain_suffix     = settings.TENANT_DOMAIN_SUFFIX      # e.g. kimawa.pro
-        api_domain_suffix = settings.TENANT_API_DOMAIN_SUFFIX  # e.g. api.kimawa.pro
+        # NOTE: settings.TENANT_API_DOMAIN_SUFFIX is unreliable — on Railway,
+        # TENANT_DOMAIN_SUFFIX is already set to "api.kimawa.pro", which makes
+        # that setting's default (f"api.{TENANT_DOMAIN_SUFFIX}") double up to
+        # "api.api.kimawa.pro". Hardcode from TENANT_FRONTEND_DOMAIN instead,
+        # same as tenants/admin.py and fix_all_tenant_domains.py.
+        domain_suffix     = settings.TENANT_FRONTEND_DOMAIN            # e.g. kimawa.pro
+        api_domain_suffix = f"api.{settings.TENANT_FRONTEND_DOMAIN}"   # e.g. api.kimawa.pro
 
         expected_frontend = f"{subdomain}.{domain_suffix}"
         expected_api      = f"{subdomain}.{api_domain_suffix}"

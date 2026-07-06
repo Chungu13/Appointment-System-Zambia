@@ -92,9 +92,12 @@ def _create_tenant_from_pending(pending: PendingRegistration) -> None:
     staff_key = random.choice(words) + "".join(random.choices(string.digits, k=4))
 
     # Use TENANT_FRONTEND_DOMAIN for the customer-facing subdomain (e.g. kimawa.pro).
-    # TENANT_DOMAIN_SUFFIX on Railway is the API domain (api.kimawa.pro) — do NOT use it here.
+    # TENANT_DOMAIN_SUFFIX on Railway is already set to the API domain (api.kimawa.pro),
+    # so settings.TENANT_API_DOMAIN_SUFFIX (which defaults to f"api.{TENANT_DOMAIN_SUFFIX}")
+    # doubles up to "api.api.kimawa.pro" — hardcode it here instead, same as
+    # tenants/management/commands/fix_all_tenant_domains.py.
     domain_suffix     = "localhost" if settings.DEBUG else getattr(settings, "TENANT_FRONTEND_DOMAIN", "kimawa.pro")
-    api_domain_suffix = None       if settings.DEBUG else getattr(settings, "TENANT_API_DOMAIN_SUFFIX", None)
+    api_domain_suffix = None       if settings.DEBUG else f"api.{getattr(settings, 'TENANT_FRONTEND_DOMAIN', 'kimawa.pro')}"
 
     tenant = Tenant(
         schema_name=schema_name,
