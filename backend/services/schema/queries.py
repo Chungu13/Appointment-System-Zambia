@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import strawberry
 from strawberry.types import Info
+from django.db.models import Case, IntegerField, Value, When
 
 from services.models import Service
 from tenants.schema import BusinessPoliciesType, _policies_from_db
@@ -10,6 +11,23 @@ from tenants.schema import BusinessPoliciesType, _policies_from_db
 from .types import ServiceType, service_to_type, PortfolioImageType, portfolio_image_to_type
 
 _DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+
+def _public_active_services():
+    """
+    Active services in the order the business entered them (creation order),
+    with any "Extras" category always sorted to the bottom regardless of
+    when it was added. Used for the customer-facing service listing.
+    """
+    return (
+        Service.objects.filter(is_active=True)
+        .annotate(_extras_last=Case(
+            When(category__iexact="extras", then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        ))
+        .order_by("_extras_last", "id")
+    )
 
 
 @strawberry.type
@@ -66,7 +84,7 @@ class ServicesQuery:
             cached = get_cached_services(schema_name)
             if cached is not None:
                 return cached
-            result = [service_to_type(s) for s in Service.objects.filter(is_active=True)]
+            result = [service_to_type(s) for s in _public_active_services()]
             set_cached_services(schema_name, result)
             return result
         qs = Service.objects.all()
@@ -111,7 +129,7 @@ class ServicesQuery:
         # Services — serve from cache when possible
         services = get_cached_services(schema_name)
         if services is None:
-            services = [service_to_type(s) for s in Service.objects.filter(is_active=True)]
+            services = [service_to_type(s) for s in _public_active_services()]
             set_cached_services(schema_name, services)
 
         # Opening hours — expensive 7-query loop; cache for 1 hour
