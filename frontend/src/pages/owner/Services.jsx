@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Plus } from 'lucide-react'
+import { Plus, Camera } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
 import { CREATE_SERVICE, UPDATE_SERVICE, TOGGLE_SERVICE } from '../../graphql/mutations/services'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
@@ -40,14 +40,20 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
   const [price, setPrice] = useState(Number(service.priceZmw).toString())
   const [deposit, setDeposit] = useState(Number(service.depositZmw ?? 0).toString())
   const [customDur, setCustomDur] = useState(!DURATIONS.some((d) => d.value === service.durationMinutes))
+  const [rangeEnabled, setRangeEnabled] = useState(service.priceMaxZmw != null)
+  const [priceMax, setPriceMax] = useState(service.priceMaxZmw != null ? Number(service.priceMaxZmw).toString() : '')
+  const [requiresRef, setRequiresRef] = useState(!!service.requiresReferencePicture)
 
   function save(overrides = {}) {
+    const nextRangeEnabled = overrides.rangeEnabled ?? rangeEnabled
     onSave({
       id: service.id,
       name: (overrides.name ?? name).trim() || service.name,
       durationMinutes: overrides.duration ?? duration,
       priceZmw: parseFloat(overrides.price ?? price) || 0,
       depositZmw: parseFloat(overrides.deposit ?? deposit) || 0,
+      priceMaxZmw: nextRangeEnabled ? (parseFloat(overrides.priceMax ?? priceMax) || null) : null,
+      requiresReferencePicture: overrides.requiresRef ?? requiresRef,
     })
   }
 
@@ -127,6 +133,33 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
             onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ price: e.target.value }) }}
             style={{ ...inputBase, width: 56, textAlign: 'right' }}
           />
+          {rangeEnabled ? (
+            <>
+              <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>–</span>
+              <input
+                type="number"
+                min="0"
+                value={priceMax}
+                onChange={e => setPriceMax(e.target.value)}
+                onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+                onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ priceMax: e.target.value }) }}
+                style={{ ...inputBase, width: 56, textAlign: 'right' }}
+              />
+              <button
+                type="button"
+                title="Remove price range"
+                onClick={() => { setRangeEnabled(false); save({ rangeEnabled: false }) }}
+                style={{ fontFamily: sans, fontSize: 10, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
+              >↩</button>
+            </>
+          ) : (
+            <button
+              type="button"
+              title="Price varies by design — add a range"
+              onClick={() => setRangeEnabled(true)}
+              style={{ fontFamily: sans, fontSize: 10, color: BURG, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', whiteSpace: 'nowrap' }}
+            >+ range</button>
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
@@ -141,6 +174,19 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
             style={{ ...inputBase, width: 50, textAlign: 'right', color: MUTED }}
           />
         </div>
+
+        <button
+          type="button"
+          title={requiresRef ? 'Reference photo required — click to turn off' : 'Require customers to attach a reference photo'}
+          onClick={() => { const next = !requiresRef; setRequiresRef(next); save({ requiresRef: next }) }}
+          style={{
+            display: 'flex', alignItems: 'center', padding: '2px 4px', border: 'none',
+            background: 'none', cursor: 'pointer', flexShrink: 0,
+            color: requiresRef ? BURG : '#c0a0a8',
+          }}
+        >
+          <Camera size={14} />
+        </button>
 
         <button
           type="button"
@@ -163,7 +209,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
 // ── Category section ──────────────────────────────────────────────────────────
 function CategorySection({ category, services, onSave, onToggle, toggling, onCreate, creating }) {
   const [showDraft, setShowDraft] = useState(false)
-  const blank = { name: '', durationMinutes: 60, priceZmw: '', depositZmw: '' }
+  const blank = { name: '', durationMinutes: 60, priceZmw: '', priceMaxZmw: '', depositZmw: '', requiresReferencePicture: false }
   const [draft, setDraft] = useState(blank)
   const [customDraftDur, setCustomDraftDur] = useState(false)
 
@@ -177,7 +223,9 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
         category,
         durationMinutes: Number(draft.durationMinutes),
         priceZmw: parseFloat(draft.priceZmw),
+        priceMaxZmw: parseFloat(draft.priceMaxZmw) || null,
         depositZmw: parseFloat(draft.depositZmw) || 0,
+        requiresReferencePicture: draft.requiresReferencePicture,
         description: '',
         bufferMinutes: 0,
       },
@@ -272,7 +320,25 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               onChange={e => setD('depositZmw', e.target.value)}
               style={{ ...fieldStyle, width: 80 }}
             />
+            <input
+              placeholder="Max ZMW (optional)"
+              type="number"
+              min="0"
+              value={draft.priceMaxZmw}
+              onChange={e => setD('priceMaxZmw', e.target.value)}
+              style={{ ...fieldStyle, width: 130 }}
+            />
           </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={draft.requiresReferencePicture}
+              onChange={e => setD('requiresReferencePicture', e.target.checked)}
+            />
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>
+              Requires a reference photo (e.g. nail art, custom styles)
+            </span>
+          </label>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               type="button"

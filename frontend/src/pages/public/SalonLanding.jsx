@@ -16,7 +16,7 @@ import {
 import { SALON_PROFILE } from "../../graphql/queries/salons";
 import ChatWindow from "../../components/chat/ChatWindow";
 import { PageSpinner, ErrorMessage } from "../../components/ui/Spinner";
-import { formatZMW } from "../../lib/utils";
+import { formatZMW, formatZMWRange } from "../../lib/utils";
 import { playPopSound } from "../../lib/sounds";
 
 const PRIMARY = "#6B2737";
@@ -655,7 +655,7 @@ function ServicesSection({ services, onBook }) {
                           margin: 0,
                         }}
                       >
-                        {formatZMW(svc.priceZmw)}
+                        {formatZMWRange(svc.priceZmw, svc.priceMaxZmw)}
                       </p>
                       <button
                         onClick={() => {
@@ -664,6 +664,8 @@ function ServicesSection({ services, onBook }) {
                             : svc.name;
                           onBook(
                             `I want to book ${label} [service_id:${svc.id}]`,
+                            false,
+                            svc,
                           );
                         }}
                         style={{
@@ -1227,6 +1229,7 @@ export default function SalonLanding() {
   const [chatInitMsg, setChatInitMsg] = useState("");
   const [chatSkipIntake, setChatSkipIntake] = useState(false);
   const [chatConfirmedBooking, setChatConfirmedBooking] = useState(null);
+  const [chatReferenceService, setChatReferenceService] = useState(null);
   const { data, loading, error } = useQuery(SALON_PROFILE);
 
   // Detect return from payment page and auto-open chat with confirmation
@@ -1295,10 +1298,11 @@ export default function SalonLanding() {
   const profile = data?.salonProfile;
   if (!profile) return null;
 
-  function openChat(msg = "", skipIntake = false) {
+  function openChat(msg = "", skipIntake = false, referenceService = null) {
     setChatKey((k) => k + 1);
     setChatInitMsg(msg);
     setChatSkipIntake(skipIntake);
+    setChatReferenceService(referenceService);
     playPopSound();
     setChatOpen(true);
   }
@@ -1490,6 +1494,7 @@ export default function SalonLanding() {
           initialMessage={chatInitMsg}
           confirmedBooking={chatConfirmedBooking}
           skipIntake={chatSkipIntake}
+          referenceService={chatReferenceService}
           onClose={() => setChatOpen(false)}
         />
       )}

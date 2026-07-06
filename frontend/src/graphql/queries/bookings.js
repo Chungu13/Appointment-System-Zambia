@@ -9,6 +9,7 @@ export const MY_APPOINTMENTS = gql`
       endsAt
       bookedBy
       customerNotes
+      referenceImageUrl
       customer {
         id
         fullName

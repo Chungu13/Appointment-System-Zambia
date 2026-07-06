@@ -81,6 +81,8 @@ class Appointment(models.Model):
     )
     notification_phone = models.CharField(max_length=20, blank=True)
     chat_session_id = models.CharField(max_length=128, blank=True)
+    reference_image_url = models.TextField(blank=True)
+    reference_image_path = models.TextField(blank=True)
     addon_services = models.ManyToManyField('services.Service', blank=True, related_name='addon_appointments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

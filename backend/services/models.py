@@ -11,10 +11,19 @@ class Service(models.Model):
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(default=60)
     price_zmw = models.DecimalField(max_digits=10, decimal_places=2)
+    price_max_zmw = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Optional ceiling for design-dependent pricing (e.g. nail art). "
+                   "price_zmw is treated as the starting/minimum price.",
+    )
     deposit_zmw = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     buffer_minutes = models.PositiveIntegerField(
         default=0,
         help_text="Clean-up / prep time appended after the appointment slot.",
+    )
+    requires_reference_picture = models.BooleanField(
+        default=False,
+        help_text="If true, customers booking this service are asked to attach a reference photo.",
     )
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -29,6 +38,10 @@ class Service(models.Model):
             models.CheckConstraint(
                 condition=Q(deposit_zmw__lte=F("price_zmw")),
                 name="service_deposit_le_price",
+            ),
+            models.CheckConstraint(
+                condition=Q(price_max_zmw__isnull=True) | Q(price_max_zmw__gte=F("price_zmw")),
+                name="service_price_max_gte_min",
             ),
         ]
 

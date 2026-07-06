@@ -9,8 +9,10 @@ export const SERVICES = gql`
       description
       durationMinutes
       priceZmw
+      priceMaxZmw
       depositZmw
       bufferMinutes
+      requiresReferencePicture
       isActive
     }
   }

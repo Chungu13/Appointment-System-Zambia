@@ -394,6 +394,16 @@ function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
             </div>
           )}
 
+          {appt.referenceImageUrl && (
+            <a href={appt.referenceImageUrl} target="_blank" rel="noopener noreferrer">
+              <img
+                src={appt.referenceImageUrl}
+                alt="Reference photo"
+                style={{ maxWidth: 160, maxHeight: 160, border: `0.5px solid ${BORDER}`, display: 'block' }}
+              />
+            </a>
+          )}
+
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {appt.status === 'pending' && (
               <Button size="sm" loading={loading} onClick={() => onAction(appt.id, 'CONFIRMED')}>Confirm</Button>

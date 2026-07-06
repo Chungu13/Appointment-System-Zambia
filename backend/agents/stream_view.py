@@ -209,3 +209,46 @@ def chat_stream(request):
     response["Cache-Control"] = "no-cache"
     response["X-Accel-Buffering"] = "no"
     return response
+
+
+@csrf_exempt
+@require_POST
+def upload_reference_image(request):
+    """
+    POST /chat/upload-reference/
+    Body: {session_id, session_token, image}  (image = base64 data URL)
+    Stashes the image against the chat session; handle_create_booking attaches
+    it to the appointment once one is created for that session.
+    """
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    session_id = body.get("session_id", "")
+    session_token = body.get("session_token", "")
+    image = body.get("image", "")
+
+    if session_token and not cache.get(f"chat_session:{session_token}"):
+        return JsonResponse({"error": "Session expired. Please refresh and start a new conversation."}, status=403)
+
+    if not session_id or not image.startswith("data:image"):
+        return JsonResponse({"error": "Invalid request."}, status=400)
+
+    from django.conf import settings
+    max_mb = getattr(settings, "MEDIA_MAX_SIZE_MB", 10)
+    try:
+        _, encoded = image.split(",", 1)
+        approx_bytes = len(encoded) * 3 // 4
+    except ValueError:
+        return JsonResponse({"error": "Invalid image data."}, status=400)
+    if approx_bytes > max_mb * 1024 * 1024:
+        return JsonResponse({"error": f"Image is too large. Maximum size is {max_mb}MB."}, status=400)
+
+    from beautybook.storage import save_raw_from_base64
+    from agents.booking.session import save_reference_image
+
+    url, abs_path = save_raw_from_base64(image, "reference", request.tenant.schema_name)
+    save_reference_image(session_id, url, abs_path)
+
+    return JsonResponse({"ok": True, "url": url})

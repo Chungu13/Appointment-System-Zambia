@@ -42,4 +42,9 @@ app.conf.beat_schedule = {
         "task": "agents.tasks.send_weekly_digest",
         "schedule": crontab(hour=2, minute=0, day_of_week=1),
     },
+    # Daily at 3 am CAT — delete reference photos off finished appointments (off-peak)
+    "cleanup-reference-images": {
+        "task": "agents.tasks.cleanup_reference_images",
+        "schedule": crontab(hour=3, minute=0),
+    },
 }

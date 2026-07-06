@@ -33,12 +33,16 @@ def handle_get_services(inputs: dict) -> dict:
     qs = Service.objects.filter(is_active=True)
     if inputs.get("category"):
         qs = qs.filter(category=inputs["category"])
-    rows = list(qs.values("id", "name", "category", "description", "duration_minutes", "price_zmw", "deposit_zmw"))
+    rows = list(qs.values(
+        "id", "name", "category", "description", "duration_minutes",
+        "price_zmw", "price_max_zmw", "deposit_zmw", "requires_reference_picture",
+    ))
     return {
         "services": [
             {
                 **r,
                 "price_zmw": str(r["price_zmw"]),
+                "price_max_zmw": str(r["price_max_zmw"]) if r["price_max_zmw"] is not None else None,
                 "deposit_zmw": str(r["deposit_zmw"]),
                 "display_name": f"{r['category']} — {r['name']}" if r.get("category") else r["name"],
             }
@@ -304,6 +308,14 @@ def handle_create_booking(
             notification_phone=inputs.get("notification_phone", ""),
             chat_session_id=session_id,
         )
+
+        from agents.booking.session import load_reference_image, clear_reference_image
+        pending_reference = load_reference_image(session_id)
+        if pending_reference:
+            appt.reference_image_url = pending_reference.get("url", "")
+            appt.reference_image_path = pending_reference.get("path", "")
+            appt.save(update_fields=["reference_image_url", "reference_image_path"])
+            clear_reference_image(session_id)
 
     AgentLog.objects.create(
         agent_type="booking",

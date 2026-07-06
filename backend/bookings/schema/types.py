@@ -49,6 +49,7 @@ class AppointmentType:
     status: BookingStatusEnum
     booked_by: BookedByEnum
     customer_notes: str
+    reference_image_url: str
     cancellation_reason: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
@@ -139,6 +140,7 @@ def appointment_to_type(a) -> AppointmentType:
         status=BookingStatusEnum(a.status),
         booked_by=BookedByEnum(a.booked_by),
         customer_notes=a.customer_notes,
+        reference_image_url=a.reference_image_url,
         cancellation_reason=a.cancellation_reason,
         created_at=a.created_at,
         updated_at=a.updated_at,

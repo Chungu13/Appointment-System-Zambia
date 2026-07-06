@@ -175,6 +175,9 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "SERVICE LOOKUP FORMAT:\n"
         "When a customer asks about a specific service, reply with ONLY this line:\n"
         "  SERVICE: [name] | DURATION: [X min] | PRICE: ZMW [X] | DEPOSIT: ZMW [X] | STAFF: [name]\n"
+        "If the service has a price_max_zmw, show the price as 'ZMW [price_zmw]-[price_max_zmw]' "
+        "instead of a single number, in this line and in the booking summary — the final price "
+        "depends on the design and is settled at the salon.\n"
         "Then ask if they want to see available times. Never use this format for anything else.\n\n"
 
         "CONTEXT:\n"

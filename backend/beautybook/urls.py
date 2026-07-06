@@ -6,7 +6,7 @@ from django.views.static import serve
 from strawberry.django.views import GraphQLView
 from beautybook.schema_tenant import schema
 from payments.webhooks import payment_webhook
-from agents.stream_view import chat_stream, verify_chat_access
+from agents.stream_view import chat_stream, verify_chat_access, upload_reference_image
 
 # Tenant-specific URLs (routed per-tenant subdomain)
 urlpatterns = [
@@ -14,6 +14,7 @@ urlpatterns = [
     path("graphql/", csrf_exempt(GraphQLView.as_view(schema=schema))),
     path("chat/verify/", verify_chat_access, name="chat_verify"),
     path("chat/stream/", chat_stream, name="chat_stream"),
+    path("chat/upload-reference/", upload_reference_image, name="chat_upload_reference"),
     path("webhooks/lipila/", payment_webhook, name="lipila_webhook"),
     # Serve uploaded media files unconditionally (works with DEBUG=False in production)
     re_path(r"^media/(?P<path>.+)$", serve, {"document_root": settings.MEDIA_ROOT}),

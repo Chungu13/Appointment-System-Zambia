@@ -244,3 +244,64 @@ def send_weekly_digest():
 
     logger.info("send_weekly_digest: generated digests for %d tenants", total)
     return total
+
+
+# ---------------------------------------------------------------------------
+# Task 6 — daily at 3 am CAT (off-peak)
+# ---------------------------------------------------------------------------
+
+@shared_task(name="agents.tasks.cleanup_reference_images")
+def cleanup_reference_images():
+    """
+    Delete reference photos off storage once they're no longer needed, so
+    per-tenant media storage doesn't grow unbounded. Covers appointments that
+    finished/were cancelled a while ago, plus any that passed their date
+    without ever being marked completed.
+    """
+    import datetime
+    from pathlib import Path
+    from django_tenants.utils import tenant_context
+    from bookings.models import Appointment
+
+    cutoff = timezone.now() - datetime.timedelta(hours=48)
+    total = 0
+
+    def _clear(appt):
+        nonlocal total
+        if appt.reference_image_path:
+            Path(appt.reference_image_path).unlink(missing_ok=True)
+        appt.reference_image_url = ""
+        appt.reference_image_path = ""
+        appt.save(update_fields=["reference_image_url", "reference_image_path"])
+        total += 1
+
+    for tenant in _active_tenants():
+        with tenant_context(tenant):
+            finished = (
+                Appointment.objects
+                .filter(
+                    status__in=(
+                        Appointment.STATUS_COMPLETED,
+                        Appointment.STATUS_CANCELLED,
+                        Appointment.STATUS_NO_SHOW,
+                    ),
+                    updated_at__lt=cutoff,
+                )
+                .exclude(reference_image_path="")
+            )
+            for appt in finished:
+                _clear(appt)
+
+            # Backstop: appointments whose date has long passed but were
+            # never explicitly marked completed.
+            abandoned = (
+                Appointment.objects
+                .filter(starts_at__lt=cutoff)
+                .exclude(status=Appointment.STATUS_COMPLETED)
+                .exclude(reference_image_path="")
+            )
+            for appt in abandoned:
+                _clear(appt)
+
+    logger.info("cleanup_reference_images: removed %d reference photo(s)", total)
+    return total

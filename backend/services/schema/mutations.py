@@ -32,6 +32,8 @@ class ServicesMutation:
         description: str = "",
         deposit_zmw: float = 0,
         buffer_minutes: int = 0,
+        price_max_zmw: Optional[float] = None,
+        requires_reference_picture: bool = False,
     ) -> ServiceType:
         require_owner(info)
         service = Service.objects.create(
@@ -40,8 +42,10 @@ class ServicesMutation:
             description=description,
             duration_minutes=duration_minutes,
             price_zmw=price_zmw,
+            price_max_zmw=price_max_zmw,
             deposit_zmw=deposit_zmw,
             buffer_minutes=buffer_minutes,
+            requires_reference_picture=requires_reference_picture,
         )
         from beautybook.cache_utils import invalidate_services_cache
         invalidate_services_cache(info.context.request.tenant.schema_name)
@@ -59,6 +63,8 @@ class ServicesMutation:
         price_zmw: Optional[float] = None,
         deposit_zmw: Optional[float] = None,
         buffer_minutes: Optional[int] = None,
+        price_max_zmw: Optional[float] = strawberry.UNSET,
+        requires_reference_picture: Optional[bool] = None,
     ) -> ServiceType:
         require_owner(info)
         service = Service.objects.filter(pk=id).first()
@@ -87,6 +93,12 @@ class ServicesMutation:
         if buffer_minutes is not None:
             service.buffer_minutes = buffer_minutes
             update_fields.append("buffer_minutes")
+        if price_max_zmw is not strawberry.UNSET:
+            service.price_max_zmw = price_max_zmw
+            update_fields.append("price_max_zmw")
+        if requires_reference_picture is not None:
+            service.requires_reference_picture = requires_reference_picture
+            update_fields.append("requires_reference_picture")
 
         if update_fields:
             update_fields.append("updated_at")

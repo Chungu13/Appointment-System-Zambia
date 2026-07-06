@@ -27,7 +27,9 @@ export const SALON_PROFILE = gql`
         description
         durationMinutes
         priceZmw
+        priceMaxZmw
         depositZmw
+        requiresReferencePicture
         isActive
       }
       openingHours {

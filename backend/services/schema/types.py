@@ -11,8 +11,10 @@ class ServiceType:
     description: str
     duration_minutes: int
     price_zmw: float
+    price_max_zmw: Optional[float]
     deposit_zmw: float
     buffer_minutes: int
+    requires_reference_picture: bool
     is_active: bool
 
 
@@ -32,8 +34,10 @@ def service_to_type(s) -> ServiceType:
         description=s.description,
         duration_minutes=s.duration_minutes,
         price_zmw=float(s.price_zmw),
+        price_max_zmw=float(s.price_max_zmw) if s.price_max_zmw is not None else None,
         deposit_zmw=float(s.deposit_zmw),
         buffer_minutes=s.buffer_minutes,
+        requires_reference_picture=s.requires_reference_picture,
         is_active=s.is_active,
     )
 

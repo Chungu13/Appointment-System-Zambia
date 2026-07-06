@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Send, Sparkles, ShieldCheck } from "lucide-react";
+import { X, Send, Sparkles, ShieldCheck, Paperclip, Check } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useAgentChat } from "../../hooks/useAgentChat";
@@ -682,9 +682,114 @@ function getChatVerifyUrl() {
   return `${base}/chat/verify/`;
 }
 
+function getUploadReferenceUrl() {
+  const RESERVED = new Set(["www", "api", "app", "admin", "mail", "smtp", "ftp", "cdn"]);
+  const parts = window.location.hostname.split(".");
+  const sub =
+    parts.length >= 3 ? parts[0] :
+    parts.length === 2 && parts[1] === "localhost" ? parts[0] :
+    null;
+  const slug = sub && !RESERVED.has(sub) ? sub : null;
+  const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN;
+  if (slug) {
+    return apiDomain
+      ? `https://${slug}.${apiDomain}/chat/upload-reference/`
+      : `http://${slug}.localhost:8000/chat/upload-reference/`;
+  }
+  const base = (import.meta.env.VITE_PUBLIC_API_URL || "http://localhost:8000/graphql/").replace(/\/graphql\/?$/, "");
+  return `${base}/chat/upload-reference/`;
+}
+
+// ── Reference-photo box — outside the message list, shown when the selected
+// service requires a reference photo. Not part of the AI conversation at all;
+// the upload is stashed server-side against sessionId and picked up when the
+// booking is created. ───────────────────────────────────────────────────────
+
+function ReferencePhotoBox({ service, sessionId, sessionToken }) {
+  const [status, setStatus] = useState("idle"); // idle | uploading | done | error
+  const [errorMsg, setErrorMsg] = useState("");
+  const uploadUrl = useRef(getUploadReferenceUrl()).current;
+
+  if (!service?.requiresReferencePicture) return null;
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      setStatus("error");
+      setErrorMsg("Only JPG and PNG files are accepted.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setStatus("error");
+      setErrorMsg("File must be under 5 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      setStatus("uploading");
+      setErrorMsg("");
+      try {
+        const res = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId,
+            session_token: sessionToken || "",
+            image: e.target.result,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setStatus("error");
+          setErrorMsg(data.error || "Upload failed. Please try again.");
+          return;
+        }
+        setStatus("done");
+      } catch {
+        setStatus("error");
+        setErrorMsg("Upload failed. Please try again.");
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div style={{ margin: "10px 12px 0", padding: "10px 12px", borderRadius: 10, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.12)", flexShrink: 0 }}>
+      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: "rgba(255,255,255,0.75)", margin: "0 0 8px", lineHeight: 1.5 }}>
+        {service.name} needs a reference photo of the style you want.
+      </p>
+      {status === "done" ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#4ade80" }}>
+          <Check size={14} />
+          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400 }}>Photo attached</span>
+        </div>
+      ) : (
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: status === "uploading" ? "default" : "pointer", opacity: status === "uploading" ? 0.6 : 1 }}>
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            disabled={status === "uploading"}
+            onChange={(e) => handleFile(e.target.files?.[0])}
+            style={{ display: "none" }}
+          />
+          <span style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: PRIMARY, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Paperclip size={14} color="#fff" />
+          </span>
+          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: "#fff" }}>
+            {status === "uploading" ? "Uploading…" : "Attach a photo"}
+          </span>
+        </label>
+      )}
+      {status === "error" && (
+        <p style={{ fontFamily: sans, fontSize: 11, color: "#f87171", margin: "6px 0 0" }}>{errorMsg}</p>
+      )}
+    </div>
+  );
+}
+
 // ── Chat body (rendered after intake) ────────────────────────────────────────
 
-function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooking }) {
+function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooking, referenceService }) {
   const [sessionToken, setSessionToken] = useState(null);
   const [verifying, setVerifying] = useState(true);
   const verifyUrl = useRef(getChatVerifyUrl()).current;
@@ -711,7 +816,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
     // If Turnstile key is set, doVerify is called from the Turnstile onSuccess callback
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { messages, sendMessage, loading, limitReached, sessionEnded } = useAgentChat(
+  const { messages, sendMessage, loading, sessionId, limitReached, sessionEnded } = useAgentChat(
     customer.phone, customer.name, salonName, initialMessage, confirmedBooking, sessionToken,
   );
   const [extraMessages, setExtraMessages] = useState([]);
@@ -804,6 +909,8 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
         </div>
       )}
 
+      <ReferencePhotoBox service={referenceService} sessionId={sessionId} sessionToken={sessionToken} />
+
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
         {displayMessages.map((msg, i) => (
           <MessageBubble key={i} message={msg} onSend={sendMessage} salonName={salonName} customerName={customer.name} />
@@ -841,7 +948,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export default function ChatWindow({ customerPhone, customerName, onClose, salonName, initialMessage, confirmedBooking, skipIntake }) {
+export default function ChatWindow({ customerPhone, customerName, onClose, salonName, initialMessage, confirmedBooking, skipIntake, referenceService }) {
   const [customer, setCustomer] = useState(
     (customerPhone && customerPhone !== "+260000000000") || skipIntake
       ? { name: customerName || "", phone: customerPhone || "" }
@@ -857,6 +964,7 @@ export default function ChatWindow({ customerPhone, customerName, onClose, salon
         salonName={salonName}
         initialMessage={initialMessage}
         confirmedBooking={confirmedBooking}
+        referenceService={referenceService}
       />
     );
   }
@@ -872,6 +980,7 @@ export default function ChatWindow({ customerPhone, customerName, onClose, salon
       salonName={salonName}
       initialMessage={initialMessage}
       confirmedBooking={confirmedBooking}
+      referenceService={referenceService}
     />
   );
 }
