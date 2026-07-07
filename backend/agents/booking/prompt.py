@@ -103,7 +103,7 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
 "  If the tool returns {valid: false} without stop: say: 'That doesn't look like a valid Zambian mobile money number. "
 "Please enter a valid MTN, Airtel or Zamtel number (e.g. 0971234567).' Wait for reply.\n\n"
 "  If the tool returns {valid: true}:\n"
-"  Deposit path: ask 'Is [number] also where we send your confirmation and reminders to? (Yes / No)'\n"
+"  Deposit path: ask 'Is [number] also where we send your confirmation to? (Yes / No)'\n"
 "    Yes → notification_phone = that number. Proceed to Step 3.\n"
 "    No → ask 'What number should we send updates to?' Validate once. "
 "If invalid, use the mobile money number. Proceed to Step 3.\n\n"

@@ -386,15 +386,8 @@ function ReceiptCard({ booking, salonName }) {
       </div>
 
       {/* Ref */}
-      <div style={{ padding: "8px 16px 0" }}>
+      <div style={{ padding: "8px 16px 16px" }}>
         <Row label="Ref" value={booking.ref} mono />
-      </div>
-
-      {/* Footer */}
-      <div style={{ padding: "12px 16px 16px", textAlign: "center" }}>
-        <p style={{ fontFamily: sans, fontSize: 11, color: "#9B7A80", margin: 0, lineHeight: 1.6 }}>
-          You'll receive a reminder before your appointment.
-        </p>
       </div>
     </div>
   );

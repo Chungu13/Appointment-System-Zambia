@@ -83,7 +83,7 @@ TOOLS = [
                     "customer_phone": {"type": "string"},
                     "notification_phone": {
                         "type": "string",
-                        "description": "Phone number for booking confirmation and reminder notifications. May differ from customer_phone/mobile_money_phone. Always pass this — set it to the customer's confirmed notification number from Step 2b.",
+                        "description": "Phone number for booking confirmation notifications. May differ from customer_phone/mobile_money_phone. Always pass this — set it to the customer's confirmed notification number from Step 2b.",
                     },
                     "notes": {"type": "string", "description": "Optional customer notes."},
                 },

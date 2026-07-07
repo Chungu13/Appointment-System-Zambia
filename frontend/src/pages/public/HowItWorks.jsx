@@ -29,7 +29,7 @@ const CUSTOMER_STEPS = [
   {
     n: '03',
     title: 'Relax',
-    body: 'Get reminders automatically. Show up and enjoy your appointment.',
+    body: 'Show up and enjoy your appointment.',
   },
 ]
 
@@ -47,7 +47,7 @@ const OWNER_STEPS = [
   {
     n: '03',
     title: 'Let AI work',
-    body: 'Our AI handles bookings, reminders, cancellations and insights automatically while you focus on your craft.',
+    body: 'Our AI handles bookings, cancellations and insights automatically while you focus on your craft.',
   },
 ]
 
@@ -84,7 +84,7 @@ export default function HowItWorks() {
     <div style={{ fontFamily: sans }}>
       <Helmet>
         <title>How It Works — Kimawa Beauty Booking Zambia</title>
-        <meta name="description" content="See how Kimawa works for customers and salon owners in Zambia. Find a salon, book in seconds, get reminders — no account needed." />
+        <meta name="description" content="See how Kimawa works for customers and salon owners in Zambia. Find a salon and book in seconds — no account needed." />
         <link rel="canonical" href="https://kimawa.pro/how-it-works" />
       </Helmet>
       <LandingNav />

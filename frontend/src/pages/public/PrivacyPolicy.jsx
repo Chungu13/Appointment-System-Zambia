@@ -56,7 +56,7 @@ const sections = [
         type: 'ul',
         items: [
           'Process bookings and payments',
-          'Send booking confirmations and reminders via SMS and WhatsApp',
+          'Send booking confirmations via SMS and WhatsApp',
           'Disburse deposits to salon owners',
           'Improve our platform and AI booking assistant',
           'Detect and prevent fraud and bot activity',
@@ -73,7 +73,7 @@ const sections = [
         type: 'ul',
         items: [
           'Initiate USSD payment prompts via Lipila',
-          'Send booking confirmations and reminders via SMS and WhatsApp',
+          'Send booking confirmations via SMS and WhatsApp',
           'Process disbursements to salon owners',
         ],
       },
@@ -87,7 +87,7 @@ const sections = [
       { type: 'subheading', text: 'Lipila (Hobbiton Technologies)' },
       { type: 'p', text: 'Our payment processor. Handles mobile money collection and disbursement. Your mobile money number and transaction details are processed by Lipila. Their privacy practices are governed by Lipila\'s own privacy policy.' },
       { type: 'subheading', text: 'WhatsApp (Meta)' },
-      { type: 'p', text: 'Used to send booking confirmations and reminders to customers and salon owners. Messages are sent via the WhatsApp Business API.' },
+      { type: 'p', text: 'Used to send booking confirmations to customers and salon owners. Messages are sent via the WhatsApp Business API.' },
       { type: 'subheading', text: "Africa's Talking" },
       { type: 'p', text: 'Used for SMS notifications as a fallback to WhatsApp.' },
       { type: 'subheading', text: 'Resend' },

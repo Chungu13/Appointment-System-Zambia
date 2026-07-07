@@ -23,7 +23,7 @@ const PAIN_POINTS = [
 const SOLUTIONS = [
   { title: 'AI takes bookings 24/7',    body: 'Your booking page never sleeps. Clients book anytime: midnight, weekends, holidays, without calling you.' },
   { title: 'Deposits reduce no-shows',  body: 'Require a deposit at booking via Airtel Money or MTN MoMo. No-shows drop dramatically once a client has paid upfront.' },
-  { title: 'Admin runs itself',         body: 'Confirmations, reminders, rescheduling, and cancellations are handled automatically so you stay focused on your work.' },
+  { title: 'Admin runs itself',         body: 'Confirmations, rescheduling, and cancellations are handled automatically so you stay focused on your work.' },
 ]
 
 const FEATURES = [

@@ -242,7 +242,7 @@ function BookingConfirmation({ phone, onReset }) {
         <p className="text-5xl mb-4">🎉</p>
         <h2 className="font-display text-2xl font-bold text-primary mb-2">You're booked!</h2>
         <p className="text-on-surface-variant mb-6">
-          We'll send a reminder to <strong>{phone}</strong> before your appointment.
+          We look forward to seeing you!
         </p>
         <Button onClick={onReset}>Book another</Button>
       </div>

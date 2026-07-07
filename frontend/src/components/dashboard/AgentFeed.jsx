@@ -11,16 +11,18 @@ const HINT   = '#8a6268'
 const BORDER = '#ede5e7'
 const sans   = "'Inter', sans-serif"
 
+// Reminder delivery isn't wired up end-to-end yet — hide these from the feed
+// entirely rather than show an action the customer didn't actually receive.
+const HIDDEN_ACTIONS = new Set(['send_payment_reminder', 'send_appointment_reminders'])
+
 const ACTION_MAP = {
   get_unpaid_bookings:        'Checked for unpaid deposits',
   get_services:               'Looked up available services',
   check_availability:         'Checked calendar availability',
   create_booking:             'Created a new booking',
-  send_payment_reminder:      'Sent payment reminder to customer',
   cancel_unpaid_booking:      'Cancelled unpaid booking and freed slot',
   notify_customer:            'Notified waitlist customer about opening',
   mark_no_show:               'Marked appointment as no-show',
-  send_appointment_reminders: 'Sent appointment reminders',
   get_waitlist_matches:       'Checked waitlist for matching customers',
   get_cancelled_slot:         'Found cancelled appointment slot',
   get_weekly_stats:           'Analysed weekly business data',
@@ -47,6 +49,12 @@ function humanizeAction(action) {
   if (!action) return action
   const cleaned = action.replace(/^Tool call:\s*/i, '').trim()
   return ACTION_MAP[cleaned] ?? cleaned.replace(/_/g, ' ')
+}
+
+function isHiddenAction(action) {
+  if (!action) return false
+  const cleaned = action.replace(/^Tool call:\s*/i, '').trim()
+  return HIDDEN_ACTIONS.has(cleaned)
 }
 
 function timeAgo(isoString) {
@@ -86,7 +94,7 @@ function AllActivityModal({ onClose }) {
     variables: { limit: 200 },
     fetchPolicy: 'network-only',
   })
-  const logs = data?.agentActivity ?? []
+  const logs = (data?.agentActivity ?? []).filter((log) => !isHiddenAction(log.action))
 
   return (
     <div
@@ -125,7 +133,7 @@ export default function AgentFeed({ limit = 8 }) {
     variables: { limit, date: today },
     fetchPolicy: 'network-only',
   })
-  const logs = data?.agentActivity ?? []
+  const logs = (data?.agentActivity ?? []).filter((log) => !isHiddenAction(log.action))
 
   return (
     <>

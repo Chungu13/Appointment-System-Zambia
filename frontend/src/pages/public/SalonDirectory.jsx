@@ -147,7 +147,7 @@ function Features() {
   const features = [
     {
       title: 'Smart Scheduling',
-      body: 'Your calendar manages itself. Automatic reminders, no-show detection, and deposit collection keep your schedule running smoothly without any manual work.',
+      body: 'Your calendar manages itself. No-show detection and deposit collection keep your schedule running smoothly without any manual work.',
     },
     {
       title: 'Business Insights',
@@ -196,7 +196,7 @@ function Features() {
 function BottomCTA() {
   const bullets = [
     'AI assistant answers customer questions and books appointments automatically',
-    'Full calendar management with reminders and deposit collection',
+    'Full calendar management with deposit collection',
     'Real-time analytics in Zambian Kwacha',
   ]
   return (
