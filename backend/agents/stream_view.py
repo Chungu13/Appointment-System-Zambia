@@ -245,10 +245,10 @@ def upload_reference_image(request):
     if approx_bytes > max_mb * 1024 * 1024:
         return JsonResponse({"error": f"Image is too large. Maximum size is {max_mb}MB."}, status=400)
 
-    from beautybook.storage import save_raw_from_base64
+    from beautybook.storage import save_compressed_from_base64
     from agents.booking.session import save_reference_image
 
-    url, abs_path = save_raw_from_base64(image, "reference", request.tenant.schema_name)
+    url, abs_path = save_compressed_from_base64(image, "reference", request.tenant.schema_name)
     save_reference_image(session_id, url, abs_path)
 
     return JsonResponse({"ok": True, "url": url})
