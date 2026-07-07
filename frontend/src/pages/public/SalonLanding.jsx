@@ -16,7 +16,7 @@ import {
 import { SALON_PROFILE } from "../../graphql/queries/salons";
 import ChatWindow from "../../components/chat/ChatWindow";
 import { PageSpinner, ErrorMessage } from "../../components/ui/Spinner";
-import { formatZMW, formatZMWRange } from "../../lib/utils";
+import { formatZMW } from "../../lib/utils";
 import { playPopSound } from "../../lib/sounds";
 
 const PRIMARY = "#6B2737";
@@ -526,6 +526,50 @@ function StatsBar({ profile, onOpenChat, onOpenPolicies }) {
   );
 }
 
+// ── Service price — "From ZMW X", expands to show the range when a design-
+// dependent ceiling (priceMaxZmw) is set. ──────────────────────────────────────
+function ServicePrice({ min, max }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (max == null) {
+    return (
+      <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: "#1a1a1a", margin: 0 }}>
+        {formatZMW(min)}
+      </p>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setExpanded((v) => !v)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 3,
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+        fontFamily: sans,
+      }}
+    >
+      <span style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", whiteSpace: "nowrap" }}>
+        {expanded ? `${formatZMW(min)} – ${formatZMW(max)}` : `From ${formatZMW(min)}`}
+      </span>
+      <ChevronDown
+        size={12}
+        style={{
+          color: "#999",
+          transition: "transform 0.18s",
+          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+          flexShrink: 0,
+        }}
+      />
+    </button>
+  );
+}
+
 // ── Services ──────────────────────────────────────────────────────────────────
 function ServicesSection({ services, onBook }) {
   const grouped = services.reduce((acc, s) => {
@@ -646,17 +690,7 @@ function ServicesSection({ services, onBook }) {
                       </p>
                     </div>
                     <div className="service-item-right">
-                      <p
-                        style={{
-                          fontFamily: sans,
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: "#1a1a1a",
-                          margin: 0,
-                        }}
-                      >
-                        {formatZMWRange(svc.priceZmw, svc.priceMaxZmw)}
-                      </p>
+                      <ServicePrice min={svc.priceZmw} max={svc.priceMaxZmw} />
                       <button
                         onClick={() => {
                           const label = svc.category

@@ -6,13 +6,6 @@ export function formatZMW(amount) {
   })}`
 }
 
-// Shows "ZMW 250" or, when a ceiling is set (design-dependent pricing), "ZMW 250-350".
-export function formatZMWRange(minAmount, maxAmount) {
-  if (maxAmount == null) return formatZMW(minAmount)
-  const fmt = (n) => Number(n).toLocaleString('en-ZM', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
-  return `ZMW ${fmt(minAmount)}-${fmt(maxAmount)}`
-}
-
 export function formatDate(dateStr, opts = {}) {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('en-ZM', {
