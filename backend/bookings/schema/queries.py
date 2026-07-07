@@ -165,7 +165,10 @@ class BookingsQuery:
             .aggregate(t=Sum("service__price_zmw"))["t"] or 0
         )
 
-        # Platform deposits collected today
+        # Deposits collected today — the business's share only. amount_zmw is
+        # the gross amount charged to the customer (deposit + Kimawa's fee +
+        # payment processing fees, grossed up); the business is only owed the
+        # underlying service deposit, same figure as Payment.disburse_amount.
         deposits_today = (
             Payment.objects
             .filter(
@@ -173,7 +176,7 @@ class BookingsQuery:
                 status="completed",
                 payment_type="deposit",
             )
-            .aggregate(t=Sum("amount_zmw"))["t"] or 0
+            .aggregate(t=Sum("appointment__service__deposit_zmw"))["t"] or 0
         )
 
         # Only real cancellations — exclude expired (never-paid) to keep analytics clean

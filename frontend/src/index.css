@@ -66,6 +66,13 @@ body {
   animation: chat-fade-in 0.18s ease-out both;
 }
 
+/* Lifts the mobile bottom nav above the device's home-indicator / gesture
+   area (PWA standalone mode) plus a bit extra so tap targets aren't flush
+   against the very edge of the screen. */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+}
+
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }

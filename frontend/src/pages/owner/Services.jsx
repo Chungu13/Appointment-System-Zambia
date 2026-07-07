@@ -85,7 +85,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
         style={{ ...inputBase, width: '100%', marginBottom: 6 }}
       />
       {/* Row 2: Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, rowGap: 8 }}>
         {customDur ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
             <input
