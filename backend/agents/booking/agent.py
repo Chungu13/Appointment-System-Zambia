@@ -99,6 +99,8 @@ class BookingAgent:
                 tools=TOOLS,
                 tool_choice="auto",
                 max_tokens=500,
+                temperature=0.3,
+                top_p=0.9,
             )
 
             choice = response.choices[0]
@@ -163,6 +165,8 @@ class BookingAgent:
                 tools=TOOLS,
                 tool_choice="auto",
                 max_tokens=500,
+                temperature=0.3,
+                top_p=0.9,
                 stream=True,
             )
 
