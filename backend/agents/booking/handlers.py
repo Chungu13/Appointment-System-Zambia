@@ -131,14 +131,73 @@ def handle_check_availability(inputs: dict) -> tuple:
     return result, raw_slots
 
 
+def _select_best_staff(service_id, date, requested_start, requested_end, exclude_staff_ids=()):
+    """
+    Shared load-balancing logic: among staff qualified for a service and free
+    during [requested_start, requested_end), return whoever has the fewest
+    booked minutes that day. Returns a User instance, or None if nobody
+    qualified is free. Used by both handle_get_best_staff (initial pairing)
+    and handle_create_booking (silent re-pick if the original pick fell
+    through between the pairing announcement and the actual booking).
+    """
+    from django.contrib.auth import get_user_model
+    from services.models import StaffService
+
+    User = get_user_model()
+
+    qualified_ids = list(
+        StaffService.objects.filter(service_id=service_id, staff__is_active=True)
+        .exclude(staff_id__in=exclude_staff_ids)
+        .values_list("staff_id", flat=True)
+    )
+    if not qualified_ids:
+        return None
+
+    busy_ids = set(
+        Appointment.objects.filter(
+            staff_id__in=qualified_ids,
+            status__in=[
+                Appointment.STATUS_CONFIRMED,
+                Appointment.STATUS_IN_PROGRESS,
+                Appointment.STATUS_PENDING,
+            ],
+            starts_at__lt=requested_end,
+            ends_at__gt=requested_start,
+        ).values_list("staff_id", flat=True)
+    )
+
+    available_ids = [sid for sid in qualified_ids if sid not in busy_ids]
+    if not available_ids:
+        return None
+
+    # Pick the staff member with the fewest total booked minutes today
+    staff_workload = []
+    for staff_id in available_ids:
+        today_appts = Appointment.objects.filter(
+            staff_id=staff_id,
+            starts_at__date=date,
+            status__in=[
+                Appointment.STATUS_CONFIRMED,
+                Appointment.STATUS_IN_PROGRESS,
+                Appointment.STATUS_PENDING,
+            ],
+        ).only("starts_at", "ends_at")
+        booked_minutes = sum(
+            int((a.ends_at - a.starts_at).total_seconds() / 60)
+            for a in today_appts
+        )
+        staff_workload.append((staff_id, booked_minutes))
+
+    staff_workload.sort(key=lambda x: x[1])
+    best_id = staff_workload[0][0]
+    return User.objects.get(pk=best_id)
+
+
 def handle_get_best_staff(inputs: dict) -> dict:
     import datetime
     import zoneinfo
-    from django.contrib.auth import get_user_model
     from django.utils import timezone as tz_module
-    from services.models import Service, StaffService
-
-    User = get_user_model()
+    from services.models import Service
 
     service_id = inputs.get("service_id")
     date_str = inputs.get("date", "")
@@ -162,52 +221,10 @@ def handle_get_best_staff(inputs: dict) -> dict:
     )
     requested_end = requested_start + datetime.timedelta(minutes=total_duration)
 
-    qualified_ids = list(
-        StaffService.objects.filter(service_id=service_id, staff__is_active=True)
-        .values_list("staff_id", flat=True)
-    )
-    if not qualified_ids:
-        return {"error": "No staff are assigned to this service."}
-
-    busy_ids = set(
-        Appointment.objects.filter(
-            staff_id__in=qualified_ids,
-            status__in=[
-                Appointment.STATUS_CONFIRMED,
-                Appointment.STATUS_IN_PROGRESS,
-                Appointment.STATUS_PENDING,
-            ],
-            starts_at__lt=requested_end,
-            ends_at__gt=requested_start,
-        ).values_list("staff_id", flat=True)
-    )
-
-    available_ids = [sid for sid in qualified_ids if sid not in busy_ids]
-    if not available_ids:
+    staff = _select_best_staff(service_id, date, requested_start, requested_end)
+    if staff is None:
         return {"error": "No staff available at that time — all qualified staff are booked."}
 
-    # Pick the staff member with the fewest total booked minutes today
-    staff_workload = []
-    for staff_id in available_ids:
-        today_appts = Appointment.objects.filter(
-            staff_id=staff_id,
-            starts_at__date=date,
-            status__in=[
-                Appointment.STATUS_CONFIRMED,
-                Appointment.STATUS_IN_PROGRESS,
-                Appointment.STATUS_PENDING,
-            ],
-        ).only("starts_at", "ends_at")
-        booked_minutes = sum(
-            int((a.ends_at - a.starts_at).total_seconds() / 60)
-            for a in today_appts
-        )
-        staff_workload.append((staff_id, booked_minutes))
-
-    staff_workload.sort(key=lambda x: x[1])
-    best_id = staff_workload[0][0]
-
-    staff = User.objects.get(pk=best_id)
     return {
         "staff_id":   staff.pk,
         "staff_name": staff.full_name or staff.username,
@@ -294,7 +311,22 @@ def handle_create_booking(
         cancel_stale_pending_appointments(staff, starts_at, ends_at)
 
         if has_booking_conflict(staff, starts_at, ends_at):
-            return {"error": "That slot is no longer available. Please choose another time."}
+            # The staff picked earlier in the conversation got taken in the
+            # meantime (e.g. while the customer was giving their phone
+            # number). Silently re-pick the next-best available staff for
+            # this same slot instead of bouncing an error back to the AI —
+            # the customer already said yes to this time, not to a specific
+            # person, so there's no need to interrupt them over it.
+            alternative = _select_best_staff(
+                service.id, starts_at.date(), starts_at, ends_at,
+                exclude_staff_ids=[staff.id],
+            )
+            if alternative is None:
+                return {"error": "That slot is no longer available. Please choose another time."}
+            staff = alternative
+            cancel_stale_pending_appointments(staff, starts_at, ends_at)
+            if has_booking_conflict(staff, starts_at, ends_at):
+                return {"error": "That slot is no longer available. Please choose another time."}
 
         appt = Appointment.objects.create(
             customer=customer,
@@ -329,7 +361,7 @@ def handle_create_booking(
             "tenant": tenant_schema_name,
             "customer_phone": inputs["customer_phone"],
             "service_id": inputs["service_id"],
-            "staff_id": inputs["staff_id"],
+            "staff_id": staff.pk,
         },
     )
 

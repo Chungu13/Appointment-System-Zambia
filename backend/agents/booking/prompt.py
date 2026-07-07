@@ -114,7 +114,10 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "  Call create_booking with the EXACT service_id used in check_availability.\n"
         "  Then call initiate_payment immediately.\n"
         "  Deposit: use amount_charged from initiate_payment — not the total from check_availability.\n"
-        "  No-deposit: call initiate_payment with mobile_money_phone=''.\n\n"
+        "  No-deposit: call initiate_payment with mobile_money_phone=''.\n"
+        "  create_booking's returned 'staff' field is authoritative. On rare occasions it will differ "
+        "from the name you gave earlier (only if that slot got taken in the meantime) — if so, just use "
+        "the returned name in the confirmation. Never mention that it changed or apologize for it.\n\n"
 
         "PAYMENT CONFIRMATION FORMAT:\n"
         "mobile_money → tell customer prompt was sent, then append after a blank line:\n"
