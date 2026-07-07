@@ -23,6 +23,7 @@ def _build_payload(appt, tenant, event: str) -> dict:
         "owner_whatsapp":  tenant.whatsapp_number or "",
         "business_phone":  tenant.phone or tenant.whatsapp_number or "",
         "deposit_amount":  deposit,
+        "reference_image_url": appt.reference_image_url or "",
     }
     if event == "booking-cancelled":
         payload["cancelled_by"] = getattr(appt, "cancelled_by", "customer") or "customer"
