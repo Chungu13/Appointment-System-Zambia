@@ -951,6 +951,96 @@ function PortfolioSection({ images }) {
 }
 
 // ── Team ──────────────────────────────────────────────────────────────────────
+function TeamMemberCard({ member }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasBio = !!member.bio?.trim();
+
+  return (
+    <div
+      onClick={() => hasBio && setExpanded((v) => !v)}
+      style={{
+        border: `0.5px solid ${BORDER}`,
+        borderRadius: 8,
+        padding: 18,
+        textAlign: "center",
+        cursor: hasBio ? "pointer" : "default",
+      }}
+    >
+      {member.avatarUrl ? (
+        <img
+          src={member.avatarUrl}
+          alt={member.fullName}
+          loading="lazy"
+          width={72}
+          height={72}
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            objectFit: "cover",
+            margin: "0 auto 12px",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            backgroundColor: "#f5eaec",
+            border: "1.5px solid #e8d0d5",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 12px",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: sans,
+              fontSize: 22,
+              fontWeight: 500,
+              color: PRIMARY,
+              lineHeight: 1,
+            }}
+          >
+            {initials(member.fullName)}
+          </span>
+        </div>
+      )}
+      <p
+        style={{
+          fontFamily: sans,
+          fontSize: 13,
+          fontWeight: 500,
+          color: "#1a1a1a",
+          margin: 0,
+        }}
+      >
+        {member.fullName}
+      </p>
+      {hasBio && (
+        <p
+          style={{
+            fontFamily: sans,
+            fontSize: 11,
+            fontWeight: 300,
+            color: "#666",
+            lineHeight: 1.6,
+            margin: expanded ? "8px 0 0" : "4px 0 0",
+            maxHeight: expanded ? 200 : 14,
+            overflow: "hidden",
+            transition: "max-height 0.18s ease",
+          }}
+        >
+          {member.bio}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function TeamSection({ staff }) {
   const visible = (staff ?? []).filter((m) => m.displayOnPublicPage);
   if (visible.length === 0) return null;
@@ -961,70 +1051,7 @@ function TeamSection({ staff }) {
       <Eyebrow>Meet the team</Eyebrow>
       <div className="salon-team-grid">
         {staff.map((member) => (
-          <div
-            key={member.id}
-            style={{
-              border: `0.5px solid ${BORDER}`,
-              borderRadius: 8,
-              padding: 18,
-              textAlign: "center",
-            }}
-          >
-            {member.avatarUrl ? (
-              <img
-                src={member.avatarUrl}
-                alt={member.fullName}
-                loading="lazy"
-                width={72}
-                height={72}
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  margin: "0 auto 12px",
-                  display: "block",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: "50%",
-                  backgroundColor: "#f5eaec",
-                  border: "1.5px solid #e8d0d5",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 12px",
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: sans,
-                    fontSize: 22,
-                    fontWeight: 500,
-                    color: PRIMARY,
-                    lineHeight: 1,
-                  }}
-                >
-                  {initials(member.fullName)}
-                </span>
-              </div>
-            )}
-            <p
-              style={{
-                fontFamily: sans,
-                fontSize: 13,
-                fontWeight: 500,
-                color: "#1a1a1a",
-                margin: 0,
-              }}
-            >
-              {member.fullName}
-            </p>
-          </div>
+          <TeamMemberCard key={member.id} member={member} />
         ))}
       </div>
     </section>
