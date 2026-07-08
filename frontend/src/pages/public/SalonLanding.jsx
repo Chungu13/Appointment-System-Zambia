@@ -694,7 +694,7 @@ function ServicesSection({ services, onBook }) {
                       <button
                         onClick={() => {
                           const label = svc.category
-                            ? `${svc.category} — ${svc.name}`
+                            ? `${svc.category}, ${svc.name}`
                             : svc.name;
                           onBook(
                             `I want to book ${label} [service_id:${svc.id}]`,

@@ -44,7 +44,7 @@ def handle_get_services(inputs: dict) -> dict:
                 "price_zmw": str(r["price_zmw"]),
                 "price_max_zmw": str(r["price_max_zmw"]) if r["price_max_zmw"] is not None else None,
                 "deposit_zmw": str(r["deposit_zmw"]),
-                "display_name": f"{r['category']} — {r['name']}" if r.get("category") else r["name"],
+                "display_name": f"{r['category']}, {r['name']}" if r.get("category") else r["name"],
             }
             for r in rows
         ]

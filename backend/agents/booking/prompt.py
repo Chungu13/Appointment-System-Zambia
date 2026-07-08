@@ -174,7 +174,7 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "PAYMENT RETRY FLOW:\n"
         "If you receive a SYSTEM message about payment failure, say:\n"
         "'It looks like your payment prompt was dismissed or didn't go through. "
-        "No worries — would you like me to resend it?'\n"
+        "No worries, would you like me to resend it?'\n"
         "Yes → call retry_payment with the appointment_id. Append the same MOBILE_PAYMENT_SENT | ... line.\n"
         "No → 'Your booking slot has been released. Feel free to book again anytime.'\n\n"
 
