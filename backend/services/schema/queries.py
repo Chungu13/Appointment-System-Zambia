@@ -96,11 +96,19 @@ class ServicesQuery:
 
     @strawberry.field
     def portfolio_images(self, info: Info) -> List[PortfolioImageType]:
+        from beautybook.cache_utils import get_cached_portfolio, set_cached_portfolio
         from services.models import PortfolioImage
-        return [
+
+        schema_name = info.context.request.tenant.schema_name
+        cached = get_cached_portfolio(schema_name)
+        if cached is not None:
+            return cached
+        result = [
             portfolio_image_to_type(img)
             for img in PortfolioImage.objects.filter(is_active=True).select_related("service")
         ]
+        set_cached_portfolio(schema_name, result)
+        return result
 
     @strawberry.field
     def salon_profile(self, info: Info) -> SalonProfileType:
@@ -189,11 +197,16 @@ class ServicesQuery:
             if getattr(entry["user"], "display_on_public_page", False)
         ]
 
+        from beautybook.cache_utils import get_cached_portfolio, set_cached_portfolio
         from services.models import PortfolioImage
-        portfolio = [
-            portfolio_image_to_type(img)
-            for img in PortfolioImage.objects.filter(is_active=True).select_related("service")
-        ]
+
+        portfolio = get_cached_portfolio(schema_name)
+        if portfolio is None:
+            portfolio = [
+                portfolio_image_to_type(img)
+                for img in PortfolioImage.objects.filter(is_active=True).select_related("service")
+            ]
+            set_cached_portfolio(schema_name, portfolio)
 
         return SalonProfileType(
             business_name=tenant.business_name,

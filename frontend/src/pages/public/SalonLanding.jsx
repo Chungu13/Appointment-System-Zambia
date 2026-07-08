@@ -846,6 +846,26 @@ function Lightbox({ images, startIndex, onClose }) {
             borderRadius: 8,
           }}
         />
+        {img.serviceName && (
+          <div style={{ textAlign: "center", marginTop: 12 }}>
+            <span
+              style={{
+                display: "inline-block",
+                fontFamily: sans,
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "#fff",
+                backgroundColor: "rgba(107,39,55,0.85)",
+                padding: "3px 10px",
+                borderRadius: 3,
+              }}
+            >
+              {img.serviceName}
+            </span>
+          </div>
+        )}
         {img.caption && (
           <p
             style={{
@@ -853,7 +873,7 @@ function Lightbox({ images, startIndex, onClose }) {
               textAlign: "center",
               fontFamily: sans,
               fontSize: 13,
-              marginTop: 12,
+              marginTop: 8,
             }}
           >
             {img.caption}
@@ -904,7 +924,7 @@ function PortfolioSection({ images }) {
             className={
               i === 0 ? "h-40 sm:h-[288px] sm:row-span-2" : "h-36 sm:h-[140px]"
             }
-            style={{ borderRadius: 6, overflow: "hidden", cursor: "pointer" }}
+            style={{ borderRadius: 6, overflow: "hidden", cursor: "pointer", position: "relative" }}
           >
             <img
               src={img.imageUrl}
@@ -920,6 +940,55 @@ function PortfolioSection({ images }) {
               onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.03)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             />
+            {(img.caption || img.serviceName) && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  padding: "16px 8px 6px",
+                  background: "linear-gradient(transparent, rgba(0,0,0,0.65))",
+                  pointerEvents: "none",
+                }}
+              >
+                {img.serviceName && (
+                  <span
+                    style={{
+                      display: "inline-block",
+                      fontFamily: sans,
+                      fontSize: 9,
+                      fontWeight: 500,
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase",
+                      color: "#fff",
+                      backgroundColor: "rgba(107,39,55,0.85)",
+                      padding: "2px 6px",
+                      borderRadius: 3,
+                      marginBottom: 3,
+                    }}
+                  >
+                    {img.serviceName}
+                  </span>
+                )}
+                {img.caption && (
+                  <p
+                    style={{
+                      fontFamily: sans,
+                      fontSize: 11,
+                      fontWeight: 400,
+                      color: "#fff",
+                      margin: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {img.caption}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

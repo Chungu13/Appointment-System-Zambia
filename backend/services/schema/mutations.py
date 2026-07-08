@@ -162,6 +162,9 @@ class ServicesMutation:
         )
         _sync_portfolio_preview(info)
 
+        from beautybook.cache_utils import invalidate_portfolio_cache
+        invalidate_portfolio_cache(tenant_schema)
+
         # Compress in background — overwrites same file, URL unchanged
         if abs_path:
             from services.tasks import compress_portfolio_image
@@ -175,6 +178,8 @@ class ServicesMutation:
         deleted, _ = PortfolioImage.objects.filter(pk=str(id)).delete()
         if deleted:
             _sync_portfolio_preview(info)
+            from beautybook.cache_utils import invalidate_portfolio_cache
+            invalidate_portfolio_cache(info.context.request.tenant.schema_name)
         return deleted > 0
 
     @strawberry.mutation
@@ -182,4 +187,6 @@ class ServicesMutation:
         require_owner(info)
         for order, raw_id in enumerate(ids):
             PortfolioImage.objects.filter(pk=str(raw_id)).update(display_order=order)
+        from beautybook.cache_utils import invalidate_portfolio_cache
+        invalidate_portfolio_cache(info.context.request.tenant.schema_name)
         return True
