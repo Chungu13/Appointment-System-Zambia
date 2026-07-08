@@ -223,7 +223,7 @@ def handle_get_best_staff(inputs: dict) -> dict:
 
     staff = _select_best_staff(service_id, date, requested_start, requested_end)
     if staff is None:
-        return {"error": "No staff available at that time — all qualified staff are booked."}
+        return {"error": "No staff available at that time. All qualified staff are booked."}
 
     return {
         "staff_id":   staff.pk,
@@ -735,7 +735,7 @@ def handle_retry_payment(inputs: dict, customer_phone: str, tenant_schema_name: 
 
     actual_deposit = float(appt.service.deposit_zmw)
     if actual_deposit == 0:
-        return {"error": "This booking has no deposit — no payment is needed."}
+        return {"error": "This booking has no deposit. No payment is needed."}
 
     actual_total = _calculate_customer_total(actual_deposit)
     mobile_phone = (inputs.get("mobile_money_phone") or customer_phone or appt.customer.phone).strip()
