@@ -403,10 +403,10 @@ function StaffKeyCard({ currentKey }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10, paddingLeft: 2 }}>
           <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0, lineHeight: 1.7 }}>
-            <span style={{ fontWeight: 400, color: MUTED }}>Booking page</span> — customers use this to browse services and book appointments.
+            <span style={{ fontWeight: 400, color: MUTED }}>Booking page:</span> customers use this to browse services and book appointments.
           </p>
           <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0, lineHeight: 1.7 }}>
-            <span style={{ fontWeight: 400, color: MUTED }}>Staff page</span> — staff enter the key below to view today's appointments.
+            <span style={{ fontWeight: 400, color: MUTED }}>Staff page:</span> staff enter the key below to view today's appointments.
           </p>
         </div>
       </div>

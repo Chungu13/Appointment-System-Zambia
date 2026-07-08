@@ -42,8 +42,8 @@ export default function ForBusinesses() {
   return (
     <div style={{ fontFamily: sans }}>
       <Helmet>
-        <title>List Your Salon on Kimawa — Free Beauty Booking Software Zambia</title>
-        <meta name="description" content="Get your salon on Kimawa for free. AI booking agent, WhatsApp notifications, deposit collection, and a full calendar — built for Zambian beauty businesses." />
+        <title>List Your Salon on Kimawa | Free Beauty Booking Software Zambia</title>
+        <meta name="description" content="Get your salon on Kimawa for free. AI booking agent, WhatsApp notifications, deposit collection, and a full calendar, built for Zambian beauty businesses." />
         <meta property="og:title" content="List Your Salon on Kimawa" />
         <meta property="og:description" content="Free salon booking software for Zambia. AI-powered, WhatsApp-ready, zero setup fee." />
         <link rel="canonical" href="https://kimawa.pro/for-businesses" />

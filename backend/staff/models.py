@@ -59,4 +59,4 @@ class WorkingHours(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.staff} — {self.get_day_of_week_display()}"
+        return f"{self.staff}: {self.get_day_of_week_display()}"

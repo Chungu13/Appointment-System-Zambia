@@ -228,13 +228,13 @@ class BookingsMutation:
 
         if hours_until > 24:
             refund_status = "full_refund"
-            message = "Cancelled with full refund — more than 24 hours notice given."
+            message = "Cancelled with full refund. More than 24 hours notice given."
         elif hours_until > 0:
             refund_status = "owner_decision"
-            message = "Cancelled within 24 hours — refund is at the owner's discretion."
+            message = "Cancelled within 24 hours. Refund is at the owner's discretion."
         else:
             refund_status = "no_refund"
-            message = "Appointment time has already passed — no refund applies."
+            message = "Appointment time has already passed. No refund applies."
 
         old_status = appt.status
         appt.status = "cancelled"

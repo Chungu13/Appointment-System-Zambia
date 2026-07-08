@@ -1440,7 +1440,7 @@ export default function SalonLanding() {
   const canonicalSlug = window.location.hostname.split('.')[0]
   const locationStr = [profile.area, profile.city].filter(Boolean).join(', ')
   const typeLabel = TYPE_LABELS[profile.businessType] ?? 'Beauty Salon'
-  const metaTitle = `${profile.businessName} — ${typeLabel} in ${locationStr || 'Zambia'} | Book Online`
+  const metaTitle = `${profile.businessName} | ${typeLabel} in ${locationStr || 'Zambia'} | Book Online`
   const metaDesc = `Book appointments at ${profile.businessName}, a ${typeLabel.toLowerCase()} in ${locationStr || 'Zambia'}. Online booking, instant confirmation.`
   const salonUrl = `https://${canonicalSlug}.kimawa.pro`
 

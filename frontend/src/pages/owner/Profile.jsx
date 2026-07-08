@@ -306,7 +306,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
         <div>
           <FieldRow label="Contact number" value={settings.phone} />
           <FieldRow label="Mobile money" value={settings.payoutPhone} />
-          <FieldRow label="Network" value={{ mtn: 'MTN Money', airtel: 'Airtel Money', zamtel: 'Zamtel Kwacha' }[settings.payoutNetwork] || '—'} />
+          <FieldRow label="Network" value={{ mtn: 'MTN Money', airtel: 'Airtel Money', zamtel: 'Zamtel Kwacha' }[settings.payoutNetwork] || 'N/A'} />
           <FieldRow label="WhatsApp" value={settings.whatsappNumber} isLast />
         </div>
       )}

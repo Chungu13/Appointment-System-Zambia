@@ -83,8 +83,8 @@ export default function HowItWorks() {
   return (
     <div style={{ fontFamily: sans }}>
       <Helmet>
-        <title>How It Works — Kimawa Beauty Booking Zambia</title>
-        <meta name="description" content="See how Kimawa works for customers and salon owners in Zambia. Find a salon and book in seconds — no account needed." />
+        <title>How It Works | Kimawa Beauty Booking Zambia</title>
+        <meta name="description" content="See how Kimawa works for customers and salon owners in Zambia. Find a salon and book in seconds, no account needed." />
         <link rel="canonical" href="https://kimawa.pro/how-it-works" />
       </Helmet>
       <LandingNav />

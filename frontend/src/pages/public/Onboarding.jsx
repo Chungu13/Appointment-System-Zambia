@@ -1189,7 +1189,7 @@ export default function Onboarding() {
         await updateProfile({ variables: { coverImageUrl: dataUrl } })
       } catch (e) {
         console.error('[onboarding] cover photo upload failed:', e)
-        setError('Photo upload failed. Your other progress is saved — you can add a photo later in Settings.')
+        setError('Photo upload failed. Your other progress is saved, you can add a photo later in Settings.')
       }
     }
   }
@@ -1214,7 +1214,7 @@ export default function Onboarding() {
 
     if (step === 1 && scheduleType === 'same') {
       if (!isValidTime(sameHours.start) || !isValidTime(sameHours.end)) {
-        setError('Enter valid business hours in HH:MM format (e.g. 08:00 — 18:00).')
+        setError('Enter valid business hours in HH:MM format (e.g. 08:00 to 18:00).')
         return
       }
     }

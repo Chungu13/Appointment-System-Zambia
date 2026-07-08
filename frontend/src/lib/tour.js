@@ -38,7 +38,7 @@ const DESKTOP_STEPS = [
     element: '#tour-activity',
     popover: {
       title: 'Analytics',
-      description: 'Detailed analytics coming soon — revenue trends, booking patterns, and peak-hour insights to help you make data-driven decisions.',
+      description: 'Detailed analytics coming soon: revenue trends, booking patterns, and peak-hour insights to help you make data-driven decisions.',
       side: 'right', align: 'start',
     },
   },
@@ -112,7 +112,7 @@ const MOBILE_STEPS = [
   {
     popover: {
       title: 'Analytics',
-      description: "Tap More → Activity to see detailed analytics — revenue trends, booking patterns, and peak-hour insights. Coming soon.",
+      description: "Tap More → Activity to see detailed analytics: revenue trends, booking patterns, and peak-hour insights. Coming soon.",
     },
   },
   {

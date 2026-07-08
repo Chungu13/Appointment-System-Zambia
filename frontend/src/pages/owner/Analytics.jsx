@@ -49,7 +49,7 @@ export default function Analytics() {
         </h2>
 
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#5c4848', margin: '0 auto', maxWidth: 340, lineHeight: 1.7 }}>
-          Revenue trends, booking patterns, and peak-hour insights — powered by the Insights Agent.
+          Revenue trends, booking patterns, and peak-hour insights, powered by the Insights Agent.
           Check your weekly digest in the dashboard for now.
         </p>
       </div>

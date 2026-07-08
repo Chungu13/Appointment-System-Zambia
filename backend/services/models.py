@@ -73,7 +73,7 @@ class StaffService(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.staff} — {self.service}"
+        return f"{self.staff}: {self.service}"
 
 
 class PortfolioImage(models.Model):

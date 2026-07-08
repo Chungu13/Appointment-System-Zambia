@@ -28,7 +28,7 @@ function useDebounce(value, ms) {
 }
 
 function timeAgo(iso) {
-  if (!iso) return '—'
+  if (!iso) return 'N/A'
   const diffMs = Date.now() - new Date(iso)
   const d = Math.floor(diffMs / 86400000)
   if (d === 0) return 'Today'

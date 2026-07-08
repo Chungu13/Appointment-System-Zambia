@@ -285,7 +285,7 @@ export default function Portfolio() {
         action={
           atLimit ? (
             <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', color: MUTED }}>
-              10 / 10 — limit reached
+              10 / 10, limit reached
             </span>
           ) : (
             <button

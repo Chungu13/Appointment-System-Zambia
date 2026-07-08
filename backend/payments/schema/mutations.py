@@ -30,7 +30,7 @@ class PaymentsMutation:
         if appt.status == "cancelled":
             raise ValueError("Cannot initiate payment for a cancelled appointment.")
         if appt.service.deposit_zmw == 0:
-            raise ValueError("This service requires no upfront payment — pay in full at the salon.")
+            raise ValueError("This service requires no upfront payment. Pay in full at the salon.")
 
         amount        = appt.service.deposit_zmw if payment_type == PaymentTypeEnum.DEPOSIT else appt.service.price_zmw
         transaction_ref = f"KIMAWA-{appt.pk}"

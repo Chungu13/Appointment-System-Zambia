@@ -156,9 +156,9 @@ class TenantQuery:
                 starts_at=a.starts_at,
                 ends_at=a.ends_at,
                 status=a.status,
-                staff_name=a.staff.full_name if a.staff_id else "—",
-                customer_name=a.customer.full_name if a.customer_id else "—",
-                service_name=a.service.name if a.service_id else "—",
+                staff_name=a.staff.full_name if a.staff_id else "N/A",
+                customer_name=a.customer.full_name if a.customer_id else "N/A",
+                service_name=a.service.name if a.service_id else "N/A",
                 service_duration=a.service.duration_minutes if a.service_id else 0,
             )
             for a in qs

@@ -23,7 +23,7 @@ const STATUS_LABEL = {
 }
 
 function formatDate(iso) {
-  if (!iso) return '—'
+  if (!iso) return 'N/A'
   const d = new Date(iso)
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
@@ -39,7 +39,7 @@ function formatTime(iso) {
 }
 
 function timeAgo(iso) {
-  if (!iso) return '—'
+  if (!iso) return 'N/A'
   const diffMs = Date.now() - new Date(iso)
   const d = Math.floor(diffMs / 86400000)
   if (d === 0) return 'Today'
@@ -99,7 +99,7 @@ function BookingRow({ appt, isLast }) {
     }}>
       <div style={{ minWidth: 0 }}>
         <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: TEXT, margin: 0 }}>
-          {appt.service?.name || '—'}
+          {appt.service?.name || 'N/A'}
         </p>
         {appt.addonServices?.length > 0 && (
           <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: '2px 0 0' }}>

@@ -20,7 +20,7 @@ const sections = [
   {
     heading: '2. Who These Terms Apply To',
     body: [
-      { type: 'p', text: 'These Terms of Service apply to you as a customer — anyone who uses Kimawa to browse salons, make bookings, or pay deposits.' },
+      { type: 'p', text: 'These Terms of Service apply to you as a customer: anyone who uses Kimawa to browse salons, make bookings, or pay deposits.' },
       { type: 'p', text: 'If you are a salon owner, please refer to the Salon Terms of Service.' },
     ],
   },
@@ -47,7 +47,7 @@ const sections = [
       { type: 'p', text: "Kimawa's AI assistant helps you find available times and book appointments at salons listed on our platform. A booking is confirmed once your deposit payment is successfully processed." },
       { type: 'subheading', text: 'Deposits' },
       { type: 'p', text: 'Some services require a deposit to secure your booking. The deposit amount is shown clearly before you confirm. The deposit is collected by Kimawa on behalf of the salon using Lipila, our payment processor.' },
-      { type: 'p', text: 'The deposit is part of your total service price — it is deducted from the amount you pay at the salon on the day of your appointment.' },
+      { type: 'p', text: 'The deposit is part of your total service price. It is deducted from the amount you pay at the salon on the day of your appointment.' },
       { type: 'subheading', text: "Kimawa's role" },
       { type: 'p', text: 'Kimawa acts as a payment intermediary only. We collect your deposit and pass it to the salon. We are not a party to the service agreement between you and the salon.' },
     ],
@@ -58,7 +58,7 @@ const sections = [
       { type: 'subheading', text: 'Cancellation policy' },
       { type: 'p', text: "Each salon sets its own cancellation policy. Before booking, you can view the salon's cancellation terms. By confirming a booking you agree to that salon's cancellation policy." },
       { type: 'subheading', text: 'Refunds' },
-      { type: 'p', text: 'If you cancel a booking, any refund of your deposit is handled entirely by the salon — not by Kimawa. Kimawa does not process refunds and is not responsible for refund disputes between you and a salon.' },
+      { type: 'p', text: 'If you cancel a booking, any refund of your deposit is handled entirely by the salon, not by Kimawa. Kimawa does not process refunds and is not responsible for refund disputes between you and a salon.' },
       { type: 'p', text: 'If you believe a salon has treated you unfairly, contact us at hello@kimawa.pro and we will do our best to help resolve the issue.' },
     ],
   },
@@ -163,7 +163,7 @@ export default function TermsOfService() {
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: sans }}>
       <Helmet>
-        <title>Terms of Service — Kimawa</title>
+        <title>Terms of Service | Kimawa</title>
       </Helmet>
       <LandingNav />
 

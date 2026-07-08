@@ -40,7 +40,7 @@ function StatCard({ label, value, sub }) {
         {label}
       </p>
       <p style={{ fontFamily: serif, fontSize: 'clamp(16px, 5vw, 28px)', fontWeight: 500, color: TEXT, margin: '0 0 4px', lineHeight: 1.1, wordBreak: 'break-word' }}>
-        {value ?? '—'}
+        {value ?? 'N/A'}
       </p>
       {sub && (
         <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: HINT, margin: 0 }}>
@@ -153,7 +153,7 @@ function AIInsightCard({ bookedByAgent }) {
       </p>
       <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, lineHeight: 1.7, color: TEXT, margin: 0 }}>
         Your AI agent booked{' '}
-        <span style={{ fontWeight: 600, color: BURG }}>{bookedByAgent ?? '—'}</span>{' '}
+        <span style={{ fontWeight: 600, color: BURG }}>{bookedByAgent ?? 'N/A'}</span>{' '}
         appointments this week.
       </p>
     </div>
@@ -197,7 +197,7 @@ export default function OwnerDashboard() {
             Earned Today
           </p>
           <p style={{ fontFamily: serif, fontSize: 28, fontWeight: 500, color: '#fff', margin: 0, lineHeight: 1 }}>
-            {loading ? '—' : stats ? formatZMW(stats.earnedToday) : '—'}
+            {loading ? '…' : stats ? formatZMW(stats.earnedToday) : 'N/A'}
           </p>
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0', letterSpacing: '0.04em' }}>
             Based on completed appointments
@@ -234,7 +234,7 @@ export default function OwnerDashboard() {
         />
         <StatCard
           label="Deposits Today"
-          value={loading ? '…' : stats ? formatZMW(stats.depositsToday) : '—'}
+          value={loading ? '…' : stats ? formatZMW(stats.depositsToday) : 'N/A'}
           sub="Collected through Kimawa"
         />
         <StatCard

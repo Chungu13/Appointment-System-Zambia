@@ -401,7 +401,7 @@ def handle_initiate_payment(inputs: dict, customer_phone: str, tenant_schema_nam
         transaction_ref = f"APPT-{appt.pk}"
         AgentLog.objects.create(
             agent_type="payment",
-            action=f"No-deposit booking confirmed for {appt.customer.full_name} — {appt.service.name}",
+            action=f"No-deposit booking confirmed for {appt.customer.full_name}, {appt.service.name}",
             related_appointment=appt,
             outcome="success",
             metadata={"tenant": tenant_schema_name, "appointment_id": appt.pk},

@@ -29,7 +29,7 @@ const sections = [
           'Phone number (including mobile money number)',
           'WhatsApp number (if provided)',
           'Booking history (services booked, dates, times, salons visited)',
-          'Payment information (deposit amounts, transaction references — we do not store card numbers)',
+          'Payment information (deposit amounts, transaction references; we do not store card numbers)',
           'IP address (for security purposes)',
         ],
       },
@@ -197,7 +197,7 @@ export default function PrivacyPolicy() {
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: sans }}>
       <Helmet>
-        <title>Privacy Policy — Kimawa</title>
+        <title>Privacy Policy | Kimawa</title>
       </Helmet>
       <LandingNav />
 

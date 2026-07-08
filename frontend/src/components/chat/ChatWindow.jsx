@@ -160,7 +160,7 @@ function ConfirmedCard({ data }) {
             </p>
           </div>
         ) : (
-          <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.7)", margin: 0 }}>No deposit required — pay at the salon.</p>
+          <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.7)", margin: 0 }}>No deposit required, pay at the salon.</p>
         )}
       </div>
       {data.ref && <p style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "8px 0 0" }}>Ref: {data.ref}</p>}
@@ -543,8 +543,8 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
   if (isUser) {
     const displayText = message.content.replace(/\s*\[service_id:\d+\]/gi, "").trim();
 
-    // Clean up booking messages: "I want to book Category — Service" → "I'd like to book Service"
-    const bookMatch = displayText.match(/^I want to book (?:.+?—\s*)?(.+)$/i);
+    // Clean up booking messages: "I want to book Category, Service" becomes "I'd like to book Service"
+    const bookMatch = displayText.match(/^I want to book (?:.+?,\s*)?(.+)$/i);
     const cleanText = bookMatch ? `I'd like to book ${bookMatch[1]}` : displayText;
 
     return (
@@ -763,7 +763,7 @@ function ReferencePhotoGate({ salonName, service, sessionId, onClose, onDone }) 
         {status === "done" ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#4ade80" }}>
             <Check size={18} />
-            <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 400 }}>Photo attached — opening chat…</span>
+            <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 400 }}>Photo attached, opening chat…</span>
           </div>
         ) : (
           <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "12px 0", backgroundColor: PRIMARY, borderRadius: 10, cursor: status === "uploading" ? "default" : "pointer", opacity: status === "uploading" ? 0.6 : 1 }}>

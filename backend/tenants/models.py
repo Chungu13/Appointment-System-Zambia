@@ -93,7 +93,7 @@ class TenantSubscription(models.Model):
         ordering = ["-current_period_ends_at"]
 
     def __str__(self):
-        return f"{self.tenant} — {self.plan} ({self.status})"
+        return f"{self.tenant}: {self.plan} ({self.status})"
 
 
 class PendingRegistration(models.Model):

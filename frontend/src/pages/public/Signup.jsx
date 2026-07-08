@@ -117,7 +117,7 @@ export default function Signup() {
     const errs = {}
     if (!form.businessName.trim()) errs.businessName = 'Required'
     if (!form.ownerName.trim()) errs.ownerName = 'Required'
-    if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number — e.g. +260 97 123 4567'
+    if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number (e.g. +260 97 123 4567)'
     if (!form.email.trim() || !form.email.includes('@')) errs.email = 'Enter a valid email'
     if (form.password.length < 8) errs.password = 'At least 8 characters'
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match'

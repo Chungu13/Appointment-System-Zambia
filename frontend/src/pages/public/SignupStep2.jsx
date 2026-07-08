@@ -120,7 +120,7 @@ export default function SignupStep2() {
       setErrors((er) => ({ ...er, businessName: 'Required' }))
     }
     if (field === 'phone' && !validatePhone(form.phone)) {
-      setErrors((er) => ({ ...er, phone: 'Enter a valid Zambian number — e.g. +260 97 123 4567' }))
+      setErrors((er) => ({ ...er, phone: 'Enter a valid Zambian number (e.g. +260 97 123 4567)' }))
     }
     if (field === 'address' && !form.address.trim()) {
       setErrors((er) => ({ ...er, address: 'Required' }))
@@ -130,7 +130,7 @@ export default function SignupStep2() {
   function validate() {
     const errs = {}
     if (!form.businessName.trim()) errs.businessName = 'Required'
-    if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number — e.g. +260 97 123 4567'
+    if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number (e.g. +260 97 123 4567)'
     if (!form.address.trim()) errs.address = 'Required'
     return errs
   }

@@ -344,7 +344,7 @@ class Mutation:
                     )
                     raise ValueError(
                         "This email is already registered but not verified. "
-                        "We've resent the verification link — please check your inbox."
+                        "We've resent the verification link. Please check your inbox."
                     )
                 raise ValueError(
                     "An account with this email already exists. Please log in instead."

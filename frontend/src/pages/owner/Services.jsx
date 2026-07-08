@@ -155,7 +155,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
           ) : (
             <button
               type="button"
-              title="Price varies by design — add a range"
+              title="Price varies by design, add a range"
               onClick={() => setRangeEnabled(true)}
               style={{ fontFamily: sans, fontSize: 10, color: BURG, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', whiteSpace: 'nowrap' }}
             >+ range</button>
@@ -177,7 +177,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
 
         <button
           type="button"
-          title={requiresRef ? 'Reference photo required — click to turn off' : 'Require customers to attach a reference photo'}
+          title={requiresRef ? 'Reference photo required, click to turn off' : 'Require customers to attach a reference photo'}
           onClick={() => { const next = !requiresRef; setRequiresRef(next); save({ requiresRef: next }) }}
           style={{
             display: 'flex', alignItems: 'center', padding: '2px 4px', border: 'none',

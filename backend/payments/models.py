@@ -57,4 +57,4 @@ class Payment(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.appointment} — {self.amount_zmw} ZMW ({self.status})"
+        return f"{self.appointment}: {self.amount_zmw} ZMW ({self.status})"

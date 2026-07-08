@@ -40,7 +40,7 @@ const sections = [
     body: [
       { type: 'subheading', text: 'Current model' },
       { type: 'p', text: 'Kimawa charges a service fee on each deposit collected. This fee is deducted before disbursement to you. The fee percentage is displayed in your dashboard and communicated to you at onboarding.' },
-      { type: 'p', text: 'The customer pays the deposit plus Kimawa\'s service fee. You always receive the full deposit amount as advertised — Kimawa absorbs its own processing costs.' },
+      { type: 'p', text: 'The customer pays the deposit plus Kimawa\'s service fee. You always receive the full deposit amount as advertised. Kimawa absorbs its own processing costs.' },
       { type: 'subheading', text: 'Future subscription model' },
       { type: 'p', text: 'Kimawa may introduce a monthly subscription fee in the future. You will be notified at least 30 days in advance of any change to the fee structure. You may cancel your account before the new model takes effect if you do not wish to continue.' },
     ],
@@ -180,7 +180,7 @@ export default function BusinessTermsOfService() {
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: sans }}>
       <Helmet>
-        <title>Business Terms of Service — Kimawa</title>
+        <title>Business Terms of Service | Kimawa</title>
       </Helmet>
       <LandingNav />
 
