@@ -11,7 +11,6 @@ export function SignupProvider({ children }) {
     isGoogle: false,
     googleToken: '',
     honeypot: '',
-    turnstileToken: '',
   })
 
   return (

@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@apollo/client/react'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { publicClient } from '../../lib/apollo'
 import { REGISTER_TENANT } from '../../graphql/mutations/auth'
 import { useSignup } from '../../context/SignupContext'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 
 const BURG      = '#6B2737'
 const DARK_BURG = '#1A0A0D'
@@ -99,6 +102,7 @@ export default function SignupStep2() {
   })
   const [errors, setErrors]           = useState({})
   const [serverError, setServerError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
 
   const [register, { loading }] = useMutation(REGISTER_TENANT, { client: publicClient })
 
@@ -132,6 +136,7 @@ export default function SignupStep2() {
     if (!form.businessName.trim()) errs.businessName = 'Required'
     if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number (e.g. +260 97 123 4567)'
     if (!form.address.trim()) errs.address = 'Required'
+    if (TURNSTILE_SITE_KEY && !turnstileToken) errs.turnstile = 'Please complete the security check.'
     return errs
   }
 
@@ -160,7 +165,7 @@ export default function SignupStep2() {
           password: step1.isGoogle ? '' : step1.password,
           googleToken: step1.googleToken || '',
           honeypot: step1.honeypot || '',
-          turnstileToken: step1.turnstileToken || '',
+          turnstileToken,
         },
       })
       navigate('/signup/verify-email', { state: { isGoogle: step1.isGoogle } })
@@ -260,6 +265,18 @@ export default function SignupStep2() {
               />
               {errors.address && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.address}</p>}
             </div>
+
+            {TURNSTILE_SITE_KEY && (
+              <div>
+                <Turnstile
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={setTurnstileToken}
+                  onExpire={() => setTurnstileToken('')}
+                  options={{ theme: 'light', size: 'normal' }}
+                />
+                {errors.turnstile && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.turnstile}</p>}
+              </div>
+            )}
 
             {serverError && (
               <div style={{ border: `0.5px solid #fca5a5`, background: '#fef2f2', padding: '10px 14px', fontFamily: sans, fontSize: 12, color: '#dc2626', fontWeight: 300 }}>

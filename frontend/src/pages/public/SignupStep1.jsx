@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
-import { Turnstile } from '@marsidev/react-turnstile'
 import { useSignup } from '../../context/SignupContext'
 import { getCanonicalAppUrl } from '../../router/TenantRoute'
 
@@ -17,8 +16,6 @@ const sans = 'Inter, ui-sans-serif, system-ui, sans-serif'
 const PUBLIC_REST_URL = (
   import.meta.env.VITE_PUBLIC_API_URL || 'http://localhost:8000/graphql/'
 ).replace(/\/graphql\/?$/, '')
-
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 
 const PW_RULES = [
   { label: 'At least 8 characters',  test: (pw) => pw.length >= 8 },
@@ -99,7 +96,6 @@ export default function SignupStep1() {
   const [errors, setErrors]           = useState({})
   const [googleError, setGoogleError] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [turnstileToken, setTurnstileToken] = useState('')
 
   const formLoadTime = useRef(Date.now())
   const honeypotRef  = useRef(null)
@@ -152,7 +148,6 @@ export default function SignupStep1() {
     }
 
     const errs = validate()
-    if (TURNSTILE_SITE_KEY && !turnstileToken) errs.turnstile = 'Please complete the security check.'
     if (Object.keys(errs).length) { setErrors(errs); return }
 
     setStep1({
@@ -163,7 +158,6 @@ export default function SignupStep1() {
       isGoogle: false,
       googleToken: '',
       honeypot: '',
-      turnstileToken,
     })
     navigate('/signup/business')
   }
@@ -188,7 +182,6 @@ export default function SignupStep1() {
           isGoogle: true,
           googleToken: data.google_token || '',
           honeypot: '',
-          turnstileToken,
         })
         navigate('/signup/business')
       } catch {
@@ -332,18 +325,6 @@ export default function SignupStep1() {
               </label>
               {errors.terms && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.terms}</p>}
             </div>
-
-            {TURNSTILE_SITE_KEY && (
-              <div>
-                <Turnstile
-                  siteKey={TURNSTILE_SITE_KEY}
-                  onSuccess={setTurnstileToken}
-                  onExpire={() => setTurnstileToken('')}
-                  options={{ theme: 'light', size: 'normal' }}
-                />
-                {errors.turnstile && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.turnstile}</p>}
-              </div>
-            )}
 
             <button
               type="submit"
