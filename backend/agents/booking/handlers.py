@@ -328,6 +328,15 @@ def handle_create_booking(
             if has_booking_conflict(staff, starts_at, ends_at):
                 return {"error": "That slot is no longer available. Please choose another time."}
 
+        # Look up any reference photo BEFORE creating the appointment. A
+        # no-deposit booking goes straight to "confirmed", which fires the
+        # notification signal synchronously from inside .create() itself,
+        # before any later .save() call on this same object would run. If
+        # the photo were attached afterward, the webhook to n8n would
+        # already have gone out with an empty reference_image_url.
+        from agents.booking.session import load_reference_image, clear_reference_image
+        pending_reference = load_reference_image(session_id)
+
         appt = Appointment.objects.create(
             customer=customer,
             staff=staff,
@@ -339,14 +348,11 @@ def handle_create_booking(
             customer_notes=inputs.get("notes", ""),
             notification_phone=inputs.get("notification_phone", ""),
             chat_session_id=session_id,
+            reference_image_url=pending_reference.get("url", "") if pending_reference else "",
+            reference_image_path=pending_reference.get("path", "") if pending_reference else "",
         )
 
-        from agents.booking.session import load_reference_image, clear_reference_image
-        pending_reference = load_reference_image(session_id)
         if pending_reference:
-            appt.reference_image_url = pending_reference.get("url", "")
-            appt.reference_image_path = pending_reference.get("path", "")
-            appt.save(update_fields=["reference_image_url", "reference_image_path"])
             clear_reference_image(session_id)
 
     AgentLog.objects.create(
