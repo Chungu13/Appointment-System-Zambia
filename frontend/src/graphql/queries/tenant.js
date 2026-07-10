@@ -14,6 +14,7 @@ export const SALON_SETTINGS = gql`
       whatsappNumber
       staffAccessKey
       coverImageUrl
+      slotIntervalMinutes
       onboardingCompleted
       businessPolicies {
         cancellationPolicy

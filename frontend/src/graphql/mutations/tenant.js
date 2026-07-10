@@ -28,6 +28,7 @@ export const UPDATE_TENANT_PROFILE = gql`
     $payoutPhone: String
     $payoutNetwork: String
     $whatsappNumber: String
+    $slotIntervalMinutes: Int
   ) {
     updateTenantProfile(
       coverImageUrl: $coverImageUrl
@@ -38,6 +39,7 @@ export const UPDATE_TENANT_PROFILE = gql`
       payoutPhone: $payoutPhone
       payoutNetwork: $payoutNetwork
       whatsappNumber: $whatsappNumber
+      slotIntervalMinutes: $slotIntervalMinutes
     )
   }
 `

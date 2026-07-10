@@ -63,6 +63,7 @@ class SalonSettingsType:
     whatsapp_number: str
     staff_access_key: str
     cover_image_url: str
+    slot_interval_minutes: int
     business_policies: BusinessPoliciesType
     onboarding_completed: bool
 
@@ -123,6 +124,7 @@ class TenantQuery:
             whatsapp_number=tenant.whatsapp_number or "",
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
+            slot_interval_minutes=tenant.slot_interval_minutes,
             business_policies=_policies_from_db(tenant.business_policies or {}),
             onboarding_completed=tenant.onboarding_completed,
         )
@@ -200,6 +202,7 @@ class TenantMutation:
         payout_phone: Optional[str] = None,
         payout_network: Optional[str] = None,
         whatsapp_number: Optional[str] = None,
+        slot_interval_minutes: Optional[int] = None,
     ) -> bool:
         from beautybook.permissions import require_owner
         require_owner(info)
@@ -223,9 +226,14 @@ class TenantMutation:
             tenant.payout_network = payout_network.strip()
         if whatsapp_number is not None:
             tenant.whatsapp_number = whatsapp_number.strip()
+        if slot_interval_minutes is not None:
+            if slot_interval_minutes < 5:
+                raise ValueError("Slot interval must be at least 5 minutes.")
+            tenant.slot_interval_minutes = slot_interval_minutes
         tenant.save(update_fields=[
             "cover_image_url", "address", "phone", "city", "area",
-            "payout_phone", "payout_network", "whatsapp_number", "updated_at",
+            "payout_phone", "payout_network", "whatsapp_number",
+            "slot_interval_minutes", "updated_at",
         ])
         return True
 

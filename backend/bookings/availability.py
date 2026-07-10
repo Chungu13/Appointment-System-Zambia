@@ -31,10 +31,12 @@ def build_availability_slots(
 ) -> list[dict]:
     import zoneinfo
     from django.conf import settings
+    from django.db import connection
 
     from bookings.models import Appointment
     from services.models import Service, StaffService
     from staff.models import WorkingHours
+    from tenants.models import Tenant
 
     service = Service.objects.filter(pk=service_id, is_active=True).first()
     if not service:
@@ -42,7 +44,8 @@ def build_availability_slots(
 
     tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
     slot_duration = datetime.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
-    step = datetime.timedelta(minutes=30)
+    tenant = Tenant.objects.filter(schema_name=connection.schema_name).only("slot_interval_minutes").first()
+    step = datetime.timedelta(minutes=tenant.slot_interval_minutes if tenant else 30)
 
     eligible_staff = StaffService.objects.filter(service=service).select_related("staff")
     if staff_id:
