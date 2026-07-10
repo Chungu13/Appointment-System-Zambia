@@ -186,11 +186,15 @@ class BookingsQuery:
             status__in=("confirmed", "in_progress")
         ).count()
 
+        # Expired = payment initiated but never completed, never a real booking.
+        # Exclude from the headline counts, same as cancelled_today already does.
+        real_appts = appts.exclude(status="expired")
+
         return DashboardStatsType(
             earned_today=float(earned_today),
             deposits_today=float(deposits_today),
-            today_bookings=appts.count(),
-            booked_by_agent=appts.filter(booked_by="agent").count(),
+            today_bookings=real_appts.count(),
+            booked_by_agent=real_appts.filter(booked_by="agent").count(),
             cancelled_today=cancelled_today,
             pending_completion=pending_completion,
         )

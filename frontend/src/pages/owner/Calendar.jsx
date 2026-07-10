@@ -64,6 +64,7 @@ function heightPx(start, end) {
 const STATUS_LABELS = {
   pending: 'Pending', confirmed: 'Confirmed',
   completed: 'Done', cancelled: 'Cancelled', no_show: 'No show',
+  expired: 'Expired',
 }
 
 // ── Time ruler ────────────────────────────────────────────────────────────────
@@ -471,7 +472,12 @@ export default function Calendar() {
     onCompleted: () => { refetch(); setSelAppt(null) },
   })
 
-  const appointments = (data?.myAppointments ?? []).map((a) => ({ ...a, status: a.status?.toLowerCase() }))
+  // Expired bookings (payment initiated but never completed) were never real
+  // appointments. Keep them out of the grid entirely rather than cluttering
+  // it next to actual confirmed/pending bookings.
+  const appointments = (data?.myAppointments ?? [])
+    .map((a) => ({ ...a, status: a.status?.toLowerCase() }))
+    .filter((a) => a.status !== 'expired')
 
   const { colorMap } = useMemo(() => {
     const ids = [...new Set(appointments.map((a) => a.staff.id))]
