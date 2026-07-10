@@ -36,6 +36,21 @@ body {
   color: var(--color-on-surface);
 }
 
+/* Universal button hover/press feedback. Uses filter (not background/color)
+   so it layers on top of every button's own inline styles app-wide, from
+   solid primary buttons to transparent icon buttons, without needing to
+   know each one's specific colors. */
+button:not(:disabled) {
+  transition: filter 0.12s ease, transform 0.05s ease;
+}
+button:not(:disabled):hover {
+  filter: brightness(0.93);
+}
+button:not(:disabled):active {
+  filter: brightness(0.87);
+  transform: scale(0.98);
+}
+
 @keyframes chat-slide-up {
   from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
