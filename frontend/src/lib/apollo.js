@@ -67,8 +67,32 @@ const authLink = setContext((_, { headers }) => {
   }
 })
 
+// ── Schema-mismatch guard. The browser has an old JS bundle talking to a
+// backend that no longer matches it (or vice versa, mid-deploy). Reloading
+// re-fetches the current bundle, which resolves it. Guarded by sessionStorage
+// so a genuinely broken deploy can't reload-loop forever: it tries once,
+// and if the error persists after that it's a real bug, not a stale cache.
+const SCHEMA_MISMATCH_RE = /unknown type|cannot query field/i
+const RELOAD_GUARD_KEY = 'kimawa_schema_reload_attempted'
+
+function handleSchemaMismatch(graphQLErrors) {
+  const hasMismatch = graphQLErrors?.some((e) => SCHEMA_MISMATCH_RE.test(e.message))
+  if (!hasMismatch) return false
+  if (sessionStorage.getItem(RELOAD_GUARD_KEY)) return false
+
+  sessionStorage.setItem(RELOAD_GUARD_KEY, '1')
+  const overlay = document.createElement('div')
+  overlay.textContent = 'Updating…'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#fff;font-family:sans-serif;font-size:14px;color:#1a0a0d;'
+  document.body.appendChild(overlay)
+  window.location.reload()
+  return true
+}
+
 // ── Error link — silent refresh on 401, then retry, then redirect ────────────
 const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+  if (handleSchemaMismatch(graphQLErrors)) return
+
   const isAuthError =
     (networkError && networkError.statusCode === 401) ||
     graphQLErrors?.some((e) => e.message.toLowerCase().includes('not authenticated'))
