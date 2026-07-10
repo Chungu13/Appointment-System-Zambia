@@ -1,5 +1,5 @@
 import datetime
-from typing import List
+from typing import List, Optional
 
 import strawberry
 from strawberry.types import Info
@@ -55,8 +55,23 @@ class SalonSettingsType:
     whatsapp_number: str
     staff_access_key: str
     cover_image_url: str
+    slot_interval_minutes: int
     business_policies: BusinessPoliciesType
     onboarding_completed: bool
+
+
+@strawberry.type
+class CancelledAppointmentType:
+    id: int
+    status: str
+    cancellation_reason: str
+
+
+@strawberry.type
+class CancelBookingResult:
+    appointment: Optional[CancelledAppointmentType]
+    refund_status: str
+    message: str
 
 
 @strawberry.type

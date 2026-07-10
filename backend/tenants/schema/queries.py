@@ -26,6 +26,7 @@ class TenantQuery:
             whatsapp_number=tenant.whatsapp_number or "",
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
+            slot_interval_minutes=tenant.slot_interval_minutes,
             business_policies=_policies_from_db(tenant.business_policies or {}),
             onboarding_completed=tenant.onboarding_completed,
         )
