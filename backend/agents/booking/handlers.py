@@ -145,14 +145,12 @@ def handle_check_availability(inputs: dict) -> tuple:
     return result, raw_slots
 
 
-def _select_best_staff(service_id, date, requested_start, requested_end, exclude_staff_ids=()):
+def _rank_available_staff(service_id, date, requested_start, requested_end, exclude_staff_ids=()):
     """
-    Shared load-balancing logic: among staff qualified for a service and free
-    during [requested_start, requested_end), return whoever has the fewest
-    booked minutes that day. Returns a User instance, or None if nobody
-    qualified is free. Used by both handle_get_best_staff (initial pairing)
-    and handle_create_booking (silent re-pick if the original pick fell
-    through between the pairing announcement and the actual booking).
+    Among staff qualified for a service and free during [requested_start,
+    requested_end), return User instances ordered by fewest booked minutes
+    that day first (least busy = best pick). Empty list if nobody qualified
+    is free.
     """
     from django.contrib.auth import get_user_model
     from services.models import StaffService
@@ -165,7 +163,7 @@ def _select_best_staff(service_id, date, requested_start, requested_end, exclude
         .values_list("staff_id", flat=True)
     )
     if not qualified_ids:
-        return None
+        return []
 
     busy_ids = set(
         Appointment.objects.filter(
@@ -182,9 +180,9 @@ def _select_best_staff(service_id, date, requested_start, requested_end, exclude
 
     available_ids = [sid for sid in qualified_ids if sid not in busy_ids]
     if not available_ids:
-        return None
+        return []
 
-    # Pick the staff member with the fewest total booked minutes today
+    # Rank by fewest total booked minutes today
     staff_workload = []
     for staff_id in available_ids:
         today_appts = Appointment.objects.filter(
@@ -203,8 +201,19 @@ def _select_best_staff(service_id, date, requested_start, requested_end, exclude
         staff_workload.append((staff_id, booked_minutes))
 
     staff_workload.sort(key=lambda x: x[1])
-    best_id = staff_workload[0][0]
-    return User.objects.get(pk=best_id)
+    users_by_id = {u.pk: u for u in User.objects.filter(pk__in=available_ids)}
+    return [users_by_id[sid] for sid, _ in staff_workload]
+
+
+def _select_best_staff(service_id, date, requested_start, requested_end, exclude_staff_ids=()):
+    """
+    Shared load-balancing logic: returns the single least-busy qualified and
+    free User instance, or None if nobody qualified is free. Used by
+    handle_create_booking's silent re-pick if the original pick fell through
+    between the pairing announcement and the actual booking.
+    """
+    ranked = _rank_available_staff(service_id, date, requested_start, requested_end, exclude_staff_ids)
+    return ranked[0] if ranked else None
 
 
 def handle_get_best_staff(inputs: dict) -> dict:
@@ -235,13 +244,17 @@ def handle_get_best_staff(inputs: dict) -> dict:
     )
     requested_end = requested_start + datetime.timedelta(minutes=total_duration)
 
-    staff = _select_best_staff(service_id, date, requested_start, requested_end)
-    if staff is None:
+    ranked = _rank_available_staff(service_id, date, requested_start, requested_end)
+    if not ranked:
         return {"error": "No staff available at that time. All qualified staff are booked."}
 
+    staff = ranked[0]
     return {
         "staff_id":   staff.pk,
         "staff_name": staff.full_name or staff.username,
+        # Every staff member free for this slot, least busy (= assigned) first.
+        # Use this verbatim to build the QUICK_REPLIES staff pick list.
+        "staff_options": [s.full_name or s.username for s in ranked],
     }
 
 

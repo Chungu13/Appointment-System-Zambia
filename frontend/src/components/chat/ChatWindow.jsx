@@ -132,6 +132,18 @@ function parseMobilePaymentSent(text) {
   return { service, date, time, amount, staff, phone, ref };
 }
 
+function parseQuickReplies(text) {
+  const lines = text.split("\n");
+  const idx = lines.findIndex((l) => /^\s*QUICK_REPLIES:/i.test(l));
+  if (idx === -1) return null;
+  const m = lines[idx].match(/^\s*QUICK_REPLIES:\s*(.+)$/i);
+  if (!m) return null;
+  const options = [...new Set(m[1].split("|").map((s) => s.trim()).filter(Boolean))];
+  if (options.length < 2) return null;
+  const body = lines.slice(0, idx).join("\n").trim();
+  return { body, options };
+}
+
 // ── Rich components ───────────────────────────────────────────────────────────
 
 function ConfirmedCard({ data }) {
@@ -242,6 +254,41 @@ function SlotGrid({ data, onSend }) {
         ))}
       </div>
       {data.footer && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: "rgba(255,255,255,0.55)", margin: "10px 0 0" }}>{data.footer}</p>}
+    </div>
+  );
+}
+
+// ── Quick reply pills — Yes/No, staff pick, or any other short fixed-choice answer ──
+
+function QuickReplyPills({ options, onSend }) {
+  const [done, setDone] = useState(false);
+
+  function pick(option) {
+    if (done) return;
+    setDone(true);
+    onSend(option);
+  }
+
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+      {options.map((option) => (
+        <button
+          key={option}
+          onClick={() => pick(option)}
+          disabled={done}
+          style={{
+            padding: "6px 14px",
+            backgroundColor: "rgba(255,255,255,0.06)",
+            border: "0.5px solid rgba(255,255,255,0.12)",
+            borderRadius: 20, color: "#fff", fontFamily: sans, fontSize: 12,
+            fontWeight: 500, cursor: done ? "default" : "pointer",
+            transition: "background 0.12s",
+            opacity: done ? 0.35 : 1,
+          }}
+        >
+          {option}
+        </button>
+      ))}
     </div>
   );
 }
@@ -507,6 +554,17 @@ function renderMessage(text, onSend, salonName, customerName) {
         </div>
       );
     }
+  }
+
+  // Quick-reply pills (yes/no, staff pick, or any other short fixed-choice answer)
+  const quickReplies = parseQuickReplies(text);
+  if (quickReplies) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {renderRichText(quickReplies.body)}
+        <QuickReplyPills options={quickReplies.options} onSend={onSend} />
+      </div>
+    );
   }
 
   const slots = parseTimeSlots(text);

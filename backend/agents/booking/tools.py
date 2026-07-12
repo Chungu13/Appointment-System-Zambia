@@ -39,7 +39,8 @@ TOOLS = [
             "description": (
                 "Find the best available staff member for a service at a specific date and time, "
                 "based on workload. Returns the staff member with the fewest booked hours today "
-                "who is qualified and free at the requested slot."
+                "who is qualified and free at the requested slot, plus staff_options: every "
+                "qualified and free staff member for that slot, ordered best first."
             ),
             "parameters": {
                 "type": "object",
