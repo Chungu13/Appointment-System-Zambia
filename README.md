@@ -6,13 +6,13 @@ A multi-tenant salon booking SaaS built for Zambia. Salon owners get their own s
 
 ## What it does
 
-- **Customer booking** — browse services, check live availability, and book an appointment through an AI chat agent that collects a mobile money deposit
-- **Owner dashboard** — view upcoming appointments, revenue, no-shows, and AI-generated weekly digests
-- **Staff view** — today's schedule with live status updates
-- **AI agents** — GPT-4o-mini–powered agents handle booking conversations and write weekly business insights. A scheduling agent (waitlist backfill) and a payment agent (deposit chasing) also exist in `agents/` but aren't wired into any scheduled task yet — see [Known gaps](#known-gaps)
-- **Automated tasks** — Celery beat runs reminders, no-show detection, trial expiry, and expiry of unpaid pending bookings on schedules
-- **WhatsApp notifications** — booking confirmations, reminders, and cancellations are sent to customers over WhatsApp
-- **Sign up** — email/password or Google Sign-In, protected by Cloudflare Turnstile bot detection
+- **Customer booking** - browse services, check live availability, and book an appointment through an AI chat agent that collects a mobile money deposit
+- **Owner dashboard** - view upcoming appointments, revenue, no-shows, and AI-generated weekly digests
+- **Staff view** - today's schedule with live status updates
+- **AI agents** - GPT-4o-mini–powered agents handle booking conversations and write weekly business insights. A scheduling agent (waitlist backfill) and a payment agent (deposit chasing) also exist in `agents/` but aren't wired into any scheduled task yet - see [Known gaps](#known-gaps)
+- **Automated tasks** - Celery beat runs reminders, no-show detection, trial expiry, and expiry of unpaid pending bookings on schedules
+- **WhatsApp notifications** - booking confirmations, reminders, and cancellations are sent to customers over WhatsApp
+- **Sign up** - email/password or Google Sign-In, protected by Cloudflare Turnstile bot detection
 
 ---
 
@@ -25,7 +25,7 @@ A multi-tenant salon booking SaaS built for Zambia. Salon owners get their own s
 | Auth | JWT via PyJWT (stateless, Bearer token), Google OAuth |
 | AI agents | OpenAI GPT-4o-mini with tool use |
 | Task queue | Celery + Redis (beat scheduler) |
-| Payments | Abstraction layer — mock provider by default; **Lipila** for live mobile money deposits/disbursements in production |
+| Payments | Abstraction layer - mock provider by default; **Lipila** for live mobile money deposits/disbursements in production |
 | Notifications | Booking events are posted to an **n8n** workflow, which sends the customer-facing message over the **WhatsApp Cloud API** |
 | Bot protection | Cloudflare Turnstile (signup form) |
 | Frontend | React 18 + Vite, Apollo Client, Tailwind CSS v4 |
@@ -44,7 +44,7 @@ Local dev runs entirely in Docker Compose (below), but the live deployment is sp
 |---|---|---|
 | Backend (Django, GraphQL, Celery worker + beat) | **Railway** | One service per process (web, worker, beat), plus managed Postgres and Redis |
 | Frontend (React PWA) | **Vercel** | Each tenant gets its own subdomain (`<salon>.kimawa.pro`), auto-provisioned via the Vercel API on signup |
-| WhatsApp messaging | **n8n** (self-hosted, on Railway) → **WhatsApp Cloud API** | Django never talks to WhatsApp directly — it POSTs a booking event to n8n, which formats and sends the WhatsApp message |
+| WhatsApp messaging | **n8n** (self-hosted, on Railway) → **WhatsApp Cloud API** | Django never talks to WhatsApp directly - it POSTs a booking event to n8n, which formats and sends the WhatsApp message |
 | Mobile money deposits | **Lipila** | Collects the customer's deposit and disburses the salon's share; webhook is HMAC-verified (`LIPILA_WEBHOOK_SECRET`) and idempotent on transaction ID |
 
 ---
@@ -153,9 +153,9 @@ beautybook-zm/
 | Task | Schedule | Description |
 |---|---|---|
 | `expire_pending_payments` | Every 15 min | Marks unpaid bookings as expired once the 10-minute payment window closes |
-| `send_appointment_reminders` | Daily 6 pm CAT | Sends a WhatsApp reminder (via n8n) for tomorrow's confirmed appointments |
+| `send_appointment_reminders` | Daily 6 pm CAT | Sends a WhatsApp reminder (via n8n) for tomorrow's confirmed appointments | not yet active
 | `detect_no_shows` | Every 30 min | Auto-marks overdue confirmed appointments as no-show |
-| `check_trial_expiry` | Daily 1 am CAT | Deactivates tenants whose free trial has ended |
+| `check_trial_expiry` | Daily 1 am CAT | Deactivates tenants whose free trial has ended | Not yet active
 | `send_weekly_digest` | Monday 2 am CAT | InsightsAgent generates a weekly summary for each owner |
 | `cleanup_reference_images` | Daily 3 am CAT | Deletes customer-uploaded reference photos off finished/abandoned appointments |
 
