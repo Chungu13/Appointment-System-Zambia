@@ -9,8 +9,8 @@ A multi-tenant salon booking SaaS built for Zambia. Salon owners get their own s
 - **Customer booking** — browse services, check live availability, and book an appointment through an AI chat agent that collects a mobile money deposit
 - **Owner dashboard** — view upcoming appointments, revenue, no-shows, and AI-generated weekly digests
 - **Staff view** — today's schedule with live status updates
-- **AI agents** — GPT-4o-mini–powered agents handle booking conversations, fill cancelled slots from the waitlist, chase unpaid deposits, and write weekly business insights
-- **Automated tasks** — Celery beat runs reminders, no-show detection, trial expiry, and deposit chasing on schedules
+- **AI agents** — GPT-4o-mini–powered agents handle booking conversations and write weekly business insights. A scheduling agent (waitlist backfill) and a payment agent (deposit chasing) also exist in `agents/` but aren't wired into any scheduled task yet — see [Known gaps](#known-gaps)
+- **Automated tasks** — Celery beat runs reminders, no-show detection, trial expiry, and expiry of unpaid pending bookings on schedules
 - **WhatsApp notifications** — booking confirmations, reminders, and cancellations are sent to customers over WhatsApp
 - **Sign up** — email/password or Google Sign-In, protected by Cloudflare Turnstile bot detection
 
@@ -158,6 +158,13 @@ beautybook-zm/
 | `check_trial_expiry` | Daily 1 am CAT | Deactivates tenants whose free trial has ended |
 | `send_weekly_digest` | Monday 2 am CAT | InsightsAgent generates a weekly summary for each owner |
 | `cleanup_reference_images` | Daily 3 am CAT | Deletes customer-uploaded reference photos off finished/abandoned appointments |
+
+---
+
+## Known gaps
+
+- **`SchedulingAgent`** (`agents/scheduling_agent.py`) — matches waitlisted customers to newly-cancelled slots and notifies them. Fully implemented but never instantiated anywhere; there's no Celery task or mutation that calls it. Customers can still join a `Waitlist` entry, but nothing currently acts on it.
+- **`PaymentAgent`** (`agents/payment_agent.py`) — has a `chase_deposits()` method meant to remind customers with unpaid deposits before cancelling. Also never called. The only live task touching unpaid bookings is `expire_pending_payments`, which silently expires them after 10 minutes with no reminder sent.
 
 ---
 
