@@ -1,28 +1,28 @@
 # KIMAWA
 
-Kimawa is a multi-tenant booking platform for beauty and wellness businesses in Zambia — lash studios, nail techs, braiders, spas, barbershops, and similar service-based businesses that take appointments and charge a deposit to hold them.
+Kimawa is a multi-tenant booking platform for beauty and wellness businesses in Zambia - lash studios, nail techs, braiders, spas, barbershops, and similar service-based businesses that take appointments and charge a deposit to hold them.
 
 It's built as one shared codebase serving many independent businesses ("tenants"). Each business that signs up gets:
 
-- **Its own subdomain** (`<business>.kimawa.pro`), automatically provisioned on Vercel the moment they finish signup — no manual setup
+- **Its own subdomain** (`<business>.kimawa.pro`), automatically provisioned on Vercel the moment they finish signup, no manual setup
 - **Its own isolated PostgreSQL schema** (via django-tenants), so one business's customers, bookings, staff, and payment history are completely walled off from every other business on the platform, while all sharing the same application code and database server
 - **A public booking page** where the business's own customers can browse services and book, without ever seeing any other tenant's data
-- **An AI chat agent** as the primary booking interface — customers describe what they want in plain language instead of filling out a form; the agent checks live availability, assigns a staff member, collects a mobile money deposit, and confirms the booking, all inside the conversation
-- **A staff/owner dashboard** for managing the day-to-day: today's schedule, revenue, no-shows, staff working hours and services, and a weekly AI-generated summary of how the business is doing
+- **An AI chat agent** as the primary booking interface: customers describe what they want in plain language instead of filling out a form, and the agent checks live availability, assigns a staff member, collects a mobile money deposit, and confirms the booking, all inside the conversation
+- **A staff/owner dashboard** for managing the day to day: today's schedule, revenue, no-shows, staff working hours and services, and a weekly AI-generated summary of how the business is doing
 
-The business owner never has to think about servers, databases, or payment integrations — they sign up, set their services and working hours, and the booking + deposit-collection + WhatsApp-notification pipeline works out of the box.
+The business owner never has to think about servers, databases, or payment integrations. They sign up, set their services and working hours, and the booking, deposit-collection, and WhatsApp-notification pipeline works out of the box.
 
 ---
 
 ## What it does
 
-- **Customer booking** — browse services, check live availability, and book an appointment through an AI chat agent that collects a mobile money deposit
-- **Owner dashboard** — view upcoming appointments, revenue, no-shows, and AI-generated weekly digests
-- **Staff view** — today's schedule with live status updates
-- **AI agents** — GPT-4o-mini–powered agents handle booking conversations and write weekly business insights. A scheduling agent (waitlist backfill) and a payment agent (deposit chasing) also exist in `agents/` but aren't wired into any scheduled task yet — see [Known gaps](#known-gaps)
-- **Automated tasks** — Celery beat runs reminders, no-show detection, trial expiry, and expiry of unpaid pending bookings on schedules
-- **WhatsApp notifications** — booking confirmations, reminders, and cancellations are sent to customers over WhatsApp
-- **Sign up** — email/password or Google Sign-In, protected by Cloudflare Turnstile bot detection
+- **Customer booking** - browse services, check live availability, and book an appointment through an AI chat agent that collects a mobile money deposit
+- **Owner dashboard** - view upcoming appointments, revenue, no-shows, and AI-generated weekly digests
+- **Staff view** - today's schedule with live status updates
+- **AI agents** - GPT-4o-mini-powered agents handle booking conversations and write weekly business insights. A scheduling agent (waitlist backfill) and a payment agent (deposit chasing) also exist in `agents/` but aren't wired into any scheduled task yet - see [Known gaps](#known-gaps)
+- **Automated tasks** - Celery beat runs reminders, no-show detection, trial expiry, and expiry of unpaid pending bookings on schedules
+- **WhatsApp notifications** - booking confirmations, reminders, and cancellations are sent to customers over WhatsApp
+- **Sign up** - email/password or Google Sign-In, protected by Cloudflare Turnstile bot detection
 
 ---
 
@@ -35,7 +35,7 @@ The business owner never has to think about servers, databases, or payment integ
 | Auth | JWT via PyJWT (stateless, Bearer token), Google OAuth |
 | AI agents | OpenAI GPT-4o-mini with tool use |
 | Task queue | Celery + Redis (beat scheduler) |
-| Payments | Abstraction layer — mock provider by default; **Lipila** for live mobile money deposits/disbursements in production |
+| Payments | Abstraction layer - mock provider by default; **Lipila** for live mobile money deposits/disbursements in production |
 | Notifications | Booking events are posted to an **n8n** workflow, which sends the customer-facing message over the **WhatsApp Cloud API** |
 | Bot protection | Cloudflare Turnstile (signup form) |
 | Frontend | React 18 + Vite, Apollo Client, Tailwind CSS v4 |
@@ -54,7 +54,7 @@ Local dev runs entirely in Docker Compose (below), but the live deployment is sp
 |---|---|---|
 | Backend (Django, GraphQL, Celery worker + beat) | **Railway** | One service per process (web, worker, beat), plus managed Postgres and Redis |
 | Frontend (React PWA) | **Vercel** | Each tenant gets its own subdomain (`<business>.kimawa.pro`), auto-provisioned via the Vercel API on signup |
-| WhatsApp messaging | **n8n** (self-hosted, on Railway) → **WhatsApp Cloud API** | Django never talks to WhatsApp directly — it POSTs a booking event to n8n, which formats and sends the WhatsApp message |
+| WhatsApp messaging | **n8n** (self-hosted, on Railway) → **WhatsApp Cloud API** | Django never talks to WhatsApp directly - it POSTs a booking event to n8n, which formats and sends the WhatsApp message |
 | Mobile money deposits | **Lipila** | Collects the customer's deposit and disburses the business's share; webhook is HMAC-verified (`LIPILA_WEBHOOK_SECRET`) and idempotent on transaction ID |
 
 ---
@@ -77,7 +77,7 @@ Local dev runs entirely in Docker Compose (below), but the live deployment is sp
    git clone <repo-url>
    cd beautybook-zm
    cp .env.example .env
-   # Edit .env — set SECRET_KEY, DB_PASSWORD, OPENAI_API_KEY at minimum
+   # Edit .env - set SECRET_KEY, DB_PASSWORD, OPENAI_API_KEY at minimum
    ```
 
 2. **Start all services**
@@ -110,7 +110,7 @@ Copy `.env.example` to `.env` and fill in:
 
 | Variable | Required | Description |
 |---|---|---|
-| `SECRET_KEY` | Yes | Django secret key — use a long random string in production |
+| `SECRET_KEY` | Yes | Django secret key - use a long random string in production |
 | `DEBUG` | Yes | `True` for dev, `False` for production |
 | `DB_PASSWORD` | Yes | PostgreSQL password |
 | `OPENAI_API_KEY` | Yes | Powers all four AI agents |
@@ -141,7 +141,7 @@ beautybook-zm/
 │   ├── staff/                # Custom User model, WorkingHours, auth mutations
 │   ├── tenants/               # Tenant + Domain models (django-tenants)
 │   ├── core/                  # Shared utilities (phone validation, timezone formatting)
-│   ├── beautybook/            # Django project — settings, URLs, Celery, JWT auth
+│   ├── beautybook/            # Django project - settings, URLs, Celery, JWT auth
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── Dockerfile            # Python/Django image
@@ -163,9 +163,9 @@ beautybook-zm/
 | Task | Schedule | Description |
 |---|---|---|
 | `expire_pending_payments` | Every 15 min | Marks unpaid bookings as expired once the 10-minute payment window closes |
-| `send_appointment_reminders` | Daily 6 pm CAT | Sends a WhatsApp reminder (via n8n) for tomorrow's confirmed appointments |
+| `send_appointment_reminders` | Daily 6 pm CAT | Sends a WhatsApp reminder (via n8n) for tomorrow's confirmed appointments - **not yet active** |
 | `detect_no_shows` | Every 30 min | Auto-marks overdue confirmed appointments as no-show |
-| `check_trial_expiry` | Daily 1 am CAT | Deactivates tenants whose free trial has ended |
+| `check_trial_expiry` | Daily 1 am CAT | Deactivates tenants whose free trial has ended - **not yet active** |
 | `send_weekly_digest` | Monday 2 am CAT | InsightsAgent generates a weekly summary for each owner |
 | `cleanup_reference_images` | Daily 3 am CAT | Deletes customer-uploaded reference photos off finished/abandoned appointments |
 
@@ -173,8 +173,9 @@ beautybook-zm/
 
 ## Known gaps
 
-- **`SchedulingAgent`** (`agents/scheduling_agent.py`) — matches waitlisted customers to newly-cancelled slots and notifies them. Fully implemented but never instantiated anywhere; there's no Celery task or mutation that calls it. The `Waitlist` model and its GraphQL type exist, but there's no mutation to actually create an entry either — nothing lets a customer join a waitlist in the first place, so this feature doesn't work end-to-end on either side.
-- **`PaymentAgent`** (`agents/payment_agent.py`) — has a `chase_deposits()` method meant to remind customers with unpaid deposits before cancelling. Also never called. The only live task touching unpaid bookings is `expire_pending_payments`, which silently expires them after 10 minutes with no reminder sent.
+- **`SchedulingAgent`** (`agents/scheduling_agent.py`) - matches waitlisted customers to newly-cancelled slots and notifies them. Fully implemented but never instantiated anywhere; there's no Celery task or mutation that calls it. The `Waitlist` model and its GraphQL type exist, but there's no mutation to actually create an entry either, so nothing lets a customer join a waitlist in the first place. The feature doesn't work end to end on either side.
+- **`PaymentAgent`** (`agents/payment_agent.py`) - has a `chase_deposits()` method meant to remind customers with unpaid deposits before cancelling. Also never called. The only live task touching unpaid bookings is `expire_pending_payments`, which silently expires them after 10 minutes with no reminder sent.
+- **`send_appointment_reminders`** and **`check_trial_expiry`** - defined in the Celery beat schedule but flagged as not yet active in production; confirm the Celery Beat service on Railway is actually running these before relying on them.
 
 ---
 
