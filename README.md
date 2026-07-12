@@ -1,6 +1,16 @@
 # KIMAWA
 
-A multi-tenant salon booking SaaS built for Zambia. Salon owners get their own subdomain, isolated database schema, and a full booking + payment + AI-agent stack out of the box.
+Kimawa is a multi-tenant booking platform for beauty and wellness businesses in Zambia — lash studios, nail techs, braiders, spas, barbershops, and similar service-based businesses that take appointments and charge a deposit to hold them.
+
+It's built as one shared codebase serving many independent businesses ("tenants"). Each business that signs up gets:
+
+- **Its own subdomain** (`<business>.kimawa.pro`), automatically provisioned on Vercel the moment they finish signup — no manual setup
+- **Its own isolated PostgreSQL schema** (via django-tenants), so one business's customers, bookings, staff, and payment history are completely walled off from every other business on the platform, while all sharing the same application code and database server
+- **A public booking page** where the business's own customers can browse services and book, without ever seeing any other tenant's data
+- **An AI chat agent** as the primary booking interface — customers describe what they want in plain language instead of filling out a form; the agent checks live availability, assigns a staff member, collects a mobile money deposit, and confirms the booking, all inside the conversation
+- **A staff/owner dashboard** for managing the day-to-day: today's schedule, revenue, no-shows, staff working hours and services, and a weekly AI-generated summary of how the business is doing
+
+The business owner never has to think about servers, databases, or payment integrations — they sign up, set their services and working hours, and the booking + deposit-collection + WhatsApp-notification pipeline works out of the box.
 
 ---
 
@@ -43,9 +53,9 @@ Local dev runs entirely in Docker Compose (below), but the live deployment is sp
 | Piece | Where it runs | Notes |
 |---|---|---|
 | Backend (Django, GraphQL, Celery worker + beat) | **Railway** | One service per process (web, worker, beat), plus managed Postgres and Redis |
-| Frontend (React PWA) | **Vercel** | Each tenant gets its own subdomain (`<salon>.kimawa.pro`), auto-provisioned via the Vercel API on signup |
+| Frontend (React PWA) | **Vercel** | Each tenant gets its own subdomain (`<business>.kimawa.pro`), auto-provisioned via the Vercel API on signup |
 | WhatsApp messaging | **n8n** (self-hosted, on Railway) → **WhatsApp Cloud API** | Django never talks to WhatsApp directly — it POSTs a booking event to n8n, which formats and sends the WhatsApp message |
-| Mobile money deposits | **Lipila** | Collects the customer's deposit and disburses the salon's share; webhook is HMAC-verified (`LIPILA_WEBHOOK_SECRET`) and idempotent on transaction ID |
+| Mobile money deposits | **Lipila** | Collects the customer's deposit and disburses the business's share; webhook is HMAC-verified (`LIPILA_WEBHOOK_SECRET`) and idempotent on transaction ID |
 
 ---
 
@@ -114,7 +124,7 @@ Copy `.env.example` to `.env` and fill in:
 | `N8N_WEBHOOK_SECRET` | For WhatsApp notifications | Shared secret sent with each dispatched booking event |
 | `TURNSTILE_SECRET_KEY` | For signup bot protection | Cloudflare Turnstile secret key |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | For Google Sign-In | OAuth credentials from the Google Cloud Console |
-| `VERCEL_API_TOKEN` / `VERCEL_PROJECT_ID` / `VERCEL_TEAM_ID` | For auto-provisioning tenant subdomains | Used to create a new subdomain on Vercel when a salon signs up |
+| `VERCEL_API_TOKEN` / `VERCEL_PROJECT_ID` / `VERCEL_TEAM_ID` | For auto-provisioning tenant subdomains | Used to create a new subdomain on Vercel when a business signs up |
 
 ---
 
@@ -163,7 +173,7 @@ beautybook-zm/
 
 ## Known gaps
 
-- **`SchedulingAgent`** (`agents/scheduling_agent.py`) — matches waitlisted customers to newly-cancelled slots and notifies them. Fully implemented but never instantiated anywhere; there's no Celery task or mutation that calls it. Customers can still join a `Waitlist` entry, but nothing currently acts on it.
+- **`SchedulingAgent`** (`agents/scheduling_agent.py`) — matches waitlisted customers to newly-cancelled slots and notifies them. Fully implemented but never instantiated anywhere; there's no Celery task or mutation that calls it. The `Waitlist` model and its GraphQL type exist, but there's no mutation to actually create an entry either — nothing lets a customer join a waitlist in the first place, so this feature doesn't work end-to-end on either side.
 - **`PaymentAgent`** (`agents/payment_agent.py`) — has a `chase_deposits()` method meant to remind customers with unpaid deposits before cancelling. Also never called. The only live task touching unpaid bookings is `expire_pending_payments`, which silently expires them after 10 minutes with no reminder sent.
 
 ---
@@ -174,9 +184,9 @@ beautybook-zm/
 # From the Django shell (docker-compose exec web python manage.py shell)
 from tenants.models import Tenant, Domain
 
-t = Tenant(schema_name="salon_name", business_name="My Salon", on_trial=True)
+t = Tenant(schema_name="business_name", business_name="My Business", on_trial=True)
 t.save()
-Domain.objects.create(domain="salonname.localhost", tenant=t, is_primary=True)
+Domain.objects.create(domain="businessname.localhost", tenant=t, is_primary=True)
 ```
 
 ---
