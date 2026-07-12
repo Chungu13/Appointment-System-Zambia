@@ -15,17 +15,29 @@ from payments.models import Payment
 logger = logging.getLogger(__name__)
 
 
-def _calculate_customer_total(deposit_zmw: float) -> float:
+def _calculate_customer_total(deposit_zmw: float) -> int:
     """
-    What the customer pays upfront.
+    What the customer pays upfront, rounded to the nearest whole Kwacha so
+    the mobile money prompt and booking summary show a clean number (e.g.
+    ZMW 57) instead of a percentage-math remainder (e.g. ZMW 57.18).
     Owner always receives deposit_zmw exactly (paid out via disbursement).
     Kimawa earns 10% commission; Lipila fees are covered by the service fee.
     """
+    from decimal import Decimal, ROUND_HALF_UP
+
     kimawa_fee      = deposit_zmw * 0.10
     lipila_disburse = deposit_zmw * 0.015
     subtotal        = deposit_zmw + kimawa_fee + lipila_disburse
     total           = subtotal / (1 - 0.025)   # gross up to cover 2.5% collection fee
-    return round(total, 2)
+    return int(Decimal(str(total)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _clean_zmw(amount: float):
+    """Whole ZMW amounts should display as e.g. 7, not 7.0 - only fall back
+    to a 2dp float for the rare case a business configured a fractional
+    deposit/price."""
+    amount = float(amount)
+    return int(amount) if amount == int(amount) else round(amount, 2)
 
 
 def handle_get_services(inputs: dict) -> dict:
@@ -109,8 +121,8 @@ def handle_check_availability(inputs: dict) -> tuple:
         deposit        = float(service_obj["deposit_zmw"])
         price          = float(service_obj["price_zmw"])
         customer_total = _calculate_customer_total(deposit)
-        service_fee    = round(customer_total - deposit, 2)
-        balance_salon  = round(price - deposit, 2)
+        service_fee    = _clean_zmw(customer_total - deposit)
+        balance_salon  = _clean_zmw(price - deposit)
         duration_mins  = service_obj["duration_minutes"]
     else:
         deposit = customer_total = service_fee = balance_salon = 0.0
@@ -399,7 +411,7 @@ def handle_initiate_payment(inputs: dict, customer_phone: str, tenant_schema_nam
 
     actual_deposit = float(appt.service.deposit_zmw)
     actual_total   = _calculate_customer_total(actual_deposit)
-    actual_fee     = round(actual_total - actual_deposit, 2)
+    actual_fee     = _clean_zmw(actual_total - actual_deposit)
 
     if actual_deposit == 0:
         appt.status = Appointment.STATUS_CONFIRMED
