@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { TrendingUp } from 'lucide-react'
 import { DASHBOARD_STATS, MY_STAFF_APPOINTMENTS } from '../../graphql/queries/bookings'
@@ -77,7 +78,8 @@ function WeeklySchedule({ isAlsoStaff }) {
 
       {!isAlsoStaff ? (
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, textAlign: 'center', padding: '32px 0' }}>
-          Assign yourself as staff to see your schedule here.
+          Go to <Link to="/owner/staff" style={{ color: BURG }}>Staff</Link> and tap
+          &quot;Also work as staff&quot; to see your schedule here.
         </p>
       ) : loading ? (
         <PageSpinner />

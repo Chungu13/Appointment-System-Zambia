@@ -340,6 +340,39 @@ function StaffProfileEditor({ member }) {
   )
 }
 
+// ── "Also work as staff" toggle — owner only, unlocks their own dashboard schedule ──
+function AlsoStaffToggle({ member }) {
+  const [enableSelf, { loading }] = useMutation(CREATE_STAFF, {
+    refetchQueries: [STAFF_LIST, MY_PROFILE],
+  })
+
+  if (member.isAlsoStaff) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 12, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
+        <span style={{ width: 8, height: 8, flexShrink: 0, backgroundColor: BURG, borderRadius: '50%' }} />
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>
+          You're set up as staff. Your bookings show on your dashboard.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, padding: 12, border: `0.5px solid ${BORDER}`, backgroundColor: BLUSH }}>
+      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, maxWidth: 340 }}>
+        You're not assigned as staff yet, so your own bookings won't show on your dashboard.
+      </p>
+      <button
+        onClick={() => enableSelf({ variables: { isMe: true } })}
+        disabled={loading}
+        style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '8px 16px', backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, flexShrink: 0 }}
+      >
+        {loading ? 'Saving…' : 'Also work as staff'}
+      </button>
+    </div>
+  )
+}
+
 // ── Staff member panel ────────────────────────────────────────────────────────
 function StaffPanel({ member, allServices }) {
   const [open, setOpen] = useState(false)
@@ -396,6 +429,8 @@ function StaffPanel({ member, allServices }) {
       {/* Expanded panel */}
       {open && (
         <div style={{ borderTop: `0.5px solid ${BORDER}`, padding: 20, backgroundColor: BLUSH, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {isOwner && <AlsoStaffToggle member={member} />}
+
           <StaffProfileEditor member={member} />
 
           <div>
