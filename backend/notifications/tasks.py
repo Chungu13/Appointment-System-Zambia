@@ -10,6 +10,15 @@ logger = logging.getLogger(__name__)
 
 def _build_payload(appt, tenant, event: str) -> dict:
     deposit = str(appt.service.deposit_zmw) if float(appt.service.deposit_zmw or 0) > 0 else "0"
+
+    reference_image_url = appt.reference_image_url or ""
+    if event == "booking-confirmed" and not reference_image_url:
+        # The booking_confirmed_owner WhatsApp template has a mandatory image
+        # header. Most bookings never attach a reference photo (only services
+        # flagged requires_reference_picture do), so without this fallback
+        # every plain booking's owner notification would fail to send.
+        reference_image_url = "https://i.postimg.cc/jdPBbCY3/kimawa-light-3.png"
+
     payload = {
         "event":           event,
         "appointment_id":  appt.pk,
@@ -23,7 +32,7 @@ def _build_payload(appt, tenant, event: str) -> dict:
         "owner_whatsapp":  tenant.whatsapp_number or "",
         "business_phone":  tenant.phone or tenant.whatsapp_number or "",
         "deposit_amount":  deposit,
-        "reference_image_url": appt.reference_image_url or "",
+        "reference_image_url": reference_image_url,
     }
     if event == "booking-cancelled":
         payload["cancelled_by"] = getattr(appt, "cancelled_by", "customer") or "customer"
