@@ -216,6 +216,50 @@ def _select_best_staff(service_id, date, requested_start, requested_end, exclude
     return ranked[0] if ranked else None
 
 
+def handle_check_staff_available(inputs: dict) -> dict:
+    """
+    Check whether one specific named staff member is qualified and free for a
+    slot. Used when the customer asks for someone by name (typed or tapped a
+    QUICK_REPLIES option) so the AI never has to guess free vs busy itself -
+    get_best_staff's result only reflects the single best pick, not whether
+    an arbitrary other name is free, so that alone isn't enough to answer this.
+    """
+    import datetime
+    import zoneinfo
+    from django.utils import timezone as tz_module
+    from services.models import Service
+
+    service_id = inputs.get("service_id")
+    date_str = inputs.get("date", "")
+    start_time_str = inputs.get("start_time", "")
+    staff_name = (inputs.get("staff_name") or "").strip()
+
+    try:
+        date = datetime.date.fromisoformat(date_str)
+        hour, minute = map(int, start_time_str.split(":"))
+    except (ValueError, AttributeError):
+        return {"error": "Invalid date or start_time. Use YYYY-MM-DD and HH:MM (24-hour)."}
+
+    svc = Service.objects.filter(pk=service_id, is_active=True).values("duration_minutes", "buffer_minutes").first()
+    if not svc:
+        return {"error": f"Service {service_id} not found."}
+    total_duration = svc["duration_minutes"] + svc["buffer_minutes"]
+
+    cat = zoneinfo.ZoneInfo("Africa/Lusaka")
+    requested_start = tz_module.make_aware(
+        datetime.datetime(date.year, date.month, date.day, hour, minute), cat
+    )
+    requested_end = requested_start + datetime.timedelta(minutes=total_duration)
+
+    ranked = _rank_available_staff(service_id, date, requested_start, requested_end)
+    for staff in ranked:
+        name = staff.full_name or staff.username
+        if name.strip().lower() == staff_name.lower():
+            return {"available": True, "staff_id": staff.pk, "staff_name": name}
+
+    return {"available": False, "requested_name": staff_name}
+
+
 def handle_get_best_staff(inputs: dict) -> dict:
     import datetime
     import zoneinfo

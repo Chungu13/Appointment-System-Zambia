@@ -31,6 +31,8 @@ class BookingAgent:
             return result
         elif name == "get_best_staff":
             return handlers.handle_get_best_staff(inputs)
+        elif name == "check_staff_available":
+            return handlers.handle_check_staff_available(inputs)
         elif name == "create_booking":
             return handlers.handle_create_booking(inputs, customer_phone, schema, session_id, last_slots)
         elif name == "initiate_payment":

@@ -69,6 +69,38 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "check_staff_available",
+            "description": (
+                "Check whether ONE specific named staff member is qualified and free for a "
+                "slot. Always call this when the customer asks for someone by name (typed or "
+                "tapped a quick-reply option) instead of guessing — get_best_staff only tells "
+                "you the single best pick, not whether a different named person is free."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "service_id": {"type": "integer", "description": "ID of the service."},
+                    "date": {"type": "string", "description": "Date in YYYY-MM-DD format."},
+                    "start_time": {
+                        "type": "string",
+                        "description": "Start time in HH:MM 24-hour format, e.g. '14:30'.",
+                    },
+                    "duration_minutes": {
+                        "type": "integer",
+                        "description": "Duration of the service in minutes, from the check_availability result.",
+                    },
+                    "staff_name": {
+                        "type": "string",
+                        "description": "The exact staff name the customer asked for.",
+                    },
+                },
+                "required": ["service_id", "date", "start_time", "duration_minutes", "staff_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "create_booking",
             "description": "Create an appointment for the customer.",
             "parameters": {
