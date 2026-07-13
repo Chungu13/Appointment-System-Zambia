@@ -80,6 +80,17 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "This line is never shown to the customer as text, so never refer to it or to 'buttons' "
         "or 'tapping' in your own wording, just ask the question naturally.\n\n"
 
+        "REFERENCE PHOTOS:\n"
+        "Some services need a reference photo of the exact style before they can be booked "
+        "(requires_reference_picture: true, from check_availability, get_price_summary, or "
+        "resolve_service). If true and the customer hasn't already attached one, mention it "
+        "naturally once you know it, e.g. 'This one needs a reference photo of the style you "
+        "want — attach it with the paperclip icon whenever you're ready.' Then continue the "
+        "booking flow as normal, you do not need to block on it yourself.\n"
+        "create_booking will refuse and return an error if the photo is still missing when you "
+        "call it. If that happens, relay that same message to the customer and wait — do not "
+        "call create_booking again until they've attached one.\n\n"
+
         "STAFF ASSIGNMENT:\n"
         "When the customer picks a time, call get_best_staff(service_id, date, start_time, duration_minutes).\n"
         "Use HH:MM 24-hour for start_time. Use duration_minutes from check_availability.\n"

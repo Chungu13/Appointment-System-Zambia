@@ -79,17 +79,25 @@ def handle_resolve_service(inputs: dict) -> dict:
     if not name:
         return {"matched": False, "error": "No service name given."}
 
-    services = list(Service.objects.filter(is_active=True).values("id", "name"))
+    services = list(Service.objects.filter(is_active=True).values("id", "name", "requires_reference_picture"))
     if not services:
         return {"matched": False, "error": "No active services found."}
 
+    def _hit(s):
+        return {
+            "matched": True,
+            "service_id": s["id"],
+            "service_name": s["name"],
+            "requires_reference_picture": s["requires_reference_picture"],
+        }
+
     exact = [s for s in services if s["name"].strip().lower() == name]
     if len(exact) == 1:
-        return {"matched": True, "service_id": exact[0]["id"], "service_name": exact[0]["name"]}
+        return _hit(exact[0])
 
     partial = [s for s in services if name in s["name"].lower() or s["name"].lower() in name]
     if len(partial) == 1:
-        return {"matched": True, "service_id": partial[0]["id"], "service_name": partial[0]["name"]}
+        return _hit(partial[0])
 
     if len(partial) > 1:
         return {
@@ -115,7 +123,7 @@ def _price_summary(service_id) -> dict | None:
     from services.models import Service
 
     service_obj = Service.objects.filter(pk=service_id).values(
-        "name", "deposit_zmw", "price_zmw", "duration_minutes"
+        "name", "deposit_zmw", "price_zmw", "duration_minutes", "requires_reference_picture"
     ).first()
     if not service_obj:
         return None
@@ -126,12 +134,13 @@ def _price_summary(service_id) -> dict | None:
     service_fee    = _clean_zmw(customer_total - deposit)
     balance_salon  = _clean_zmw(price - deposit)
     return {
-        "service":          service_obj["name"],
-        "duration_minutes": service_obj["duration_minutes"],
-        "deposit_zmw":      deposit,
-        "customer_total":   customer_total,
-        "service_fee":      service_fee,
-        "balance_at_salon": balance_salon,
+        "service":                    service_obj["name"],
+        "duration_minutes":           service_obj["duration_minutes"],
+        "deposit_zmw":                deposit,
+        "customer_total":             customer_total,
+        "service_fee":                service_fee,
+        "balance_at_salon":           balance_salon,
+        "requires_reference_picture": service_obj["requires_reference_picture"],
     }
 
 
@@ -201,26 +210,29 @@ def handle_check_availability(inputs: dict) -> tuple:
 
     summary = _price_summary(inputs["service_id"])
     if summary:
-        deposit        = summary["deposit_zmw"]
-        customer_total = summary["customer_total"]
-        service_fee    = summary["service_fee"]
-        balance_salon  = summary["balance_at_salon"]
-        duration_mins  = summary["duration_minutes"]
+        deposit             = summary["deposit_zmw"]
+        customer_total      = summary["customer_total"]
+        service_fee         = summary["service_fee"]
+        balance_salon       = summary["balance_at_salon"]
+        duration_mins       = summary["duration_minutes"]
+        requires_ref_photo  = summary["requires_reference_picture"]
     else:
         deposit = customer_total = service_fee = balance_salon = 0.0
         duration_mins = 0
+        requires_ref_photo = False
 
     result = {
-        "service_id":       inputs["service_id"],
-        "date":             inputs["date"],
-        "service":          raw_slots[0]["service_name"],
-        "duration_minutes": duration_mins,
-        "deposit_zmw":      deposit,
-        "customer_total":   customer_total,
-        "service_fee":      service_fee,
-        "balance_at_salon": balance_salon,
-        "available_staff":  list(seen.values()),
-        "total_slots":      len(raw_slots),
+        "service_id":                 inputs["service_id"],
+        "date":                       inputs["date"],
+        "service":                    raw_slots[0]["service_name"],
+        "duration_minutes":           duration_mins,
+        "deposit_zmw":                deposit,
+        "customer_total":             customer_total,
+        "service_fee":                service_fee,
+        "balance_at_salon":           balance_salon,
+        "available_staff":            list(seen.values()),
+        "total_slots":                len(raw_slots),
+        "requires_reference_picture": requires_ref_photo,
     }
     return result, raw_slots
 
@@ -412,6 +424,21 @@ def handle_create_booking(
     except Service.DoesNotExist:
         return {"error": f"Service {inputs['service_id']} not found."}
 
+    # Fetch any reference photo attached earlier in this session — needed both
+    # to enforce services that require one, and to attach it to the appointment
+    # further down. Checked here in Python, not left to the AI to remember to ask.
+    from agents.booking.session import load_reference_image, clear_reference_image
+    pending_reference = load_reference_image(session_id)
+
+    if service.requires_reference_picture and not pending_reference:
+        return {
+            "error": (
+                f"{service.name} requires a reference photo of the exact style before this "
+                "booking can be completed. Ask the customer to attach one using the paperclip "
+                "icon in the chat, then try again — do not call create_booking without it."
+            )
+        }
+
     try:
         staff = User.objects.get(pk=inputs["staff_id"])
     except User.DoesNotExist:
@@ -491,15 +518,11 @@ def handle_create_booking(
             if has_booking_conflict(staff, starts_at, ends_at):
                 return {"error": "That slot is no longer available. Please choose another time."}
 
-        # Look up any reference photo BEFORE creating the appointment. A
-        # no-deposit booking goes straight to "confirmed", which fires the
-        # notification signal synchronously from inside .create() itself,
-        # before any later .save() call on this same object would run. If
-        # the photo were attached afterward, the webhook to n8n would
-        # already have gone out with an empty reference_image_url.
-        from agents.booking.session import load_reference_image, clear_reference_image
-        pending_reference = load_reference_image(session_id)
-
+        # pending_reference was already fetched above. A no-deposit booking
+        # goes straight to "confirmed", which fires the notification signal
+        # synchronously from inside .create() itself, before any later
+        # .save() call on this same object would run — so it must be passed
+        # into .create() directly, not attached afterward.
         appt = Appointment.objects.create(
             customer=customer,
             staff=staff,

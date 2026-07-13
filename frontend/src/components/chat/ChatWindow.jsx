@@ -622,17 +622,72 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
   );
 }
 
-function ChatInputBar({ onSend, loading, disabled = false }) {
+function ChatInputBar({ onSend, loading, disabled = false, sessionId, sessionToken }) {
   const [value, setValue] = useState("");
+  const [attaching, setAttaching] = useState(false);
+  const [attachError, setAttachError] = useState("");
+  const uploadUrl = useRef(getUploadReferenceUrl()).current;
   const isDisabled = loading || disabled;
+
   function submit(e) { e.preventDefault(); if (!value.trim() || isDisabled) return; onSend(value.trim()); setValue(""); }
+
+  function handleFile(file) {
+    if (!file) return;
+    setAttachError("");
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      setAttachError("Only JPG and PNG files are accepted.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAttachError("File must be under 5 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      setAttaching(true);
+      try {
+        const res = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId,
+            session_token: sessionToken || "",
+            image: e.target.result,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setAttachError(data.error || "Upload failed. Please try again.");
+          return;
+        }
+        onSend("I've attached a reference photo.");
+      } catch {
+        setAttachError("Upload failed. Please try again.");
+      } finally {
+        setAttaching(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   return (
-    <form onSubmit={submit} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderTop: "0.5px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
-      <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder={disabled ? "Just a moment…" : "Type a message…"} disabled={isDisabled} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 16, fontWeight: 300, color: "#fff", outline: "none" }} />
-      <button type="submit" disabled={!value.trim() || isDisabled} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !value.trim() || isDisabled ? 0.4 : 1 }}>
-        {loading ? <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> : <Send size={15} color="#fff" />}
-      </button>
-    </form>
+    <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
+      {attachError && (
+        <p style={{ fontFamily: sans, fontSize: 11, color: "#f87171", margin: "8px 12px 0" }}>{attachError}</p>
+      )}
+      <form onSubmit={submit} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px" }}>
+        <label style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: isDisabled || attaching ? "default" : "pointer", opacity: isDisabled || attaching ? 0.4 : 1 }}>
+          <input type="file" accept="image/jpeg,image/png" disabled={isDisabled || attaching} onChange={(e) => handleFile(e.target.files?.[0])} style={{ display: "none" }} />
+          {attaching
+            ? <span style={{ width: 13, height: 13, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />
+            : <Paperclip size={15} color="rgba(255,255,255,0.7)" />}
+        </label>
+        <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder={disabled ? "Just a moment…" : "Type a message…"} disabled={isDisabled} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 16, fontWeight: 300, color: "#fff", outline: "none" }} />
+        <button type="submit" disabled={!value.trim() || isDisabled} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !value.trim() || isDisabled ? 0.4 : 1 }}>
+          {loading ? <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> : <Send size={15} color="#fff" />}
+        </button>
+      </form>
+    </div>
   );
 }
 
@@ -998,7 +1053,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
         <div ref={bottomRef} />
       </div>
 
-      <ChatInputBar onSend={sendMessage} loading={loading} disabled={limitReached || sessionEnded} />
+      <ChatInputBar onSend={sendMessage} loading={loading} disabled={limitReached || sessionEnded} sessionId={sessionId} sessionToken={sessionToken} />
     </div>
   );
 }
