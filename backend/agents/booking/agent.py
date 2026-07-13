@@ -25,10 +25,14 @@ class BookingAgent:
 
         if name == "get_services":
             return handlers.handle_get_services(inputs)
+        elif name == "resolve_service":
+            return handlers.handle_resolve_service(inputs)
         elif name == "check_availability":
             result, slots = handlers.handle_check_availability(inputs)
             self._last_availability_slots = slots
             return result
+        elif name == "get_price_summary":
+            return handlers.handle_get_price_summary(inputs)
         elif name == "get_best_staff":
             return handlers.handle_get_best_staff(inputs)
         elif name == "check_staff_available":
@@ -39,6 +43,8 @@ class BookingAgent:
             return handlers.handle_initiate_payment(inputs, customer_phone, schema)
         elif name == "find_my_appointments":
             return handlers.handle_find_my_appointments(inputs, customer_phone)
+        elif name == "resolve_appointment_selection":
+            return handlers.handle_resolve_appointment_selection(inputs, customer_phone)
         elif name == "cancel_appointment":
             return handlers.handle_cancel_appointment(inputs, customer_phone, schema)
         elif name == "reschedule_appointment":

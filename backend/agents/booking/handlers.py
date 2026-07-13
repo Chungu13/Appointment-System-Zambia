@@ -65,9 +65,90 @@ def handle_get_services(inputs: dict) -> dict:
     }
 
 
+def handle_resolve_service(inputs: dict) -> dict:
+    """
+    Resolve a customer-typed service name to the authoritative service_id.
+    Used whenever the message has no [service_id:X] tag, so the AI never
+    has to carry a remembered id across turns - businesses can have close
+    variants (e.g. "Gel Polish (Hands)" vs "Gel Polish (Feet)") that are
+    easy to mix up from memory but trivial to match exactly here.
+    """
+    from services.models import Service
+
+    name = (inputs.get("name") or "").strip().lower()
+    if not name:
+        return {"matched": False, "error": "No service name given."}
+
+    services = list(Service.objects.filter(is_active=True).values("id", "name"))
+    if not services:
+        return {"matched": False, "error": "No active services found."}
+
+    exact = [s for s in services if s["name"].strip().lower() == name]
+    if len(exact) == 1:
+        return {"matched": True, "service_id": exact[0]["id"], "service_name": exact[0]["name"]}
+
+    partial = [s for s in services if name in s["name"].lower() or s["name"].lower() in name]
+    if len(partial) == 1:
+        return {"matched": True, "service_id": partial[0]["id"], "service_name": partial[0]["name"]}
+
+    if len(partial) > 1:
+        return {
+            "matched": False,
+            "ambiguous": True,
+            "options": [{"service_id": s["id"], "service_name": s["name"]} for s in partial],
+        }
+
+    return {
+        "matched": False,
+        "error": f"No service matching '{inputs.get('name')}'. Call get_services to see the full list.",
+    }
+
+
+def _price_summary(service_id) -> dict | None:
+    """
+    Single source of truth for deposit/fee/total/balance figures. Used by
+    both check_availability (a full slot search) and get_price_summary (a
+    lightweight refresh called right before the booking summary is shown),
+    so the number the customer sees can never drift from what check_availability
+    computed several turns earlier - and never depends on the AI remembering it.
+    """
+    from services.models import Service
+
+    service_obj = Service.objects.filter(pk=service_id).values(
+        "name", "deposit_zmw", "price_zmw", "duration_minutes"
+    ).first()
+    if not service_obj:
+        return None
+
+    deposit        = float(service_obj["deposit_zmw"])
+    price          = float(service_obj["price_zmw"])
+    customer_total = _calculate_customer_total(deposit)
+    service_fee    = _clean_zmw(customer_total - deposit)
+    balance_salon  = _clean_zmw(price - deposit)
+    return {
+        "service":          service_obj["name"],
+        "duration_minutes": service_obj["duration_minutes"],
+        "deposit_zmw":      deposit,
+        "customer_total":   customer_total,
+        "service_fee":      service_fee,
+        "balance_at_salon": balance_salon,
+    }
+
+
+def handle_get_price_summary(inputs: dict) -> dict:
+    """
+    Fresh pricing lookup, meant to be called right before printing the
+    booking summary so the shown total is always current instead of a
+    figure carried in the AI's memory from an earlier check_availability call.
+    """
+    summary = _price_summary(inputs.get("service_id"))
+    if summary is None:
+        return {"error": f"Service {inputs.get('service_id')} not found."}
+    return {"service_id": inputs.get("service_id"), **summary}
+
+
 def handle_check_availability(inputs: dict) -> tuple:
     """Returns (result_dict, raw_slots) — raw_slots stored by the agent for create_booking validation."""
-    from services.models import Service
     from bookings.availability import build_availability_slots
 
     try:
@@ -118,14 +199,13 @@ def handle_check_availability(inputs: dict) -> tuple:
             seen[sid] = {"staff_id": sid, "staff_name": s["staff_name"], "times": []}
         seen[sid]["times"].append(s["starts_at"].strftime("%I:%M %p").lstrip("0"))
 
-    service_obj = Service.objects.filter(pk=inputs["service_id"]).values("deposit_zmw", "price_zmw", "duration_minutes").first()
-    if service_obj:
-        deposit        = float(service_obj["deposit_zmw"])
-        price          = float(service_obj["price_zmw"])
-        customer_total = _calculate_customer_total(deposit)
-        service_fee    = _clean_zmw(customer_total - deposit)
-        balance_salon  = _clean_zmw(price - deposit)
-        duration_mins  = service_obj["duration_minutes"]
+    summary = _price_summary(inputs["service_id"])
+    if summary:
+        deposit        = summary["deposit_zmw"]
+        customer_total = summary["customer_total"]
+        service_fee    = summary["service_fee"]
+        balance_salon  = summary["balance_at_salon"]
+        duration_mins  = summary["duration_minutes"]
     else:
         deposit = customer_total = service_fee = balance_salon = 0.0
         duration_mins = 0
@@ -362,6 +442,18 @@ def handle_create_booking(
 
     ends_at = starts_at + _dt.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
 
+    # Hard guard: starts_at must be a real slot for this staff member — never
+    # trust an AI-remembered time, rebuild the actual slot grid and check.
+    from bookings.availability import build_availability_slots
+    real_slots = build_availability_slots(service.pk, starts_at.date(), staff.pk)
+    if not any(s["starts_at"] == starts_at for s in real_slots):
+        return {
+            "error": (
+                f"{starts_at.strftime('%H:%M')} on {starts_at.date().isoformat()} is not a real slot "
+                f"for {staff.full_name}. Call check_availability again and use one of the returned times."
+            )
+        }
+
     resolved_phone = (inputs.get("customer_phone") or "").strip() or customer_phone.strip()
     if not resolved_phone or not is_valid_zambian_phone(resolved_phone):
         return {
@@ -576,29 +668,24 @@ def handle_initiate_payment(inputs: dict, customer_phone: str, tenant_schema_nam
     }
 
 
-def handle_find_my_appointments(inputs: dict, customer_phone: str) -> dict:
+def _upcoming_appointments_for_phone(phone: str) -> list:
+    """
+    Shared lookup: a customer's confirmed/pending upcoming appointments.
+    Used by both find_my_appointments and resolve_appointment_selection so
+    the two can never disagree about what's actually on the books.
+    """
     from bookings.models import Customer
 
     tz = _zi.ZoneInfo("Africa/Lusaka")
     now = timezone.now()
-
-    phone = (inputs.get("phone") or customer_phone or "").strip()
-
-    if not phone:
-        return {
-            "appointments": [],
-            "message": "Phone number required. Ask the customer for their mobile number before calling this tool.",
-            "needs_phone": True,
-        }
 
     customer = None
     for phone_variant in build_phone_variants(phone):
         customer = Customer.objects.filter(phone=phone_variant).first()
         if customer:
             break
-
     if not customer:
-        return {"appointments": [], "message": "No upcoming appointments found for your phone number."}
+        return []
 
     qs = (
         Appointment.objects
@@ -611,10 +698,10 @@ def handle_find_my_appointments(inputs: dict, customer_phone: str) -> dict:
         .order_by("starts_at")[:10]
     )
 
-    appointments = []
+    results = []
     for appt in qs:
         local_start = appt.starts_at.astimezone(tz)
-        appointments.append({
+        results.append({
             "appointment_id": appt.pk,
             "service":        appt.service.name,
             "service_id":     appt.service.pk,
@@ -624,11 +711,69 @@ def handle_find_my_appointments(inputs: dict, customer_phone: str) -> dict:
             "status":         appt.status,
             "ref":            f"APPT-{appt.pk}",
         })
+    return results
 
+
+def handle_find_my_appointments(inputs: dict, customer_phone: str) -> dict:
+    phone = (inputs.get("phone") or customer_phone or "").strip()
+
+    if not phone:
+        return {
+            "appointments": [],
+            "message": "Phone number required. Ask the customer for their mobile number before calling this tool.",
+            "needs_phone": True,
+        }
+
+    appointments = _upcoming_appointments_for_phone(phone)
     if not appointments:
         return {"appointments": [], "message": "You have no upcoming appointments."}
 
     return {"appointments": appointments}
+
+
+def handle_resolve_appointment_selection(inputs: dict, customer_phone: str) -> dict:
+    """
+    Resolve whatever the customer said when asked which appointment they
+    meant, against their ACTUAL current upcoming appointments fetched fresh
+    right now — never let the AI guess an appointment_id from its memory of
+    an earlier find_my_appointments call, especially with 2+ appointments.
+    """
+    phone = (inputs.get("phone") or customer_phone or "").strip()
+    selection = (inputs.get("selection") or "").strip().lower()
+
+    if not phone:
+        return {"matched": False, "error": "Phone number required."}
+
+    rows = _upcoming_appointments_for_phone(phone)
+    if not rows:
+        return {"matched": False, "error": "No upcoming appointments found."}
+
+    def label(r):
+        return f"{r['service']} on {r['date']} at {r['time']}"
+
+    if len(rows) == 1:
+        r = rows[0]
+        return {"matched": True, "appointment_id": r["appointment_id"], "label": label(r)}
+
+    if selection:
+        norm_sel = selection.replace(":", "").replace(" ", "")
+        matches = [
+            r for r in rows
+            if selection in label(r).lower()
+            or selection in r["service"].lower()
+            or selection == str(r["appointment_id"])
+            or r["date"] in selection
+            or r["time"].replace(":", "") in norm_sel
+        ]
+        if len(matches) == 1:
+            r = matches[0]
+            return {"matched": True, "appointment_id": r["appointment_id"], "label": label(r)}
+
+    return {
+        "matched": False,
+        "ambiguous": True,
+        "options": [{"appointment_id": r["appointment_id"], "label": label(r)} for r in rows],
+    }
 
 
 def handle_cancel_appointment(inputs: dict, customer_phone: str, tenant_schema_name: str) -> dict:

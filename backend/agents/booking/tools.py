@@ -20,6 +20,28 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "resolve_service",
+            "description": (
+                "Resolve a customer-typed service name to its authoritative service_id. "
+                "Always call this when the message has no [service_id:X] tag and the customer "
+                "named a service themselves — never reuse a service_id from memory of an "
+                "earlier get_services call, similar service names are easy to mix up."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The service name exactly as the customer said it.",
+                    },
+                },
+                "required": ["name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "check_availability",
             "description": "Return available time slots for a service on a specific date.",
             "parameters": {
@@ -29,6 +51,24 @@ TOOLS = [
                     "date": {"type": "string", "description": "Date to check, YYYY-MM-DD."},
                 },
                 "required": ["service_id", "date"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_price_summary",
+            "description": (
+                "Fresh deposit/fee/total/balance figures for a service. Always call this right "
+                "before printing the booking summary — never reuse numbers from an earlier "
+                "check_availability call, several turns of conversation may have passed."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "service_id": {"type": "integer", "description": "ID of the service."},
+                },
+                "required": ["service_id"],
             },
         },
     },
@@ -156,6 +196,33 @@ TOOLS = [
                     },
                 },
                 "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "resolve_appointment_selection",
+            "description": (
+                "Resolve which of the customer's upcoming appointments they mean, by re-checking "
+                "fresh against their real appointments — never guess an appointment_id from memory "
+                "of an earlier find_my_appointments call, especially with 2+ appointments. Always "
+                "call this before cancel_appointment or reschedule_appointment, even if there was "
+                "only one appointment."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "description": "Customer's mobile number, as provided in this conversation.",
+                    },
+                    "selection": {
+                        "type": "string",
+                        "description": "Exactly what the customer said when asked which appointment they mean. Leave empty if there's only one.",
+                    },
+                },
+                "required": ["phone"],
             },
         },
     },
