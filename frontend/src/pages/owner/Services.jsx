@@ -36,6 +36,7 @@ function chipStyle(active) {
 // ── Service row — inline editable ─────────────────────────────────────────────
 function ServiceRow({ service, onSave, onToggle, toggling }) {
   const [name, setName] = useState(service.name)
+  const [description, setDescription] = useState(service.description || '')
   const [duration, setDuration] = useState(service.durationMinutes)
   const [price, setPrice] = useState(Number(service.priceZmw).toString())
   const [deposit, setDeposit] = useState(Number(service.depositZmw ?? 0).toString())
@@ -49,6 +50,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
     onSave({
       id: service.id,
       name: (overrides.name ?? name).trim() || service.name,
+      description: (overrides.description ?? description).trim(),
       durationMinutes: overrides.duration ?? duration,
       priceZmw: parseFloat(overrides.price ?? price) || 0,
       depositZmw: parseFloat(overrides.deposit ?? deposit) || 0,
@@ -82,7 +84,16 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
         onChange={e => setName(e.target.value)}
         onFocus={e => (e.target.style.borderBottomColor = BORDER)}
         onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ name: e.target.value }) }}
-        style={{ ...inputBase, width: '100%', marginBottom: 6 }}
+        style={{ ...inputBase, width: '100%', marginBottom: 4 }}
+      />
+      {/* Row 1.5: Description — shown to customers on the public booking page */}
+      <input
+        value={description}
+        placeholder="Add a short description customers will see (optional)"
+        onChange={e => setDescription(e.target.value)}
+        onFocus={e => (e.target.style.borderBottomColor = BORDER)}
+        onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ description: e.target.value }) }}
+        style={{ ...inputBase, width: '100%', marginBottom: 6, fontSize: 11, fontWeight: 300, color: MUTED }}
       />
       {/* Row 2: Controls */}
       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, rowGap: 8 }}>
@@ -209,7 +220,7 @@ function ServiceRow({ service, onSave, onToggle, toggling }) {
 // ── Category section ──────────────────────────────────────────────────────────
 function CategorySection({ category, services, onSave, onToggle, toggling, onCreate, creating }) {
   const [showDraft, setShowDraft] = useState(false)
-  const blank = { name: '', durationMinutes: 60, priceZmw: '', priceMaxZmw: '', depositZmw: '', requiresReferencePicture: false }
+  const blank = { name: '', description: '', durationMinutes: 60, priceZmw: '', priceMaxZmw: '', depositZmw: '', requiresReferencePicture: false }
   const [draft, setDraft] = useState(blank)
   const [customDraftDur, setCustomDraftDur] = useState(false)
 
@@ -226,7 +237,7 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
         priceMaxZmw: parseFloat(draft.priceMaxZmw) || null,
         depositZmw: parseFloat(draft.depositZmw) || 0,
         requiresReferencePicture: draft.requiresReferencePicture,
-        description: '',
+        description: draft.description.trim(),
         bufferMinutes: 0,
       },
       () => { setDraft(blank); setShowDraft(false); setCustomDraftDur(false) },
@@ -329,6 +340,13 @@ function CategorySection({ category, services, onSave, onToggle, toggling, onCre
               style={{ ...fieldStyle, width: 130 }}
             />
           </div>
+          <input
+            placeholder="Short description customers will see (optional)"
+            value={draft.description}
+            onChange={e => setD('description', e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && submitDraft()}
+            style={{ ...fieldStyle, width: '100%', marginBottom: 8, boxSizing: 'border-box' }}
+          />
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, cursor: 'pointer' }}>
             <input
               type="checkbox"

@@ -675,6 +675,20 @@ function ServicesSection({ services, onBook }) {
                       >
                         {svc.name}
                       </p>
+                      {svc.description && (
+                        <p
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 12,
+                            fontWeight: 400,
+                            color: "#888",
+                            margin: "0 0 3px",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {svc.description}
+                        </p>
+                      )}
                       <p
                         style={{
                           fontFamily: sans,

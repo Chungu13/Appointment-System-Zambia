@@ -342,8 +342,14 @@ function StaffProfileEditor({ member }) {
 
 // ── "Also work as staff" toggle — owner only, unlocks their own dashboard schedule ──
 function AlsoStaffToggle({ member }) {
+  const [justSaved, setJustSaved] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
   const [enableSelf, { loading }] = useMutation(CREATE_STAFF, {
     refetchQueries: [STAFF_LIST, MY_PROFILE],
+    awaitRefetchQueries: true,
+    onCompleted: () => setJustSaved(true),
+    onError: (err) => setErrorMsg(err.graphQLErrors?.[0]?.message || err.message || 'Something went wrong — please try again.'),
   })
 
   if (member.isAlsoStaff) {
@@ -351,24 +357,29 @@ function AlsoStaffToggle({ member }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 12, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
         <span style={{ width: 8, height: 8, flexShrink: 0, backgroundColor: BURG, borderRadius: '50%' }} />
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>
-          You're set up as staff. Your bookings show on your dashboard.
+          {justSaved ? "Done — you're set up as staff. Your bookings show on your dashboard." : "You're set up as staff. Your bookings show on your dashboard."}
         </p>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, padding: 12, border: `0.5px solid ${BORDER}`, backgroundColor: BLUSH }}>
-      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, maxWidth: 340 }}>
-        You're not assigned as staff yet, so your own bookings won't show on your dashboard.
-      </p>
-      <button
-        onClick={() => enableSelf({ variables: { isMe: true } })}
-        disabled={loading}
-        style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '8px 16px', backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, flexShrink: 0 }}
-      >
-        {loading ? 'Saving…' : 'Also work as staff'}
-      </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12, border: `0.5px solid ${errorMsg ? '#e0a8ac' : BORDER}`, backgroundColor: BLUSH }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, maxWidth: 340 }}>
+          You're not assigned as staff yet, so your own bookings won't show on your dashboard.
+        </p>
+        <button
+          onClick={() => { setErrorMsg(''); enableSelf({ variables: { isMe: true } }) }}
+          disabled={loading}
+          style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '8px 16px', backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, flexShrink: 0 }}
+        >
+          {loading ? 'Saving…' : 'Also work as staff'}
+        </button>
+      </div>
+      {errorMsg && (
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#b91c1c', margin: 0 }}>{errorMsg}</p>
+      )}
     </div>
   )
 }
