@@ -130,7 +130,7 @@ function SalonsSection() {
             {/* Mobile: horizontal strip */}
             <div className="km-mobile-flex-scroll overflow-x-auto gap-3 pb-1" style={{ margin: '0 -20px', padding: '0 20px' }}>
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} style={{ minWidth: 160, flexShrink: 0, borderRadius: 10, backgroundColor: '#f5f5f5', height: 170, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div key={i} style={{ width: 160, flexShrink: 0, borderRadius: 10, backgroundColor: '#f5f5f5', height: 170, animation: 'pulse 1.5s ease-in-out infinite' }} />
               ))}
             </div>
             {/* Desktop: grid */}
@@ -150,12 +150,12 @@ function SalonsSection() {
               style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', margin: '0 -20px', padding: '0 20px 12px' }}
             >
               {salons.map((salon) => (
-                <div key={salon.id} style={{ minWidth: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
+                <div key={salon.id} style={{ width: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
                   <SalonCard salon={salon} compact />
                 </div>
               ))}
               {Array.from({ length: placeholders }).map((_, i) => (
-                <div key={`ph-${i}`} style={{ minWidth: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
+                <div key={`ph-${i}`} style={{ width: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
                   <SalonCard placeholder compact />
                 </div>
               ))}
