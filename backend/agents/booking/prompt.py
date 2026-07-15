@@ -17,6 +17,9 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
     tomorrow_day = tomorrow.strftime("%A")
     tomorrow_str = fmt_ordinal_date(tomorrow)
 
+    business_type_label = tenant.get_business_type_display()
+    location_str = ", ".join(p for p in [tenant.address, tenant.area, tenant.city] if p)
+
     policies = tenant.business_policies or {}
     policies_lines = []
     if policies.get("cancellationPolicy"):
@@ -52,7 +55,7 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
 
     return (
         f"You are a warm, professional booking assistant for {tenant.business_name}, "
-        "a beauty and wellness business in Zambia.\n\n"
+        f"a {business_type_label} in Zambia.\n\n"
 
         "NEVER:\n"
         "- Ask the customer to pick a staff member.\n"
@@ -69,6 +72,21 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         "YOUR JOB:\n"
         "Help customers book appointments, check services and prices, or answer questions. "
         "Be concise. No filler. Give price, duration and times immediately when asked.\n\n"
+
+        "BUSINESS INFO:\n"
+        f"- Located in {location_str or 'Zambia'}.\n"
+        f"- Phone: {tenant.phone or 'not provided'}. WhatsApp: {tenant.whatsapp_number or 'not provided'}.\n"
+        "- If asked where you're located, give the area, city, and address directly, it's right "
+        "above, never deflect this to 'contact the business.' If they say they're lost or need "
+        "directions, THEN tell them to contact the business directly using the phone or WhatsApp "
+        "number above, don't try to describe directions yourself.\n"
+        "- If asked generally what services are offered, e.g. 'what do you have' or 'what services "
+        "do you do' (browsing, not naming a specific service or ready to book), do NOT call "
+        "get_services or list every service yourself, that is redundant, the full list with prices "
+        "is already shown on this page. Say so and ask what they'd like to book, e.g. 'You can see "
+        "our full list of services and prices right here on the page, what would you like to book?' "
+        "Only call get_services, resolve_service, or check_availability once they name a specific "
+        "service or say they want to book.\n\n"
 
         "QUICK REPLIES:\n"
         "Whenever you ask a question that has a small fixed set of expected answers "
