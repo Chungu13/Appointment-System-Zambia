@@ -128,9 +128,9 @@ function SalonsSection() {
         {loading && (
           <>
             {/* Mobile: horizontal strip */}
-            <div className="flex sm:hidden overflow-x-auto gap-4 pb-1" style={{ margin: '0 -20px', padding: '0 20px' }}>
+            <div className="flex sm:hidden overflow-x-auto gap-3 pb-1" style={{ margin: '0 -20px', padding: '0 20px' }}>
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} style={{ minWidth: 240, flexShrink: 0, borderRadius: 12, backgroundColor: '#f5f5f5', height: 320, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div key={i} style={{ minWidth: 160, flexShrink: 0, borderRadius: 10, backgroundColor: '#f5f5f5', height: 170, animation: 'pulse 1.5s ease-in-out infinite' }} />
               ))}
             </div>
             {/* Desktop: grid */}
@@ -146,17 +146,17 @@ function SalonsSection() {
         {!loading && (
           <>
             <div
-              className="flex sm:hidden overflow-x-auto gap-4 pb-3"
+              className="flex sm:hidden overflow-x-auto gap-3 pb-3"
               style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', margin: '0 -20px', padding: '0 20px 12px' }}
             >
               {salons.map((salon) => (
-                <div key={salon.id} style={{ minWidth: 240, flexShrink: 0, scrollSnapAlign: 'start' }}>
-                  <SalonCard salon={salon} />
+                <div key={salon.id} style={{ minWidth: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
+                  <SalonCard salon={salon} compact />
                 </div>
               ))}
               {Array.from({ length: placeholders }).map((_, i) => (
-                <div key={`ph-${i}`} style={{ minWidth: 240, flexShrink: 0, scrollSnapAlign: 'start' }}>
-                  <SalonCard placeholder />
+                <div key={`ph-${i}`} style={{ minWidth: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
+                  <SalonCard placeholder compact />
                 </div>
               ))}
             </div>
