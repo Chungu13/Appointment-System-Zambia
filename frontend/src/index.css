@@ -25,6 +25,21 @@
   --color-on-tertiary-container: #4A1A25;
 }
 
+/* ── Responsive display fallback ──────────────────────────────────────────
+   Tailwind's sm: variant currently fails to compile under this project's
+   Vite 8 + Rolldown + Tailwind v4 combination — confirmed zero variant-
+   prefixed classes (sm:, hover:, etc) make it into the production build,
+   sitewide, not just here. Hand-written media queries stand in for the
+   mobile/desktop split until the underlying toolchain issue is fixed. */
+.km-mobile-flex-scroll { display: flex; }
+.km-desktop-grid { display: none; }
+.km-mobile-grid-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) {
+  .km-mobile-flex-scroll { display: none; }
+  .km-desktop-grid { display: grid; }
+  .km-mobile-grid-2col { display: none; }
+}
+
 html, body {
   overflow-x: hidden;
   max-width: 100vw;

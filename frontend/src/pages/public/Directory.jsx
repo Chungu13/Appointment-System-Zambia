@@ -183,10 +183,10 @@ export default function Directory() {
 
           {loading ? (
             <>
-              <div className="grid grid-cols-2 gap-3 sm:hidden">
+              <div className="km-mobile-grid-2col gap-3">
                 {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} compact />)}
               </div>
-              <div className="hidden sm:grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              <div className="km-desktop-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
                 {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             </>
@@ -201,10 +201,10 @@ export default function Directory() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 sm:hidden">
+              <div className="km-mobile-grid-2col gap-3">
                 {salons.map((salon) => <SalonCard key={salon.id} salon={salon} compact />)}
               </div>
-              <div className="hidden sm:grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              <div className="km-desktop-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
                 {salons.map((salon) => <SalonCard key={salon.id} salon={salon} />)}
               </div>
             </>
