@@ -601,8 +601,15 @@ function BusinessPoliciesCard({ current }) {
     waitingOther: '',
     whatToBring: p?.whatToBring || [],
     whatToBringOther: '',
-    parking: p?.parking || '',
-    parkingOther: '',
+    walkIns: p?.walkIns || '',
+    walkInsOther: '',
+    depositPolicy: p?.depositPolicy || '',
+    depositPolicyOther: '',
+    refundPolicy: p?.refundPolicy || '',
+    refundPolicyOther: '',
+    balancePaymentMethod: p?.balancePaymentMethod || '',
+    balancePaymentMethodOther: '',
+    howToFindUs: p?.howToFindUs || '',
     contactPreference: p?.contactPreference || '',
     contactOther: '',
     additionalInfo: p?.additionalInfo || '',
@@ -646,7 +653,11 @@ function BusinessPoliciesCard({ current }) {
           lateFee: lateFeeText || '',
           waitingTime: form.waitingTime === 'other' ? form.waitingOther : form.waitingTime,
           whatToBring,
-          parking: form.parking === 'other' ? form.parkingOther : form.parking,
+          walkIns: form.walkIns === 'other' ? form.walkInsOther : form.walkIns,
+          depositPolicy: form.depositPolicy === 'other' ? form.depositPolicyOther : form.depositPolicy,
+          refundPolicy: form.refundPolicy === 'other' ? form.refundPolicyOther : form.refundPolicy,
+          balancePaymentMethod: form.balancePaymentMethod === 'other' ? form.balancePaymentMethodOther : form.balancePaymentMethod,
+          howToFindUs: form.howToFindUs,
           contactPreference: form.contactPreference === 'other' ? form.contactOther : form.contactPreference,
           additionalInfo: form.additionalInfo,
         },
@@ -654,13 +665,16 @@ function BusinessPoliciesCard({ current }) {
     })
   }
 
-  const isCancOther  = form.cancellationPolicy === 'other'
-  const isLateOther  = form.lateArrivalPolicy === 'other'
-  const isFeeOther   = form.lateFee === 'other'
-  const isWaitOther  = form.waitingTime === 'other'
-  const isBringOther = form.whatToBring.includes('other')
-  const isParkOther  = form.parking === 'other'
-  const isContOther  = form.contactPreference === 'other'
+  const isCancOther    = form.cancellationPolicy === 'other'
+  const isLateOther    = form.lateArrivalPolicy === 'other'
+  const isFeeOther     = form.lateFee === 'other'
+  const isWaitOther    = form.waitingTime === 'other'
+  const isBringOther   = form.whatToBring.includes('other')
+  const isWalkOther    = form.walkIns === 'other'
+  const isDepositOther = form.depositPolicy === 'other'
+  const isRefundOther  = form.refundPolicy === 'other'
+  const isBalanceOther = form.balancePaymentMethod === 'other'
+  const isContOther    = form.contactPreference === 'other'
 
   const divider = { borderTop: `0.5px solid ${BORDER}`, paddingTop: 20 }
 
@@ -748,14 +762,70 @@ function BusinessPoliciesCard({ current }) {
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Parking">
-            {['Free parking on site', 'Paid parking nearby', 'Street parking available', 'No parking, public transport recommended'].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.parking} onChange={(v) => set('parking', v)} />
+          <PolicyGroup title="Walk-ins">
+            {['We accept walk-ins', 'Appointment only, no walk-ins', 'Walk-ins accepted if a slot is open'].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.walkIns} onChange={(v) => set('walkIns', v)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.parking} onChange={(v) => set('parking', v)}>
-              {isParkOther && <OtherTextInput value={form.parkingOther} onChange={(v) => set('parkingOther', v)} />}
+            <PolicyRadio label="Other" value="other" current={form.walkIns} onChange={(v) => set('walkIns', v)}>
+              {isWalkOther && <OtherTextInput value={form.walkInsOther} onChange={(v) => set('walkInsOther', v)} />}
             </PolicyRadio>
           </PolicyGroup>
+        </div>
+
+        <div style={divider}>
+          <PolicyGroup title="Deposit policy">
+            {[
+              'Deposit refunded if cancelled with notice, forfeited on no-show',
+              'Deposit always forfeited once paid, no exceptions',
+              'Deposit transferable to a new date if rescheduled in time',
+              'Deposit fully refundable anytime before the appointment',
+            ].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.depositPolicy} onChange={(v) => set('depositPolicy', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.depositPolicy} onChange={(v) => set('depositPolicy', v)}>
+              {isDepositOther && <OtherTextInput value={form.depositPolicyOther} onChange={(v) => set('depositPolicyOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        <div style={divider}>
+          <PolicyGroup title="Refund / redo policy">
+            {[
+              "We offer a free redo if you're not satisfied",
+              'Redo available within 3 days',
+              "No refunds, but we'll address concerns",
+              'Refunds considered case by case',
+            ].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.refundPolicy} onChange={(v) => set('refundPolicy', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.refundPolicy} onChange={(v) => set('refundPolicy', v)}>
+              {isRefundOther && <OtherTextInput value={form.refundPolicyOther} onChange={(v) => set('refundPolicyOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        <div style={divider}>
+          <PolicyGroup title="Balance payment method at the salon">
+            {['Cash only', 'Mobile money accepted', 'Cash or mobile money'].map((opt) => (
+              <PolicyRadio key={opt} label={opt} value={opt} current={form.balancePaymentMethod} onChange={(v) => set('balancePaymentMethod', v)} />
+            ))}
+            <PolicyRadio label="Other" value="other" current={form.balancePaymentMethod} onChange={(v) => set('balancePaymentMethod', v)}>
+              {isBalanceOther && <OtherTextInput value={form.balancePaymentMethodOther} onChange={(v) => set('balancePaymentMethodOther', v)} />}
+            </PolicyRadio>
+          </PolicyGroup>
+        </div>
+
+        <div style={divider}>
+          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, margin: '0 0 8px' }}>How to find us (optional)</p>
+          <textarea
+            value={form.howToFindUs}
+            onChange={(e) => set('howToFindUs', e.target.value)}
+            placeholder="e.g. Look for the blue gate next to XYZ shop, second floor."
+            rows={2}
+            style={{ ...fieldStyle, resize: 'none' }}
+            onFocus={(e) => (e.target.style.borderColor = BURG)}
+            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+          />
         </div>
 
         <div style={divider}>

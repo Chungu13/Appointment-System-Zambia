@@ -22,7 +22,11 @@ export const SALON_SETTINGS = gql`
         lateFee
         waitingTime
         whatToBring
-        parking
+        walkIns
+        depositPolicy
+        refundPolicy
+        balancePaymentMethod
+        howToFindUs
         contactPreference
         additionalInfo
       }

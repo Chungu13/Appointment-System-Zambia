@@ -12,7 +12,11 @@ class BusinessPoliciesType:
     late_fee: str
     waiting_time: str
     what_to_bring: List[str]
-    parking: str
+    walk_ins: str
+    deposit_policy: str
+    refund_policy: str
+    balance_payment_method: str
+    how_to_find_us: str
     contact_preference: str
     additional_info: str
 
@@ -24,7 +28,11 @@ class BusinessPoliciesInput:
     late_fee: str = ""
     waiting_time: str = ""
     what_to_bring: List[str] = strawberry.field(default_factory=list)
-    parking: str = ""
+    walk_ins: str = ""
+    deposit_policy: str = ""
+    refund_policy: str = ""
+    balance_payment_method: str = ""
+    how_to_find_us: str = ""
     contact_preference: str = ""
     additional_info: str = ""
 
@@ -36,7 +44,11 @@ def _policies_from_db(data: dict) -> BusinessPoliciesType:
         late_fee=data.get("lateFee", ""),
         waiting_time=data.get("waitingTime", ""),
         what_to_bring=data.get("whatToBring", []),
-        parking=data.get("parking", ""),
+        walk_ins=data.get("walkIns", ""),
+        deposit_policy=data.get("depositPolicy", ""),
+        refund_policy=data.get("refundPolicy", ""),
+        balance_payment_method=data.get("balancePaymentMethod", ""),
+        how_to_find_us=data.get("howToFindUs", ""),
         contact_preference=data.get("contactPreference", ""),
         additional_info=data.get("additionalInfo", ""),
     )

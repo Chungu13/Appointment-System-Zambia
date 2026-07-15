@@ -35,8 +35,16 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
         if isinstance(bring, list):
             bring = ", ".join(bring)
         policies_lines.append(f"- Customers should bring: {bring}")
-    if policies.get("parking"):
-        policies_lines.append(f"- Parking: {policies['parking']}")
+    if policies.get("walkIns"):
+        policies_lines.append(f"- Walk-ins: {policies['walkIns']}")
+    if policies.get("depositPolicy"):
+        policies_lines.append(f"- Deposit policy: {policies['depositPolicy']}")
+    if policies.get("refundPolicy"):
+        policies_lines.append(f"- Refunds: {policies['refundPolicy']}")
+    if policies.get("balancePaymentMethod"):
+        policies_lines.append(f"- Balance payment at the salon: {policies['balancePaymentMethod']}")
+    if policies.get("howToFindUs"):
+        policies_lines.append(f"- How to find us: {policies['howToFindUs']}")
     if policies.get("contactPreference"):
         policies_lines.append(f"- Preferred contact: {policies['contactPreference']}")
     if policies.get("additionalInfo"):

@@ -767,8 +767,15 @@ const POLICY_DEFAULTS = {
   waitingOther: '',
   whatToBring: [],
   whatToBringOther: '',
-  parking: '',
-  parkingOther: '',
+  walkIns: '',
+  walkInsOther: '',
+  depositPolicy: '',
+  depositPolicyOther: '',
+  refundPolicy: '',
+  refundPolicyOther: '',
+  balancePaymentMethod: '',
+  balancePaymentMethodOther: '',
+  howToFindUs: '',
   contactPreference: '',
   contactOther: '',
   additionalInfo: '',
@@ -788,13 +795,16 @@ function PoliciesStep({ policies, setPolicies }) {
     }))
   }
 
-  const isCancOther  = policies.cancellationPolicy === 'other'
-  const isLateOther  = policies.lateArrivalPolicy === 'other'
-  const isFeeOther   = policies.lateFee === 'other'
-  const isWaitOther  = policies.waitingTime === 'other'
-  const isBringOther = policies.whatToBring.includes('other')
-  const isParkOther  = policies.parking === 'other'
-  const isContOther  = policies.contactPreference === 'other'
+  const isCancOther    = policies.cancellationPolicy === 'other'
+  const isLateOther    = policies.lateArrivalPolicy === 'other'
+  const isFeeOther     = policies.lateFee === 'other'
+  const isWaitOther    = policies.waitingTime === 'other'
+  const isBringOther   = policies.whatToBring.includes('other')
+  const isWalkOther    = policies.walkIns === 'other'
+  const isDepositOther = policies.depositPolicy === 'other'
+  const isRefundOther  = policies.refundPolicy === 'other'
+  const isBalanceOther = policies.balancePaymentMethod === 'other'
+  const isContOther    = policies.contactPreference === 'other'
 
   return (
     <div className="space-y-7">
@@ -927,25 +937,94 @@ function PoliciesStep({ policies, setPolicies }) {
         </div>
       </PolicySection>
 
-      {/* Parking */}
-      <PolicySection title="Parking">
+      {/* Walk-ins */}
+      <PolicySection title="Walk-ins">
         {[
-          'Free parking on site',
-          'Paid parking nearby',
-          'Street parking available',
-          'No parking, public transport recommended',
+          'We accept walk-ins',
+          'Appointment only, no walk-ins',
+          'Walk-ins accepted if a slot is open',
         ].map((opt) => (
           <RadioOption
             key={opt}
             label={opt}
-            selected={policies.parking === opt}
-            onClick={() => set('parking', opt)}
+            selected={policies.walkIns === opt}
+            onClick={() => set('walkIns', opt)}
           />
         ))}
-        <RadioOption label="Other" selected={isParkOther} onClick={() => set('parking', 'other')}>
-          <OtherInput value={policies.parkingOther} onChange={(v) => set('parkingOther', v)} />
+        <RadioOption label="Other" selected={isWalkOther} onClick={() => set('walkIns', 'other')}>
+          <OtherInput value={policies.walkInsOther} onChange={(v) => set('walkInsOther', v)} />
         </RadioOption>
       </PolicySection>
+
+      {/* Deposit policy */}
+      <PolicySection title="Deposit policy">
+        {[
+          'Deposit refunded if cancelled with notice, forfeited on no-show',
+          'Deposit always forfeited once paid, no exceptions',
+          'Deposit transferable to a new date if rescheduled in time',
+          'Deposit fully refundable anytime before the appointment',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.depositPolicy === opt}
+            onClick={() => set('depositPolicy', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isDepositOther} onClick={() => set('depositPolicy', 'other')}>
+          <OtherInput value={policies.depositPolicyOther} onChange={(v) => set('depositPolicyOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Refund / redo policy */}
+      <PolicySection title="Refund / redo policy">
+        {[
+          "We offer a free redo if you're not satisfied",
+          'Redo available within 3 days',
+          "No refunds, but we'll address concerns",
+          'Refunds considered case by case',
+        ].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.refundPolicy === opt}
+            onClick={() => set('refundPolicy', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isRefundOther} onClick={() => set('refundPolicy', 'other')}>
+          <OtherInput value={policies.refundPolicyOther} onChange={(v) => set('refundPolicyOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* Balance payment method */}
+      <PolicySection title="Balance payment method at the salon">
+        {['Cash only', 'Mobile money accepted', 'Cash or mobile money'].map((opt) => (
+          <RadioOption
+            key={opt}
+            label={opt}
+            selected={policies.balancePaymentMethod === opt}
+            onClick={() => set('balancePaymentMethod', opt)}
+          />
+        ))}
+        <RadioOption label="Other" selected={isBalanceOther} onClick={() => set('balancePaymentMethod', 'other')}>
+          <OtherInput value={policies.balancePaymentMethodOther} onChange={(v) => set('balancePaymentMethodOther', v)} />
+        </RadioOption>
+      </PolicySection>
+
+      {/* How to find us */}
+      <div>
+        <p className="text-sm font-semibold mb-2" style={{ color: TEXT }}>
+          How to find you (optional)
+        </p>
+        <textarea
+          value={policies.howToFindUs}
+          onChange={(e) => set('howToFindUs', e.target.value)}
+          placeholder="e.g. Look for the blue gate next to XYZ shop, second floor."
+          rows={2}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm bg-white outline-none resize-none"
+          style={{ color: TEXT }}
+        />
+      </div>
 
       {/* Contact preference */}
       <PolicySection title="How do customers prefer to contact you?">
@@ -1289,7 +1368,13 @@ export default function Onboarding() {
                 ? policies.waitingOther
                 : policies.waitingTime,
               whatToBring,
-              parking: policies.parking === 'other' ? policies.parkingOther : policies.parking,
+              walkIns: policies.walkIns === 'other' ? policies.walkInsOther : policies.walkIns,
+              depositPolicy: policies.depositPolicy === 'other' ? policies.depositPolicyOther : policies.depositPolicy,
+              refundPolicy: policies.refundPolicy === 'other' ? policies.refundPolicyOther : policies.refundPolicy,
+              balancePaymentMethod: policies.balancePaymentMethod === 'other'
+                ? policies.balancePaymentMethodOther
+                : policies.balancePaymentMethod,
+              howToFindUs: policies.howToFindUs,
               contactPreference: policies.contactPreference === 'other'
                 ? policies.contactOther
                 : policies.contactPreference,

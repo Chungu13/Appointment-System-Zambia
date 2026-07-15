@@ -87,14 +87,18 @@ class TenantMutation:
         require_owner(info)
         tenant = info.context.request.tenant
         tenant.business_policies = {
-            "cancellationPolicy": policies.cancellation_policy,
-            "lateArrivalPolicy":  policies.late_arrival_policy,
-            "lateFee":            policies.late_fee,
-            "waitingTime":        policies.waiting_time,
-            "whatToBring":        policies.what_to_bring,
-            "parking":            policies.parking,
-            "contactPreference":  policies.contact_preference,
-            "additionalInfo":     policies.additional_info,
+            "cancellationPolicy":    policies.cancellation_policy,
+            "lateArrivalPolicy":     policies.late_arrival_policy,
+            "lateFee":               policies.late_fee,
+            "waitingTime":           policies.waiting_time,
+            "whatToBring":           policies.what_to_bring,
+            "walkIns":               policies.walk_ins,
+            "depositPolicy":         policies.deposit_policy,
+            "refundPolicy":          policies.refund_policy,
+            "balancePaymentMethod":  policies.balance_payment_method,
+            "howToFindUs":           policies.how_to_find_us,
+            "contactPreference":     policies.contact_preference,
+            "additionalInfo":        policies.additional_info,
         }
         tenant.save(update_fields=["business_policies", "updated_at"])
         return True
