@@ -124,18 +124,49 @@ function SalonsSection() {
           </Link>
         </div>
 
-        {/* Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 20 }}>
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} style={{ borderRadius: 12, backgroundColor: '#f5f5f5', height: 320, animation: 'pulse 1.5s ease-in-out infinite' }} />
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-            {salons.map((salon) => <SalonCard key={salon.id} salon={salon} />)}
-            {Array.from({ length: placeholders }).map((_, i) => <SalonCard key={`ph-${i}`} placeholder />)}
-          </div>
+        {/* Loading skeleton */}
+        {loading && (
+          <>
+            {/* Mobile: horizontal strip */}
+            <div className="flex sm:hidden overflow-x-auto gap-4 pb-1" style={{ margin: '0 -20px', padding: '0 20px' }}>
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} style={{ minWidth: 240, flexShrink: 0, borderRadius: 12, backgroundColor: '#f5f5f5', height: 320, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              ))}
+            </div>
+            {/* Desktop: grid */}
+            <div className="hidden sm:grid sm:grid-cols-2" style={{ gap: 20 }}>
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} style={{ borderRadius: 12, backgroundColor: '#f5f5f5', height: 320, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Loaded — mobile: horizontally scrollable strip, matching the desktop cards */}
+        {!loading && (
+          <>
+            <div
+              className="flex sm:hidden overflow-x-auto gap-4 pb-3"
+              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', margin: '0 -20px', padding: '0 20px 12px' }}
+            >
+              {salons.map((salon) => (
+                <div key={salon.id} style={{ minWidth: 240, flexShrink: 0, scrollSnapAlign: 'start' }}>
+                  <SalonCard salon={salon} />
+                </div>
+              ))}
+              {Array.from({ length: placeholders }).map((_, i) => (
+                <div key={`ph-${i}`} style={{ minWidth: 240, flexShrink: 0, scrollSnapAlign: 'start' }}>
+                  <SalonCard placeholder />
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: grid */}
+            <div className="hidden sm:grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              {salons.map((salon) => <SalonCard key={salon.id} salon={salon} />)}
+              {Array.from({ length: placeholders }).map((_, i) => <SalonCard key={`ph-${i}`} placeholder />)}
+            </div>
+          </>
         )}
       </div>
     </section>
