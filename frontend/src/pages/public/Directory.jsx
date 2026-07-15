@@ -26,13 +26,13 @@ const CATEGORIES = [
 const FILTER_CITIES = ['All Cities', ...CITIES.filter((c) => c !== 'Other')]
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
-function SkeletonCard() {
+function SkeletonCard({ compact = false }) {
   return (
-    <div style={{ borderRadius: 12, border: `0.5px solid ${BORDER}`, overflow: 'hidden', backgroundColor: '#fff' }}>
-      <div style={{ height: 260, backgroundColor: '#f5f5f5' }} />
-      <div style={{ padding: '14px 16px 16px' }}>
-        <div style={{ height: 14, backgroundColor: '#f0f0f0', borderRadius: 3, marginBottom: 8, width: '60%' }} />
-        <div style={{ height: 11, backgroundColor: '#f5f5f5', borderRadius: 3, width: '40%' }} />
+    <div style={{ borderRadius: compact ? 10 : 12, border: `0.5px solid ${BORDER}`, overflow: 'hidden', backgroundColor: '#fff' }}>
+      <div style={{ height: compact ? 110 : 260, backgroundColor: '#f5f5f5' }} />
+      <div style={{ padding: compact ? '9px 10px 10px' : '14px 16px 16px' }}>
+        <div style={{ height: compact ? 10 : 14, backgroundColor: '#f0f0f0', borderRadius: 3, marginBottom: compact ? 5 : 8, width: '60%' }} />
+        <div style={{ height: compact ? 8 : 11, backgroundColor: '#f5f5f5', borderRadius: 3, width: '40%' }} />
       </div>
     </div>
   )
@@ -182,9 +182,14 @@ export default function Directory() {
           )}
 
           {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:hidden">
+                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} compact />)}
+              </div>
+              <div className="hidden sm:grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            </>
           ) : salons.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
               <Search size={32} style={{ color: '#ddd', margin: '0 auto 16px' }} />
@@ -195,9 +200,14 @@ export default function Directory() {
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-              {salons.map((salon) => <SalonCard key={salon.id} salon={salon} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:hidden">
+                {salons.map((salon) => <SalonCard key={salon.id} salon={salon} compact />)}
+              </div>
+              <div className="hidden sm:grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+                {salons.map((salon) => <SalonCard key={salon.id} salon={salon} />)}
+              </div>
+            </>
           )}
         </div>
       </section>
