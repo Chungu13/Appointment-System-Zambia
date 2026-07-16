@@ -18,7 +18,7 @@ const sans  = 'Inter, sans-serif'
 function Hero() {
   return (
     <section style={{ paddingTop: 'clamp(56px, 10vw, 96px)', paddingBottom: 'clamp(48px, 8vw, 72px)', paddingLeft: 'clamp(20px, 6vw, 64px)', paddingRight: 'clamp(20px, 6vw, 64px)', backgroundColor: '#fff' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div className="km-center-mobile" style={{ maxWidth: 1200, margin: '0 auto' }}>
         <h1 style={{ fontFamily: serif, fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1a1a1a', margin: '0 0 20px', maxWidth: 680, fontSize: 'clamp(32px, 7.5vw, 68px)' }}>
           The booking platform{' '}
           <em style={{ color: PRIMARY, fontStyle: 'italic' }}>built for you.</em>
@@ -29,7 +29,7 @@ function Hero() {
         </p>
 
         {/* Category tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
+        <div className="km-center-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
           {['Hair', 'Nails', 'Barbers', 'Spa & Facial', '+ more'].map((tag) => (
             <span key={tag} style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, padding: '5px 12px' }}>
               {tag}
@@ -38,7 +38,7 @@ function Hero() {
         </div>
 
         {/* Buttons */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
+        <div className="km-center-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
           <Link
             to="/signup"
             style={{ padding: '14px 32px', fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}
@@ -58,7 +58,7 @@ function Hero() {
         </p>
 
         {/* Trust badges — folded in from the old standalone stats bar */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px' }}>
+        <div className="km-center-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px' }}>
           {['Free to list your business', 'Local mobile money supported'].map((label) => (
             <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333' }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: PRIMARY, flexShrink: 0 }} />
