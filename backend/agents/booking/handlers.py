@@ -159,11 +159,26 @@ def handle_get_price_summary(inputs: dict) -> dict:
 def handle_check_availability(inputs: dict) -> tuple:
     """Returns (result_dict, raw_slots) — raw_slots stored by the agent for create_booking validation."""
     from bookings.availability import build_availability_slots
+    from services.models import Service
 
     try:
         date = _dt.date.fromisoformat(inputs["date"])
     except ValueError:
         return {"error": f"Invalid date '{inputs['date']}'. Use YYYY-MM-DD."}, []
+
+    # Hard guard: an invalid/missing service_id (e.g. 0, or one the AI didn't
+    # actually resolve) must never fall through to the "no slots" branch below —
+    # that logic finds zero qualified staff for a nonexistent service and reports
+    # "closed" for every single day, which is a misleading answer to a completely
+    # different problem. Fail loudly and specifically instead.
+    if not Service.objects.filter(pk=inputs.get("service_id"), is_active=True).exists():
+        return {
+            "error": (
+                f"service_id={inputs.get('service_id')} is not a real service. "
+                "Call get_services or resolve_service to get a valid service_id before "
+                "checking availability — never reuse a placeholder or guessed value."
+            )
+        }, []
 
     raw_slots = build_availability_slots(inputs["service_id"], date)
 
