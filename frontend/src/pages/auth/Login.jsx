@@ -6,8 +6,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useSignup } from '../../context/SignupContext'
 import { publicClient } from '../../lib/apollo'
 import { OWNER_LOGIN } from '../../graphql/mutations/auth'
-import { setTokens, saveRole } from '../../lib/auth'
-import { getCanonicalAppUrl } from '../../router/TenantRoute'
+import { clearToken } from '../../lib/auth'
+import { getCanonicalAppUrl, getSubdomain } from '../../router/TenantRoute'
 
 const sans   = 'Inter, ui-sans-serif, system-ui, sans-serif'
 const BURG   = '#6B2737'
@@ -65,14 +65,28 @@ export default function Login() {
   }, [])
 
   if (isAuthenticated) {
-    const dest = location.state?.from?.pathname ?? (isOwner ? '/owner' : '/staff')
-    return <Navigate to={dest} replace />
+    // A token here only means something on a real tenant subdomain - on the
+    // apex domain (kimawa.pro) it's always stale (see redirectAfterLogin
+    // below for how that happens) and navigating to /owner on the apex has
+    // no tenant context, so it breaks against the public schema. Clear it
+    // and fall through to the normal login form instead of bouncing there.
+    if (getSubdomain()) {
+      const dest = location.state?.from?.pathname ?? (isOwner ? '/owner' : '/staff')
+      return <Navigate to={dest} replace />
+    }
+    clearToken()
   }
 
   function redirectAfterLogin({ accessToken, refreshToken, tenantSlug, isApproved, businessName }) {
-    setTokens(accessToken, refreshToken)
-    saveRole('owner')
-
+    // Do NOT setTokens/saveRole here — this runs on the apex domain (kimawa.pro),
+    // and localStorage is per-origin, so it wouldn't even be visible on the tenant
+    // subdomain we're about to send them to. AuthProvider on the destination reads
+    // the ?t=/?r= params below and saves them there itself. Saving here only left
+    // a stray, valid-looking token behind on the apex domain - so if the owner
+    // ever landed back on kimawa.pro/login later (bookmark, typed URL, autofill),
+    // isAuthenticated would be true and it would client-side-navigate to
+    // kimawa.pro/owner with no tenant context, hitting the public schema instead
+    // of their own and breaking with "Cannot query field 'dashboardStats'" etc.
     const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN
     const port      = window.location.port || '3000'
     const destPath  = isApproved ? '/owner' : '/owner/pending'
