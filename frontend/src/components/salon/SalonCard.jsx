@@ -25,8 +25,8 @@ function initials(name) {
 }
 
 export default function SalonCard({ salon, placeholder = false, compact = false }) {
-  const photoHeight = compact ? 110 : 260
-  const namePad     = compact ? '9px 10px 10px' : '14px 16px 16px'
+  const photoHeight = compact ? 120 : 260
+  const namePad     = compact ? '10px 12px 12px' : '14px 16px 16px'
 
   if (placeholder) {
     return (
@@ -34,7 +34,7 @@ export default function SalonCard({ salon, placeholder = false, compact = false 
         style={{
           borderRadius: 12,
           border: `0.5px dashed #ddd`,
-          height: compact ? 170 : 320,
+          height: compact ? 180 : 320,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -89,8 +89,8 @@ export default function SalonCard({ salon, placeholder = false, compact = false 
         <span style={{
           position: 'absolute', top: compact ? 6 : 12, left: compact ? 6 : 12,
           backgroundColor: 'rgba(255,255,255,0.92)',
-          fontFamily: 'Inter, sans-serif', fontSize: compact ? 8 : 10, fontWeight: 500, letterSpacing: '0.06em',
-          color: '#1a1a1a', padding: compact ? '2px 6px' : '4px 10px', borderRadius: 3,
+          fontFamily: 'Inter, sans-serif', fontSize: compact ? 9 : 10, fontWeight: 500, letterSpacing: '0.06em',
+          color: '#1a1a1a', padding: compact ? '3px 7px' : '4px 10px', borderRadius: 3,
         }}>
           {typeLabel}
         </span>
@@ -98,18 +98,18 @@ export default function SalonCard({ salon, placeholder = false, compact = false 
 
       {/* Card body */}
       <div style={{ padding: namePad }}>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: compact ? 12 : 15, fontWeight: 500, color: '#1a1a1a', margin: compact ? '0 0 3px' : '0 0 6px', lineHeight: 1.3, whiteSpace: compact ? 'nowrap' : 'normal', overflow: compact ? 'hidden' : 'visible', textOverflow: compact ? 'ellipsis' : 'clip' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: compact ? 13 : 15, fontWeight: 500, color: '#1a1a1a', margin: compact ? '0 0 4px' : '0 0 6px', lineHeight: 1.3, whiteSpace: compact ? 'nowrap' : 'normal', overflow: compact ? 'hidden' : 'visible', textOverflow: compact ? 'ellipsis' : 'clip' }}>
           {salon.businessName}
         </p>
         {salon.city && (
-          <p style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter, sans-serif', fontSize: compact ? 10 : 12, color: '#666', fontWeight: 300, margin: compact ? '0 0 6px' : '0 0 10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            <MapPin size={compact ? 9 : 11} style={{ flexShrink: 0 }} />
+          <p style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter, sans-serif', fontSize: compact ? 11 : 12, color: '#666', fontWeight: 300, margin: compact ? '0 0 7px' : '0 0 10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <MapPin size={compact ? 10 : 11} style={{ flexShrink: 0 }} />
             {[salon.city, salon.area].filter(Boolean).join(', ')}
           </p>
         )}
         {/* Footer */}
         <div style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: compact ? 8 : 12, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: compact ? 10 : 12, fontWeight: 500, color: PRIMARY, letterSpacing: '0.02em' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: compact ? 11 : 12, fontWeight: 500, color: PRIMARY, letterSpacing: '0.02em' }}>
             Book Now
           </span>
         </div>

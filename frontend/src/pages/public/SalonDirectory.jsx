@@ -45,27 +45,11 @@ function Hero() {
           >
             List Your Business Free
           </Link>
-          <Link
-            to="/how-it-works"
-            style={{ padding: '14px 32px', fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}
-          >
-            &#9654; See How it Works
-          </Link>
         </div>
 
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#333', margin: '0 0 20px' }}>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#333', margin: 0 }}>
           No credit card needed · Free to get started
         </p>
-
-        {/* Trust badges — folded in from the old standalone stats bar */}
-        <div className="km-center-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px' }}>
-          {['Free to list your business', 'Local mobile money supported'].map((label) => (
-            <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333' }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: PRIMARY, flexShrink: 0 }} />
-              {label}
-            </span>
-          ))}
-        </div>
       </div>
     </section>
   )
@@ -101,7 +85,7 @@ function SalonsSection() {
             {/* Mobile: horizontal strip */}
             <div className="km-mobile-flex-scroll overflow-x-auto gap-3 pb-1" style={{ margin: '0 calc(-1 * clamp(20px, 6vw, 64px))', padding: '0 clamp(20px, 6vw, 64px)' }}>
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} style={{ width: 160, flexShrink: 0, borderRadius: 10, backgroundColor: '#f5f5f5', height: 170, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div key={i} style={{ width: 160, flexShrink: 0, borderRadius: 10, backgroundColor: '#f5f5f5', height: 180, animation: 'pulse 1.5s ease-in-out infinite' }} />
               ))}
             </div>
             {/* Desktop: grid */}
@@ -144,56 +128,6 @@ function SalonsSection() {
   )
 }
 
-// ── Features ──────────────────────────────────────────────────────────────────
-function Features() {
-  const features = [
-    {
-      title: 'Smart Scheduling',
-      body: 'Your calendar manages itself. No-show detection and deposit collection keep your schedule running smoothly without any manual work.',
-    },
-    {
-      title: 'Business Insights',
-      body: 'See your revenue, top services, and customer activity at a glance, all in Zambian Kwacha. Know exactly what is working and where to focus.',
-    },
-    {
-      title: 'AI Booking Agent',
-      body: 'Customers message your salon and the AI handles the full booking conversation from service selection to slot confirmation, 24 hours a day.',
-    },
-  ]
-  return (
-    <section style={{ borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
-      {/* Mobile: horizontally scrollable strip — card width capped so the next one peeks in as a scroll hint */}
-      <div
-        className="km-mobile-flex-scroll overflow-x-auto gap-4 pb-3 px-5"
-        style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-      >
-        {features.map(({ title, body }) => (
-          <div
-            key={title}
-            style={{ minWidth: 230, maxWidth: 230, flexShrink: 0, scrollSnapAlign: 'start', padding: '28px 24px', border: `0.5px solid ${BORDER}`, borderRadius: 8 }}
-          >
-            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 12px' }}>{title}</p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', lineHeight: 1.9, margin: 0 }}>{body}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Desktop: 3-col grid */}
-      <div className="km-desktop-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', maxWidth: 1200, margin: '0 auto' }}>
-        {features.map(({ title, body }, i) => (
-          <div
-            key={title}
-            style={{ padding: '48px 40px', borderLeft: i > 0 ? `0.5px solid ${BORDER}` : 'none' }}
-          >
-            <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#1a1a1a', margin: '0 0 12px' }}>{title}</p>
-            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', lineHeight: 1.9, margin: 0 }}>{body}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 // ── CTA ───────────────────────────────────────────────────────────────────────
 // Deliberately a single line, not a second hero — the full pitch (headline,
 // button, "no credit card" microcopy) already ran once at the top of the page.
@@ -231,7 +165,6 @@ export default function SalonDirectory() {
       <LandingNav />
       <Hero />
       <SalonsSection />
-      <Features />
       <BottomCTA />
       <LandingFooter />
     </div>
