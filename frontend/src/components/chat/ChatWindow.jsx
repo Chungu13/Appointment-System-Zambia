@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client/react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useAgentChat, generateSessionId } from "../../hooks/useAgentChat";
 import { playPopSound, playDingSound } from "../../lib/sounds";
+import { trackEvent } from "../../lib/analytics";
 import { CHECK_PAYMENT_STATUS } from "../../graphql/queries/bookings";
 
 const DARK    = "#1A0A0D";
@@ -930,6 +931,8 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
     // If Turnstile key is set, doVerify is called from the Turnstile onSuccess callback
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => { trackEvent("chat_opened", { salon_name: salonName }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { messages, sendMessage, loading, limitReached, sessionEnded } = useAgentChat(
     customer.phone, customer.name, salonName, initialMessage, confirmedBooking, sessionToken, sessionId,
   );
@@ -949,6 +952,7 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
         if (data?.ref && data.ref !== pollRef) {
           receiptInjectedRef.current = false;
           setPollRef(data.ref);
+          trackEvent("payment_initiated", { transaction_id: data.ref, value: data.amount, currency: "ZMW" });
         }
         break;
       }
@@ -991,6 +995,8 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
           },
         },
       ]);
+      trackEvent("payment_confirmed", { transaction_id: pollRef, value: mobileData?.amount, currency: "ZMW" });
+      trackEvent("booking_confirmed", { transaction_id: pollRef, method: "deposit" });
       setPollRef(null);
     }
   }, [pollData, pollRef]);
@@ -1002,6 +1008,24 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
     const curr = messages.length;
     if (curr > prev && messages[curr - 1]?.role === "assistant") playDingSound();
     prevCountRef.current = curr;
+  }, [messages]);
+
+  // No-deposit bookings confirm immediately in the AI's text, skipping the
+  // payment-poll path above — track that conversion separately here. Checked
+  // only once a message finishes streaming, since content mutates token by
+  // token until then.
+  const noDepositTrackedContentRef = useRef(null);
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (
+      last?.role === "assistant" &&
+      !last.streaming &&
+      /BOOKING_CONFIRMED\s*\|/i.test(last.content || "") &&
+      last.content !== noDepositTrackedContentRef.current
+    ) {
+      noDepositTrackedContentRef.current = last.content;
+      trackEvent("booking_confirmed", { method: "no_deposit" });
+    }
   }, [messages]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [displayMessages, loading]);
