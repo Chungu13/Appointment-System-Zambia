@@ -67,7 +67,7 @@ function SalonsSection() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h2 style={{ fontFamily: serif, fontSize: 30, fontWeight: 400, letterSpacing: '-0.5px', color: '#1a1a1a', margin: '0 0 8px' }}>
+            <h2 style={{ fontFamily: serif, fontSize: 'clamp(20px, 6vw, 30px)', fontWeight: 400, letterSpacing: '-0.5px', color: '#1a1a1a', margin: '0 0 8px', whiteSpace: 'nowrap' }}>
               Businesses already on Kimawa
             </h2>
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#333', margin: 0 }}>
@@ -102,7 +102,7 @@ function SalonsSection() {
           <>
             <div
               className="km-mobile-flex-scroll overflow-x-auto gap-3 pb-3"
-              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', margin: '0 calc(-1 * clamp(20px, 6vw, 64px))', padding: '0 clamp(20px, 6vw, 64px) 12px' }}
+              style={{ scrollSnapType: 'x mandatory', scrollPaddingLeft: 'clamp(20px, 6vw, 64px)', scrollPaddingRight: 'clamp(20px, 6vw, 64px)', WebkitOverflowScrolling: 'touch', margin: '0 calc(-1 * clamp(20px, 6vw, 64px))', padding: '0 clamp(20px, 6vw, 64px) 12px' }}
             >
               {salons.map((salon) => (
                 <div key={salon.id} style={{ width: 160, flexShrink: 0, scrollSnapAlign: 'start' }}>
