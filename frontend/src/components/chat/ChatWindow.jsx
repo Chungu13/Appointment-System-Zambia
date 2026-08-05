@@ -931,8 +931,6 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
     // If Turnstile key is set, doVerify is called from the Turnstile onSuccess callback
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { trackEvent("chat_opened", { salon_name: salonName }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const { messages, sendMessage, loading, limitReached, sessionEnded } = useAgentChat(
     customer.phone, customer.name, salonName, initialMessage, confirmedBooking, sessionToken, sessionId,
   );
@@ -1093,6 +1091,10 @@ export default function ChatWindow({ customerPhone, customerName, onClose, salon
   );
   const needsPhoto = !!referenceService?.requiresReferencePicture;
   const [photoAttached, setPhotoAttached] = useState(false);
+
+  // Fires once, the moment the widget actually opens — before intake, the
+  // photo gate, or the chat body ever mount.
+  useEffect(() => { trackEvent("chat_opened", { salon_name: salonName }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // If returning from payment with a receipt, skip intake form and photo gate —
   // this booking already happened, we're just showing the receipt.
