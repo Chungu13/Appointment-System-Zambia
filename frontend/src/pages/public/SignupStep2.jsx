@@ -92,6 +92,7 @@ export default function SignupStep2() {
   const { step1 } = useSignup()
 
   const [form, setForm] = useState({
+    ownerName: step1.fullName || '',
     businessName: '',
     businessType: 'salon',
     city: 'Lusaka',
@@ -120,6 +121,9 @@ export default function SignupStep2() {
   }
 
   function blurValidate(field) {
+    if (field === 'ownerName' && !form.ownerName.trim()) {
+      setErrors((er) => ({ ...er, ownerName: 'Required' }))
+    }
     if (field === 'businessName' && !form.businessName.trim()) {
       setErrors((er) => ({ ...er, businessName: 'Required' }))
     }
@@ -133,6 +137,7 @@ export default function SignupStep2() {
 
   function validate() {
     const errs = {}
+    if (!form.ownerName.trim()) errs.ownerName = 'Required'
     if (!form.businessName.trim()) errs.businessName = 'Required'
     if (!validatePhone(form.phone)) errs.phone = 'Enter a valid Zambian number (e.g. +260 97 123 4567)'
     if (!form.address.trim()) errs.address = 'Required'
@@ -159,7 +164,7 @@ export default function SignupStep2() {
           city: form.city,
           area: effectiveArea,
           address: form.address.trim(),
-          ownerName: step1.fullName,
+          ownerName: form.ownerName.trim(),
           phone: form.phone.trim(),
           email: step1.email,
           password: step1.isGoogle ? '' : step1.password,
@@ -199,6 +204,18 @@ export default function SignupStep2() {
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <Label>Owner name</Label>
+              <Input
+                value={form.ownerName}
+                onChange={set('ownerName')}
+                placeholder="Your full name"
+                autoComplete="name"
+                onBlur={() => blurValidate('ownerName')}
+              />
+              {errors.ownerName && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 300 }}>{errors.ownerName}</p>}
+            </div>
+
             <div>
               <Label>Business name</Label>
               <Input
