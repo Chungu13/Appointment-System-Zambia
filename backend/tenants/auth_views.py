@@ -292,8 +292,10 @@ def google_auth_view(request):
         salt="google-auth",
     )
 
+    name = info.get("name", "").strip() or email.split("@")[0]
+
     return JsonResponse({
-        "name": info.get("name", ""),
+        "name": name,
         "email": email,
         "google_token": google_token,
     })
