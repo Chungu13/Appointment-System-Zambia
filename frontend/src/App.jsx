@@ -18,6 +18,10 @@ import BottomNav from './components/layout/BottomNav'
 const SalonDirectory      = lazy(() => import('./pages/public/SalonDirectory'))
 const SalonLanding        = lazy(() => import('./pages/public/SalonLanding'))
 const SalonBooking        = lazy(() => import('./pages/public/SalonBooking'))
+const SalonServices       = lazy(() => import('./pages/public/SalonServices'))
+const SalonGallery        = lazy(() => import('./pages/public/SalonGallery'))
+const SalonStylists       = lazy(() => import('./pages/public/SalonStylists'))
+const SalonPolicies       = lazy(() => import('./pages/public/SalonPolicies'))
 const HowItWorks          = lazy(() => import('./pages/public/HowItWorks'))
 const ForBusinesses       = lazy(() => import('./pages/public/ForBusinesses'))
 const Directory           = lazy(() => import('./pages/public/Directory'))
@@ -95,6 +99,17 @@ export default function App() {
                 {/* Booking flow — subdomain: /book, localhost fallback: /:salonSlug/book */}
                 <Route path="/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
                 <Route path="/:salonSlug/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
+
+                {/* Storefront pages — each nav pill is its own route; booking itself
+                    stays in the in-page chat widget, not a separate page. */}
+                <Route path="/services" element={<TenantRoute><SalonServices /></TenantRoute>} />
+                <Route path="/:salonSlug/services" element={<TenantRoute><SalonServices /></TenantRoute>} />
+                <Route path="/gallery" element={<TenantRoute><SalonGallery /></TenantRoute>} />
+                <Route path="/:salonSlug/gallery" element={<TenantRoute><SalonGallery /></TenantRoute>} />
+                <Route path="/stylists" element={<TenantRoute><SalonStylists /></TenantRoute>} />
+                <Route path="/:salonSlug/stylists" element={<TenantRoute><SalonStylists /></TenantRoute>} />
+                <Route path="/policies" element={<TenantRoute><SalonPolicies /></TenantRoute>} />
+                <Route path="/:salonSlug/policies" element={<TenantRoute><SalonPolicies /></TenantRoute>} />
 
                 {/* Marketing + public pages */}
                 <Route path="/discover" element={<Directory />} />
