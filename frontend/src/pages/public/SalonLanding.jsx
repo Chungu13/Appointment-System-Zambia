@@ -54,6 +54,29 @@ function bannerFor(profile) {
   return DEFAULT_BANNERS[profile.businessType] ?? DEFAULT_BANNERS._fallback;
 }
 
+// Prototype-only: visual (photo-card) services layout, gated to a single test
+// tenant subdomain until the design is validated and rolled out to everyone.
+const VISUAL_SERVICES_SUBDOMAINS = ["glow-nails-test"];
+
+const NAIL_CATEGORY_IMAGES = {
+  "gel nails": "https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=600&q=80",
+  "acrylic": "https://images.unsplash.com/photo-1604902396830-aca29e19b067?w=600&q=80",
+  "manicure": "https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=600&q=80",
+  "pedicure": "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=600&q=80",
+  "nail art": "https://images.unsplash.com/photo-1571290274554-6a2eaa771e5f?w=600&q=80",
+  "extras": "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=600&q=80",
+  _fallback: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80",
+};
+
+function imageForService(svc, portfolioImages) {
+  const match = portfolioImages.find(
+    (img) => img.serviceName && img.serviceName.toLowerCase() === svc.name.toLowerCase(),
+  );
+  if (match) return match.imageUrl;
+  const key = (svc.category || "").toLowerCase();
+  return NAIL_CATEGORY_IMAGES[key] || NAIL_CATEGORY_IMAGES._fallback;
+}
+
 function formatTime(timeStr) {
   if (!timeStr) return "-";
   const [h, m] = timeStr.split(":").map(Number);
@@ -735,6 +758,175 @@ function ServicesSection({ services, onBook }) {
                     </div>
                   </div>
                 ))}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ── Visual services (prototype) ─────────────────────────────────────────────────
+function VisualServiceCard({ svc, imageUrl, onBook }) {
+  return (
+    <div
+      className="visual-service-card"
+      style={{
+        border: `0.5px solid ${BORDER}`,
+        borderRadius: 10,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#fff",
+      }}
+    >
+      <div style={{ aspectRatio: "4 / 3", overflow: "hidden" }}>
+        <img
+          src={imageUrl}
+          alt={svc.name}
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </div>
+      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: "#1a1a1a", margin: 0 }}>
+          {svc.name}
+        </p>
+        {svc.description && (
+          <p
+            style={{
+              fontFamily: sans,
+              fontSize: 12,
+              fontWeight: 300,
+              color: "#888",
+              margin: 0,
+              lineHeight: 1.4,
+              flex: 1,
+            }}
+          >
+            {svc.description}
+          </p>
+        )}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: "auto",
+            paddingTop: 8,
+          }}
+        >
+          <div>
+            <ServicePrice min={svc.priceZmw} max={svc.priceMaxZmw} />
+            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: "#999", margin: "2px 0 0" }}>
+              {svc.durationMinutes} min
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              const label = svc.category ? `${svc.category}, ${svc.name}` : svc.name;
+              onBook(`I want to book ${label} [service_id:${svc.id}]`, false, svc);
+            }}
+            style={{
+              fontFamily: sans,
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#fff",
+              background: PRIMARY,
+              border: "none",
+              cursor: "pointer",
+              padding: "8px 16px",
+              borderRadius: 6,
+              letterSpacing: "0.04em",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Book
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VisualServicesSection({ services, portfolioImages, onBook }) {
+  const grouped = services.reduce((acc, s) => {
+    const cat = s.category || "Services";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(s);
+    return acc;
+  }, {});
+
+  const [openCategories, setOpenCategories] = useState(() => new Set(Object.keys(grouped)));
+
+  function toggleCategory(cat) {
+    setOpenCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  }
+
+  if (services.length === 0) return null;
+
+  return (
+    <section>
+      <Eyebrow>Services</Eyebrow>
+      <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+        {Object.entries(grouped).map(([cat, items]) => {
+          const isOpen = openCategories.has(cat);
+          return (
+            <div key={cat}>
+              <button
+                type="button"
+                onClick={() => toggleCategory(cat)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 0 12px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: `0.5px solid ${BORDER}`,
+                  cursor: "pointer",
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: sans,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "#333",
+                  }}
+                >
+                  {cat}
+                </span>
+                <ChevronDown
+                  size={14}
+                  style={{
+                    color: "#999",
+                    transition: "transform 0.18s",
+                    transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                    flexShrink: 0,
+                  }}
+                />
+              </button>
+              {isOpen && (
+                <div className="visual-services-grid" style={{ marginTop: 16 }}>
+                  {items.map((svc) => (
+                    <VisualServiceCard
+                      key={svc.id}
+                      svc={svc}
+                      imageUrl={imageForService(svc, portfolioImages)}
+                      onBook={onBook}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
@@ -1452,6 +1644,7 @@ export default function SalonLanding() {
   }
 
   const canonicalSlug = window.location.hostname.split('.')[0]
+  const isVisualServices = VISUAL_SERVICES_SUBDOMAINS.includes(canonicalSlug)
   const locationStr = [profile.area, profile.city].filter(Boolean).join(', ')
   const typeLabel = TYPE_LABELS[profile.businessType] ?? 'Beauty Salon'
   const metaTitle = `${profile.businessName} | ${typeLabel} in ${locationStr || 'Zambia'} | Book Online`
@@ -1514,6 +1707,9 @@ export default function SalonLanding() {
         .salon-team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .service-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; gap: 16px; }
         .service-item-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+        .visual-services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .visual-service-card img { transition: transform 0.25s ease; }
+        .visual-service-card:hover img { transform: scale(1.05); }
         @media (max-width: 640px) {
           .salon-hero { height: 260px !important; }
           .salon-hero-name { font-size: 28px !important; }
@@ -1523,6 +1719,7 @@ export default function SalonLanding() {
           .salon-team-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .service-item { flex-wrap: wrap; gap: 8px !important; }
           .service-item-right { width: 100%; justify-content: space-between; }
+          .visual-services-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <SalonNav />
@@ -1545,10 +1742,18 @@ export default function SalonLanding() {
       >
         {/* Main column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
-          <ServicesSection
-            services={profile.services.filter((s) => s.isActive)}
-            onBook={openChat}
-          />
+          {isVisualServices ? (
+            <VisualServicesSection
+              services={profile.services.filter((s) => s.isActive)}
+              portfolioImages={profile.portfolioImages}
+              onBook={openChat}
+            />
+          ) : (
+            <ServicesSection
+              services={profile.services.filter((s) => s.isActive)}
+              onBook={openChat}
+            />
+          )}
           <PortfolioSection images={profile.portfolioImages} />
           <TeamSection staff={profile.staff} />
         </div>
