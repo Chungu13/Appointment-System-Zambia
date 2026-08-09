@@ -46,6 +46,20 @@ export const SALON_PROFILE = gql`
         serviceName
         displayOrder
       }
+      businessPolicies {
+        cancellationPolicy
+        lateArrivalPolicy
+        lateFee
+        waitingTime
+        whatToBring
+        walkIns
+        depositPolicy
+        refundPolicy
+        balancePaymentMethod
+        howToFindUs
+        contactPreference
+        additionalInfo
+      }
       onboardingCompleted
     }
   }
