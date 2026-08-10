@@ -7,11 +7,7 @@ import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 import SalonCard from '../../components/salon/SalonCard'
-
-const PRIMARY = '#6B2737'
-const BORDER  = '#f0ece8'
-const serif   = 'Inter, sans-serif'
-const sans    = 'Inter, sans-serif'
+import { PRIMARY, BORDER, serif, sans } from './salon/theme'
 
 const CATEGORIES = [
   { value: 'all',           label: 'All' },
@@ -91,7 +87,7 @@ export default function Directory() {
                 style={{
                   width: '100%', boxSizing: 'border-box',
                   fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#1a1a1a',
-                  border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px',
+                  border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '13px 16px 13px 38px',
                   outline: 'none', backgroundColor: '#fff',
                 }}
               />
@@ -104,7 +100,7 @@ export default function Directory() {
                 <select
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: area ? '#1a1a1a' : '#333', border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff', appearance: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: area ? '#1a1a1a' : '#333', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff', appearance: 'none' }}
                 >
                   <option value="">All Lusaka areas…</option>
                   {LUSAKA_AREAS.filter((a) => a !== 'Other').map((a) => <option key={a} value={a}>{a}</option>)}
@@ -115,14 +111,14 @@ export default function Directory() {
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
                   placeholder="Area e.g. Kabulonga…"
-                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: '#1a1a1a', border: `0.5px solid #ddd`, borderRadius: 4, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff' }}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: sans, fontSize: 13, color: '#1a1a1a', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '13px 16px 13px 38px', outline: 'none', backgroundColor: '#fff' }}
                 />
               )}
             </div>
 
             {/* Search button */}
             <button
-              style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '13px 28px', borderRadius: 4, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '13px 28px', borderRadius: 10, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
             >
               Search
             </button>
@@ -137,7 +133,7 @@ export default function Directory() {
           <select
             value={city}
             onChange={(e) => { setCity(e.target.value); setArea('') }}
-            style={{ fontFamily: sans, fontSize: 12, color: '#333', border: `0.5px solid #ddd`, borderRadius: 3, padding: '10px 12px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer', flexShrink: 0 }}
+            style={{ fontFamily: sans, fontSize: 12, color: '#333', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '10px 12px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer', flexShrink: 0 }}
           >
             {FILTER_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -153,8 +149,8 @@ export default function Directory() {
                   fontFamily: sans, fontSize: 12, fontWeight: active ? 500 : 400,
                   color: active ? '#fff' : '#333',
                   backgroundColor: active ? PRIMARY : 'transparent',
-                  border: `0.5px solid ${active ? PRIMARY : '#ddd'}`,
-                  borderRadius: 3, padding: '10px 16px', cursor: 'pointer',
+                  border: `0.5px solid ${active ? PRIMARY : BORDER}`,
+                  borderRadius: 10, padding: '10px 16px', cursor: 'pointer',
                   transition: 'all 0.12s', flexShrink: 0,
                 }}
               >

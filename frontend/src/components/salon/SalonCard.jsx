@@ -1,8 +1,6 @@
 import { MapPin } from 'lucide-react'
 import { getSalonUrl } from '../../lib/utils'
-
-const PRIMARY = '#6B2737'
-const BORDER  = '#f0ece8'
+import { PRIMARY, BORDER } from '../../pages/public/salon/theme'
 
 const TYPE_LABELS = {
   salon:         'Salon',

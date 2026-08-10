@@ -1,139 +1,62 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
 import { getCanonicalAppUrl } from "../../router/TenantRoute";
+import { PRIMARY, CREAM, BORDER, DARK, serif, sans } from "../../pages/public/salon/theme";
 
-const PRIMARY = "#6B2737";
-const BORDER = "#f0ece8";
-
-const NAV_LINKS = [
-  { label: "How it Works", to: "/how-it-works" },
-  { label: "For Businesses", to: "/for-businesses" },
-  { label: "Find Beauty Services", to: "/discover" },
-];
-
-export default function LandingNav({ variant = "public" }) {
-  const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
+export default function LandingNav() {
   const loginHref = getCanonicalAppUrl("/login") ?? "/login";
   const signupHref = getCanonicalAppUrl("/signup") ?? "/signup";
 
   return (
     <nav
       style={{
-        backgroundColor: "#fff",
+        backgroundColor: CREAM,
         borderBottom: `0.5px solid ${BORDER}`,
         position: "sticky",
         top: 0,
         zIndex: 50,
       }}
     >
-      {/* Desktop bar — hidden on mobile; lg:flex owns the display value */}
       <div
-        className="hidden lg:flex"
         style={{
           width: "100%",
+          maxWidth: 1200,
+          margin: "0 auto",
+          boxSizing: "border-box",
+          display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "20px 64px 20px 64px",
-          position: "relative",
+          padding: "16px 64px",
+          gap: 16,
         }}
+        className="max-sm:px-5 max-sm:py-3.5"
       >
-        {/* Section 1 — Left: logo + wordmark */}
-        <Link
-          to="/"
-          style={{
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: 0,
-            flexShrink: 0,
-          }}
+        <a
+          href={getCanonicalAppUrl("/") ?? "/"}
+          style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}
         >
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 50 }} />
-          <span
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: 18,
-              fontWeight: 400,
-              color: "#6B2737",
-              letterSpacing: "-0.3px",
-              marginLeft: -18,
-            }}
-          >
+          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 40 }} className="max-sm:h-8" />
+          <span style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: DARK, letterSpacing: "-0.3px" }} className="max-sm:text-base">
             Kimawa
           </span>
-        </Link>
+        </a>
 
-        {/* Section 2 — Center: nav links (absolutely centered) */}
-        {variant === "public" && (
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              display: "flex",
-              alignItems: "center",
-              gap: 32,
-            }}
-          >
-            {NAV_LINKS.map(({ label, to }) => (
-              <Link
-                key={to}
-                to={to}
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: 13,
-                  fontWeight: 400,
-                  color: pathname.startsWith(to) ? PRIMARY : "#333",
-                  textDecoration: "none",
-                  letterSpacing: "0.01em",
-                  borderBottom: pathname.startsWith(to)
-                    ? `1px solid ${PRIMARY}`
-                    : "1px solid transparent",
-                  paddingBottom: 1,
-                  whiteSpace: "nowrap",
-                  transition: "color 0.12s",
-                }}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Section 3 — Right: Login + CTA */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 20,
-            flexShrink: 0,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <a
             href={loginHref}
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: 13,
-              fontWeight: 400,
-              color: "#333",
-              textDecoration: "none",
-            }}
+            style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: "#5c4c3d", textDecoration: "none" }}
           >
             Login
           </a>
           <a
             href={signupHref}
             style={{
-              fontFamily: "Inter, sans-serif",
+              fontFamily: sans,
               fontSize: 12,
-              fontWeight: 500,
-              letterSpacing: "0.06em",
+              fontWeight: 600,
+              letterSpacing: "0.02em",
               color: "#fff",
               backgroundColor: PRIMARY,
-              padding: "10px 22px",
-              borderRadius: 3,
+              padding: "10px 20px",
+              borderRadius: 10,
               textDecoration: "none",
               whiteSpace: "nowrap",
             }}
@@ -142,112 +65,6 @@ export default function LandingNav({ variant = "public" }) {
           </a>
         </div>
       </div>
-
-      {/* Mobile bar — hidden on desktop; flex owns the display value via Tailwind */}
-      <div
-        className="flex lg:hidden"
-        style={{
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 20px",
-        }}
-      >
-        <Link
-          to="/"
-          style={{
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 40 }} />
-          <span
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: 16,
-              fontWeight: 400,
-              color: "#6B2737",
-              letterSpacing: "-0.3px",
-            }}
-          >
-            Kimawa
-          </span>
-        </Link>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          style={{
-            color: "#1a1a1a",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 12,
-          }}
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
-
-      {/* Mobile drawer */}
-      {open && (
-        <div
-          style={{
-            borderTop: `0.5px solid ${BORDER}`,
-            backgroundColor: "#fff",
-            padding: "8px 4px",
-          }}
-        >
-          {NAV_LINKS.map(({ label, to }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={() => setOpen(false)}
-              style={{
-                fontSize: 14,
-                color: "#333",
-                textDecoration: "none",
-                padding: "14px 16px",
-                display: "block",
-              }}
-            >
-              {label}
-            </Link>
-          ))}
-          <a
-            href={loginHref}
-            onClick={() => setOpen(false)}
-            style={{
-              fontSize: 14,
-              color: "#333",
-              textDecoration: "none",
-              padding: "14px 16px",
-              display: "block",
-            }}
-          >
-            Login
-          </a>
-          <div style={{ padding: "8px 16px" }}>
-            <a
-              href={signupHref}
-              onClick={() => setOpen(false)}
-              style={{
-                fontSize: 12,
-                fontWeight: 500,
-                letterSpacing: "0.06em",
-                color: "#fff",
-                backgroundColor: PRIMARY,
-                padding: "14px 20px",
-                borderRadius: 3,
-                textDecoration: "none",
-                textAlign: "center",
-                display: "block",
-              }}
-            >
-              List Your Business
-            </a>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
