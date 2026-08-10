@@ -403,7 +403,7 @@ export const CHROME_STYLE = `
   .salon-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .salon-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding-top: 8px; }
   .visual-services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .service-card-image { aspect-ratio: 4 / 5; }
+  .service-card-image { aspect-ratio: 4 / 3; }
   .visual-service-card img { transition: transform 0.25s ease; }
   .visual-service-card:hover img { transform: scale(1.05); }
   .nav-pill-row::-webkit-scrollbar, .pill-row::-webkit-scrollbar { display: none; }
