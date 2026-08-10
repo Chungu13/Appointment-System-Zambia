@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { ChevronDown, ChevronUp, Plus, X, Camera, Eye, EyeOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, Camera, Eye, EyeOff } from 'lucide-react'
 import { STAFF_LIST, MY_PROFILE } from '../../graphql/queries/staff'
 import { SERVICES } from '../../graphql/queries/services'
 import {
@@ -12,10 +12,10 @@ import {
 } from '../../graphql/mutations/staff'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
-import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
+import { formatZMW } from '../../lib/utils'
 
 const BURG     = '#6B2737'
 const TEXT     = '#1a0a0d'
@@ -23,7 +23,6 @@ const MUTED    = '#7a5060'
 const HINT     = '#8a6268'
 const BORDER   = '#ede5e7'
 const BLUSH    = '#fdf8f8'
-const NAV_MUTED = '#5c4848'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"
@@ -33,6 +32,44 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 function initials(name) {
   if (!name?.trim()) return '?'
   return name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
+// 24h "HH:MM(:SS)" -> 12h "8:00 AM" for display in the <input type="time">'s
+// adjacent label isn't needed since the native picker already shows this,
+// but we still need a safe default set of hours for brand-new staff.
+const DEFAULT_HOURS = DAYS.map((_, day) => ({
+  dayOfWeek: day,
+  isDayOff: day === 6, // Sunday off by default
+  startTime: '09:00',
+  endTime: '18:00',
+}))
+
+function hoursMapFor(member, allMembers) {
+  const own = member.workingHours ?? []
+  if (own.length > 0) {
+    const byDay = Object.fromEntries(own.map((wh) => [wh.dayOfWeek, wh]))
+    return DAYS.map((_, day) => {
+      const wh = byDay[day]
+      return wh
+        ? { dayOfWeek: day, isDayOff: wh.isDayOff, startTime: (wh.startTime || '09:00').slice(0, 5), endTime: (wh.endTime || '18:00').slice(0, 5) }
+        : { dayOfWeek: day, isDayOff: true, startTime: '09:00', endTime: '18:00' }
+    })
+  }
+  // No hours saved yet for this person — copy from another staff member who
+  // already has hours set (closest proxy for "the salon's hours"), else a
+  // sensible fallback. Never leave it blank — a blank/looks-open row is what
+  // silently drops someone from availability.
+  const donor = (allMembers ?? []).find((m) => m.id !== member.id && (m.workingHours ?? []).length > 0)
+  if (donor) {
+    const byDay = Object.fromEntries(donor.workingHours.map((wh) => [wh.dayOfWeek, wh]))
+    return DAYS.map((_, day) => {
+      const wh = byDay[day]
+      return wh
+        ? { dayOfWeek: day, isDayOff: wh.isDayOff, startTime: (wh.startTime || '09:00').slice(0, 5), endTime: (wh.endTime || '18:00').slice(0, 5) }
+        : { dayOfWeek: day, isDayOff: true, startTime: '09:00', endTime: '18:00' }
+    })
+  }
+  return DEFAULT_HOURS
 }
 
 // ── Create staff modal ────────────────────────────────────────────────────────
@@ -75,7 +112,7 @@ function CreateStaffModal({ onClose, onCreated }) {
       <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 400 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
           <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 300, color: TEXT, margin: 0 }}>Add staff member</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}><X size={18} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>×</button>
         </div>
         <form onSubmit={submit} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Error'} />}
@@ -126,114 +163,52 @@ function CreateStaffModal({ onClose, onCreated }) {
   )
 }
 
-// ── Working hours row ─────────────────────────────────────────────────────────
-function HoursRow({ staffId, day, wh }) {
-  const existing = wh ?? { isDayOff: false, startTime: '', endTime: '' }
-  const [isDayOff, setIsDayOff] = useState(existing.isDayOff)
-  const [start, setStart] = useState(existing.startTime ?? '')
-  const [end, setEnd] = useState(existing.endTime ?? '')
-  const [saved, setSaved] = useState(false)
-
-  const [setHours, { loading }] = useMutation(SET_WORKING_HOURS, {
-    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
-  })
-
-  function toTimeStr(val) {
-    if (!val) return null
-    const p = val.split(':')
-    return `${p[0].padStart(2,'0')}:${(p[1]||'00').padStart(2,'0')}:${(p[2]||'00').padStart(2,'0')}`
-  }
-
-  function save() {
-    setHours({
-      variables: {
-        staffId,
-        dayOfWeek: day,
-        isDayOff,
-        startTime: isDayOff ? null : toTimeStr(start),
-        endTime: isDayOff ? null : toTimeStr(end),
-      },
-    })
-  }
-
-  const timeInput = {
-    border: `0.5px solid ${BORDER}`, padding: '4px 8px',
-    fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
-    backgroundColor: '#fff', outline: 'none', width: 112,
-  }
+// ── List view — compact rows, tap to open detail ──────────────────────────────
+function StaffListRow({ member, onSelect }) {
+  const [hovered, setHovered] = useState(false)
+  const isOwner = member.role === 'OWNER'
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 8, borderBottom: `0.5px solid ${BORDER}44` }} className="last:border-b-0">
-      <span style={{ width: 88, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, flexShrink: 0 }}>{DAYS[day]}</span>
-
-      <button
-        type="button"
-        onClick={() => setIsDayOff((v) => !v)}
-        style={{ width: 32, height: 18, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: isDayOff ? HINT : BURG, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
-      >
-        <span style={{ position: 'absolute', top: 3, left: isDayOff ? 3 : 13, width: 12, height: 12, backgroundColor: '#fff', transition: 'left 0.15s' }} />
-      </button>
-      <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, width: 44, flexShrink: 0 }}>{isDayOff ? 'Day off' : 'Open'}</span>
-
-      {!isDayOff && (
-        <>
-          <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={timeInput} />
-          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>–</span>
-          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={timeInput} />
-        </>
+    <button
+      onClick={() => onSelect(member.id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+        padding: '14px 16px', backgroundColor: hovered ? BLUSH : '#fff',
+        border: `0.5px solid ${BORDER}`, borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+        transition: 'background-color 0.1s',
+      }}
+    >
+      {member.avatarUrl ? (
+        <img src={member.avatarUrl} alt={member.fullName} style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0, display: 'block' }} />
+      ) : (
+        <div style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0, backgroundColor: isOwner ? BURG : '#EDD5D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: isOwner ? '#fff' : BURG }}>{initials(member.fullName)}</span>
+        </div>
       )}
 
-      <div style={{ marginLeft: 'auto' }}>
-        {saved ? (
-          <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#16a34a' }}>Saved ✓</span>
-        ) : (
-          <Button size="sm" variant="ghost" loading={loading} onClick={save}>Save</Button>
-        )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: TEXT, margin: 0 }}>{member.fullName}</p>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>{member.phone}</p>
       </div>
-    </div>
+
+      <span style={{
+        fontFamily: sans, fontSize: 11, fontWeight: 500,
+        padding: '4px 12px', flexShrink: 0, borderRadius: 20,
+        backgroundColor: isOwner ? '#f5e6c8' : BLUSH,
+        color: isOwner ? '#8a6a1a' : BURG,
+      }}>
+        {isOwner ? 'Owner' : 'Staff'}
+      </span>
+
+      <ChevronRight size={16} color={HINT} style={{ flexShrink: 0 }} />
+    </button>
   )
 }
 
-// ── Service assignment ────────────────────────────────────────────────────────
-function ServiceAssignment({ staffId, assignedIds, services }) {
-  const refetchList = { refetchQueries: [STAFF_LIST] }
-  const [assign] = useMutation(ASSIGN_SERVICE, refetchList)
-  const [remove] = useMutation(REMOVE_SERVICE, refetchList)
-
-  function toggle(serviceId) {
-    const isAssigned = assignedIds.includes(serviceId)
-    if (isAssigned) remove({ variables: { staffId, serviceId } })
-    else assign({ variables: { staffId, serviceId } })
-  }
-
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-      {services.map((s) => {
-        const on = assignedIds.includes(s.id)
-        return (
-          <button
-            key={s.id}
-            onClick={() => toggle(s.id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, textAlign: 'left',
-              border: `0.5px solid ${on ? '#d4a8b0' : BORDER}`,
-              backgroundColor: on ? '#fdf8f8' : '#fff',
-              color: on ? BURG : MUTED,
-              cursor: 'pointer', transition: 'all 0.1s',
-            }}
-          >
-            <span style={{ width: 8, height: 8, flexShrink: 0, backgroundColor: on ? BURG : BORDER }} />
-            {s.name}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── Public profile editor ─────────────────────────────────────────────────────
-function StaffProfileEditor({ member }) {
+// ── Detail — Profile tab ──────────────────────────────────────────────────────
+function ProfileTab({ member }) {
   const [avatarPreview, setAvatarPreview] = useState(member.avatarUrl || null)
   const [bio, setBio] = useState(member.bio || '')
   const [isPublic, setIsPublic] = useState(member.displayOnPublicPage ?? false)
@@ -251,35 +226,24 @@ function StaffProfileEditor({ member }) {
     if (!['image/jpeg', 'image/png'].includes(file.type)) return
     if (file.size > 5 * 1024 * 1024) return
     const reader = new FileReader()
-    reader.onload = (e) => {
-      setAvatarPreview(e.target.result)
-      updateProfile({ variables: { staffId: member.id, avatarUrl: e.target.result } })
-    }
+    reader.onload = (e) => setAvatarPreview(e.target.result)
     reader.readAsDataURL(file)
   }
 
   function save() {
-    updateProfile({ variables: { staffId: member.id, bio, displayOnPublicPage: isPublic } })
-  }
-
-  function togglePublic() {
-    const next = !isPublic
-    setIsPublic(next)
-    updateProfile({ variables: { staffId: member.id, displayOnPublicPage: next } })
+    updateProfile({ variables: { staffId: member.id, bio, displayOnPublicPage: isPublic, avatarUrl: avatarPreview } })
   }
 
   return (
-    <div>
-      <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>Public profile</h3>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        {/* Avatar upload */}
         <div style={{ flexShrink: 0 }}>
           {avatarPreview ? (
             <div style={{ position: 'relative', width: 72, height: 72 }}>
-              <img src={avatarPreview} alt="Avatar" style={{ width: 72, height: 72, objectFit: 'cover', border: `0.5px solid ${BORDER}`, display: 'block' }} />
+              <img src={avatarPreview} alt="Avatar" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 12, display: 'block' }} />
               <button
                 onClick={() => fileRef.current?.click()}
-                style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, backgroundColor: BURG, color: '#fff', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: '50%', backgroundColor: BURG, color: '#fff', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
                 <Camera size={11} />
               </button>
@@ -290,7 +254,7 @@ function StaffProfileEditor({ member }) {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); processFile(e.dataTransfer.files?.[0]) }}
-              style={{ width: 72, height: 72, border: `0.5px solid ${dragOver ? BURG : BORDER}`, backgroundColor: dragOver ? BLUSH : '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.1s' }}
+              style={{ width: 72, height: 72, borderRadius: 12, border: `0.5px solid ${dragOver ? BURG : BORDER}`, backgroundColor: dragOver ? BLUSH : '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.1s' }}
             >
               <Camera size={16} color={MUTED} />
               <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>Photo</span>
@@ -299,173 +263,275 @@ function StaffProfileEditor({ member }) {
           <input ref={fileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => processFile(e.target.files?.[0])} />
         </div>
 
-        {/* Bio + visibility */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 6 }}>Short bio</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={2}
-              placeholder="e.g. 5 years experience in braiding and natural hair"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', border: `0.5px solid ${BORDER}`, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', resize: 'none', outline: 'none' }}
-              onFocus={(e) => (e.target.style.borderColor = BURG)}
-              onBlur={(e) => (e.target.style.borderColor = BORDER)}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <button
-              onClick={togglePublic}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 11, fontWeight: 300, padding: '6px 12px', border: `0.5px solid ${isPublic ? '#d4a8b0' : BORDER}`, backgroundColor: isPublic ? BLUSH : '#fff', color: isPublic ? BURG : MUTED, cursor: 'pointer', transition: 'all 0.1s' }}
-            >
-              {isPublic ? <Eye size={13} /> : <EyeOff size={13} />}
-              {isPublic ? 'Shown on public page' : 'Hidden from public page'}
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#16a34a' }}>Saved ✓</span>}
-              <button
-                onClick={save}
-                disabled={loading}
-                style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 16px', backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
-              >
-                {loading ? 'Saving…' : 'Save bio'}
-              </button>
-            </div>
-          </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 6 }}>Short bio</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={3}
+            placeholder="e.g. 5 years experience in braiding and natural hair"
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: `0.5px solid ${BORDER}`, borderRadius: 8, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', resize: 'none', outline: 'none' }}
+            onFocus={(e) => (e.target.style.borderColor = BURG)}
+            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+          />
         </div>
+      </div>
+
+      <button
+        onClick={() => setIsPublic((v) => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: sans, fontSize: 12, fontWeight: 400, padding: '10px 14px', border: `0.5px solid ${isPublic ? '#d4a8b0' : BORDER}`, borderRadius: 8, backgroundColor: isPublic ? BLUSH : '#fff', color: isPublic ? BURG : MUTED, cursor: 'pointer', transition: 'all 0.1s', alignSelf: 'flex-start' }}
+      >
+        {isPublic ? <Eye size={14} /> : <EyeOff size={14} />}
+        {isPublic ? 'Shown on public page' : 'Hidden from public page'}
+      </button>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={save}
+          disabled={loading}
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, letterSpacing: '0.02em', padding: '12px 28px', borderRadius: 10, backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+        >
+          {loading ? 'Saving…' : 'Save profile'}
+        </button>
+        {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#16a34a' }}>Saved ✓</span>}
       </div>
     </div>
   )
 }
 
-// ── "Also work as staff" toggle — owner only, unlocks their own dashboard schedule ──
-function AlsoStaffToggle({ member }) {
-  const [justSaved, setJustSaved] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
+// ── Detail — Hours tab ────────────────────────────────────────────────────────
+function HoursTab({ member, allMembers }) {
+  const [hours, setHours] = useState(() => hoursMapFor(member, allMembers))
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [setWorkingHours] = useMutation(SET_WORKING_HOURS)
 
-  const [enableSelf, { loading }] = useMutation(CREATE_STAFF, {
-    refetchQueries: [STAFF_LIST, MY_PROFILE],
-    awaitRefetchQueries: true,
-    onCompleted: () => setJustSaved(true),
-    onError: (err) => setErrorMsg(err.graphQLErrors?.[0]?.message || err.message || 'Something went wrong — please try again.'),
-  })
+  function updateDay(day, patch) {
+    setHours((prev) => prev.map((d) => (d.dayOfWeek === day ? { ...d, ...patch } : d)))
+  }
 
-  if (member.isAlsoStaff) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 12, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff' }}>
-        <span style={{ width: 8, height: 8, flexShrink: 0, backgroundColor: BURG, borderRadius: '50%' }} />
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>
-          {justSaved ? "Done — you're set up as staff. Your bookings show on your dashboard." : "You're set up as staff. Your bookings show on your dashboard."}
-        </p>
-      </div>
-    )
+  async function saveAll() {
+    setSaving(true)
+    try {
+      await Promise.all(
+        hours.map((d) =>
+          setWorkingHours({
+            variables: {
+              staffId: member.id,
+              dayOfWeek: d.dayOfWeek,
+              isDayOff: d.isDayOff,
+              startTime: d.isDayOff ? null : `${d.startTime}:00`,
+              endTime: d.isDayOff ? null : `${d.endTime}:00`,
+            },
+          }),
+        ),
+      )
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12, border: `0.5px solid ${errorMsg ? '#e0a8ac' : BORDER}`, backgroundColor: BLUSH }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, maxWidth: 340 }}>
-          You're not assigned as staff yet, so your own bookings won't show on your dashboard.
-        </p>
-        <button
-          onClick={() => { setErrorMsg(''); enableSelf({ variables: { isMe: true } }) }}
-          disabled={loading}
-          style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '8px 16px', backgroundColor: BURG, color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, flexShrink: 0 }}
-        >
-          {loading ? 'Saving…' : 'Also work as staff'}
-        </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {hours.map((d) => (
+          <div key={d.dayOfWeek} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '12px 14px', backgroundColor: '#fff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: d.isDayOff ? HINT : TEXT }}>{DAYS[d.dayOfWeek]}</span>
+              <button
+                type="button"
+                onClick={() => updateDay(d.dayOfWeek, { isDayOff: !d.isDayOff })}
+                style={{ width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: d.isDayOff ? BORDER : BURG, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
+              >
+                <span style={{ position: 'absolute', top: 2, left: d.isDayOff ? 2 : 18, width: 16, height: 16, borderRadius: '50%', backgroundColor: '#fff', transition: 'left 0.15s' }} />
+              </button>
+            </div>
+            {d.isDayOff ? (
+              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: '6px 0 0' }}>Day off</p>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <input
+                  type="time"
+                  value={d.startTime}
+                  onChange={(e) => updateDay(d.dayOfWeek, { startTime: e.target.value })}
+                  style={{ flex: 1, border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '8px 10px', fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+                />
+                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>to</span>
+                <input
+                  type="time"
+                  value={d.endTime}
+                  onChange={(e) => updateDay(d.dayOfWeek, { endTime: e.target.value })}
+                  style={{ flex: 1, border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '8px 10px', fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+                />
+              </div>
+            )}
+          </div>
+        ))}
       </div>
-      {errorMsg && (
-        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#b91c1c', margin: 0 }}>{errorMsg}</p>
-      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={saveAll}
+          disabled={saving}
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, letterSpacing: '0.02em', padding: '12px 28px', borderRadius: 10, backgroundColor: BURG, color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}
+        >
+          {saving ? 'Saving…' : 'Save working hours'}
+        </button>
+        {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#16a34a' }}>Saved ✓</span>}
+      </div>
     </div>
   )
 }
 
-// ── Staff member panel ────────────────────────────────────────────────────────
-function StaffPanel({ member, allServices }) {
-  const [open, setOpen] = useState(false)
-  const [hovered, setHovered] = useState(false)
+// ── Detail — Services tab ─────────────────────────────────────────────────────
+function ServicesTab({ member, allServices }) {
+  const [assigned, setAssigned] = useState(() => new Set(member.assignedServiceIds ?? []))
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [assign] = useMutation(ASSIGN_SERVICE)
+  const [remove] = useMutation(REMOVE_SERVICE)
 
-  const whByDay = Object.fromEntries((member.workingHours ?? []).map((wh) => [wh.dayOfWeek, wh]))
-  const isOwner = member.role === 'OWNER'
+  function toggle(serviceId) {
+    setAssigned((prev) => {
+      const next = new Set(prev)
+      if (next.has(serviceId)) next.delete(serviceId)
+      else next.add(serviceId)
+      return next
+    })
+  }
+
+  async function save() {
+    setSaving(true)
+    const original = new Set(member.assignedServiceIds ?? [])
+    const toAssign = [...assigned].filter((id) => !original.has(id))
+    const toRemove = [...original].filter((id) => !assigned.has(id))
+    try {
+      await Promise.all([
+        ...toAssign.map((serviceId) => assign({ variables: { staffId: member.id, serviceId } })),
+        ...toRemove.map((serviceId) => remove({ variables: { staffId: member.id, serviceId } })),
+      ])
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
-    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
-      {/* Card header */}
-      <button
-        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', backgroundColor: hovered ? BLUSH : '#fff', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background-color 0.1s' }}
-        onClick={() => setOpen((v) => !v)}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {/* Avatar — square */}
-        {member.avatarUrl ? (
-          <img
-            src={member.avatarUrl}
-            alt={member.fullName}
-            style={{ width: 40, height: 40, objectFit: 'cover', flexShrink: 0, display: 'block' }}
-          />
-        ) : (
-          <div style={{ width: 40, height: 40, flexShrink: 0, backgroundColor: isOwner ? BURG : '#EDD5D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: isOwner ? '#fff' : BURG }}>
-              {initials(member.fullName)}
-            </span>
-          </div>
-        )}
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT, margin: 0 }}>{member.fullName}</p>
-          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, margin: 0 }}>{member.phone}</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div>
+        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, margin: '0 0 12px' }}>
+          Services {member.fullName?.split(' ')[0]} can perform
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {allServices.map((s) => {
+            const on = assigned.has(s.id)
+            return (
+              <button
+                key={s.id}
+                onClick={() => toggle(s.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 14px', fontFamily: sans, textAlign: 'left',
+                  border: `0.5px solid ${BORDER}`, borderRadius: 10,
+                  backgroundColor: '#fff', cursor: 'pointer', transition: 'all 0.1s',
+                }}
+              >
+                <span style={{
+                  width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                  border: `1.5px solid ${on ? BURG : BORDER}`,
+                  backgroundColor: on ? BURG : '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {on && <Check size={14} color="#fff" strokeWidth={3} />}
+                </span>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 400, color: TEXT }}>{s.name}</span>
+                <span style={{ fontSize: 12, fontWeight: 300, color: MUTED, flexShrink: 0 }}>From {formatZMW(s.priceZmw)}</span>
+              </button>
+            )
+          })}
         </div>
+      </div>
 
-        {/* Role badge — sharp rectangle */}
-        <span style={{
-          fontFamily: sans, fontSize: 10, fontWeight: 300,
-          letterSpacing: '0.1em', textTransform: 'uppercase',
-          padding: '4px 10px', flexShrink: 0,
-          border: `0.5px solid ${isOwner ? '#d4a8b0' : BORDER}`,
-          color: isOwner ? BURG : NAV_MUTED,
-        }}>
-          {member.role}
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={save}
+          disabled={saving}
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, letterSpacing: '0.02em', padding: '12px 28px', borderRadius: 10, backgroundColor: BURG, color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}
+        >
+          {saving ? 'Saving…' : 'Save services'}
+        </button>
+        {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#16a34a' }}>Saved ✓</span>}
+      </div>
+    </div>
+  )
+}
 
-        {open
-          ? <ChevronUp size={14} color={HINT} style={{ flexShrink: 0 }} />
-          : <ChevronDown size={14} color={HINT} style={{ flexShrink: 0 }} />}
-      </button>
+// ── Detail view ────────────────────────────────────────────────────────────────
+function StaffDetail({ member, allMembers, allServices, onBack }) {
+  const [tab, setTab] = useState('profile')
+  const isOwner = member.role === 'OWNER'
 
-      {/* Expanded panel */}
-      {open && (
-        <div style={{ borderTop: `0.5px solid ${BORDER}`, padding: 20, backgroundColor: BLUSH, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {isOwner && <AlsoStaffToggle member={member} />}
+  const tabs = [
+    { key: 'profile', label: 'Profile' },
+    { key: 'hours', label: 'Hours' },
+    { key: 'services', label: 'Services' },
+  ]
 
-          <StaffProfileEditor member={member} />
+  return (
+    <div>
+      <div style={{ backgroundColor: BURG, borderRadius: 16, padding: '20px 20px 0', marginBottom: 0 }}>
+        <button
+          onClick={onBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', fontFamily: sans, fontSize: 12, fontWeight: 400, padding: 0, marginBottom: 16 }}
+        >
+          <ChevronLeft size={16} /> Back to staff
+        </button>
 
-          <div>
-            <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>Working hours</h3>
-            <div>
-              {DAYS.map((_, day) => (
-                <HoursRow key={day} staffId={member.id} day={day} wh={whByDay[day]} />
-              ))}
-            </div>
-          </div>
-
-          {allServices.length > 0 && (
-            <div>
-              <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>Assigned services</h3>
-              <ServiceAssignment
-                staffId={member.id}
-                assignedIds={member.assignedServiceIds ?? []}
-                services={allServices}
-              />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+          {member.avatarUrl ? (
+            <img src={member.avatarUrl} alt={member.fullName} style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, backgroundColor: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: sans, fontSize: 18, fontWeight: 500, color: '#fff' }}>{initials(member.fullName)}</span>
             </div>
           )}
-
+          <div>
+            <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: '#fff', margin: '0 0 3px' }}>{member.fullName}</p>
+            <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+              {member.phone} &middot; {isOwner ? 'Owner' : 'Staff'}
+            </p>
+          </div>
         </div>
-      )}
+
+        <div style={{ display: 'flex', gap: 8, paddingBottom: 16 }}>
+          {tabs.map((t) => {
+            const active = tab === t.key
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                style={{
+                  fontFamily: sans, fontSize: 13, fontWeight: 500, padding: '9px 20px',
+                  borderRadius: 10, border: 'none', cursor: 'pointer',
+                  backgroundColor: active ? '#fff' : 'rgba(255,255,255,0.14)',
+                  color: active ? BURG : '#fff',
+                }}
+              >
+                {t.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div style={{ backgroundColor: BLUSH, borderRadius: '0 0 16px 16px', padding: 20 }}>
+        {tab === 'profile' && <ProfileTab member={member} />}
+        {tab === 'hours' && <HoursTab member={member} allMembers={allMembers} />}
+        {tab === 'services' && <ServicesTab member={member} allServices={allServices} />}
+      </div>
     </div>
   )
 }
@@ -473,11 +539,26 @@ function StaffPanel({ member, allServices }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function Staff() {
   const [showCreate, setShowCreate] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
   const { data: staffData, loading: staffLoading, error: staffError } = useQuery(STAFF_LIST)
   const { data: serviceData } = useQuery(SERVICES, { variables: { activeOnly: true } })
 
   const members = staffData?.staffList ?? []
   const services = serviceData?.services ?? []
+  const selected = members.find((m) => m.id === selectedId)
+
+  if (selected) {
+    return (
+      <PageWrapper>
+        <StaffDetail
+          member={selected}
+          allMembers={members}
+          allServices={services}
+          onBack={() => setSelectedId(null)}
+        />
+      </PageWrapper>
+    )
+  }
 
   return (
     <PageWrapper>
@@ -489,12 +570,12 @@ export default function Staff() {
             onClick={() => setShowCreate(true)}
             style={{
               background: BURG, color: '#fff', padding: '10px 20px',
-              fontFamily: sans, fontSize: 10, fontWeight: 300,
-              letterSpacing: '0.1em', textTransform: 'uppercase',
+              fontFamily: sans, fontSize: 12, fontWeight: 600,
+              letterSpacing: '0.02em', borderRadius: 10,
               border: 'none', cursor: 'pointer',
             }}
           >
-            Add Staff
+            + Add Staff
           </button>
         }
       />
@@ -504,9 +585,15 @@ export default function Staff() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {members.map((member) => (
-          <StaffPanel key={member.id} member={member} allServices={services} />
+          <StaffListRow key={member.id} member={member} onSelect={setSelectedId} />
         ))}
       </div>
+
+      {members.length > 0 && (
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, letterSpacing: '0.06em', textTransform: 'uppercase', color: HINT, textAlign: 'center', margin: '16px 0 0' }}>
+          Tap a person to edit →
+        </p>
+      )}
 
       {showCreate && (
         <CreateStaffModal
