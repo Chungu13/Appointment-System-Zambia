@@ -203,7 +203,7 @@ export default function SalonLanding() {
       `}</style>
 
       <PageBanner profile={profile} tall eyebrow={TYPE_LABELS[profile.businessType] ?? profile.businessType} title={profile.businessName} subtitle="Browse real results and book your next appointment in seconds.">
-        <HeroExtras profile={profile} onChatOpen={chat.openChat} />
+        <HeroExtras profile={profile} />
       </PageBanner>
 
       <ServicesSection

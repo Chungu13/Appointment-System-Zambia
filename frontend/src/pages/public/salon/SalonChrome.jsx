@@ -161,33 +161,14 @@ export function PageBanner({ profile, tall, eyebrow, title, subtitle, children }
   );
 }
 
-// ── Home-only hero content (Book Now CTA + location/phone/open meta row) ────
-export function HeroExtras({ profile, onChatOpen }) {
+// ── Home-only hero content (location/phone/open meta row) ────────────────────
+export function HeroExtras({ profile }) {
   const isOpen = checkOpenNow(profile.openingHours);
   const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
   const todayRow = profile.openingHours.find((h) => h.dayOfWeek === todayIdx);
 
   return (
     <>
-      <button
-        onClick={() => onChatOpen("")}
-        style={{
-          alignSelf: "flex-start",
-          fontFamily: sans,
-          fontSize: 13,
-          fontWeight: 600,
-          color: DARK,
-          backgroundColor: "#F5EFE6",
-          border: "none",
-          padding: "13px 28px",
-          borderRadius: 10,
-          cursor: "pointer",
-          letterSpacing: "0.02em",
-          marginBottom: 22,
-        }}
-      >
-        Book Now
-      </button>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center" }}>
         {profile.city && (
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.75)" }}>
