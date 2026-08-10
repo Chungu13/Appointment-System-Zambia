@@ -60,10 +60,9 @@ function SalonPillNav({ businessName }) {
   const discoverUrl = appDomain ? `https://${appDomain}/discover` : "/discover";
 
   const links = [
-    { label: "Services", to: paths.services },
-    { label: "Gallery", to: paths.gallery },
     { label: "Stylists", to: paths.stylists },
     { label: "Policies", to: paths.policies },
+    { label: "Gallery", to: paths.gallery },
   ];
 
   return (
