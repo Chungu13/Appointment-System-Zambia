@@ -15,45 +15,55 @@ export default function LandingNav() {
         zIndex: 50,
       }}
     >
-      <style>{LAYOUT_CSS}</style>
+      <style>{`
+        ${LAYOUT_CSS}
+        .landing-nav-row { padding-top: 16px; padding-bottom: 16px; gap: 16px; }
+        .landing-nav-logo { height: 40px; }
+        .landing-nav-wordmark { font-size: 18px; }
+        .landing-nav-actions { gap: 20px; }
+        .landing-nav-cta { padding: 10px 20px; font-size: 12px; }
+        @media (max-width: 480px) {
+          .landing-nav-row { padding-top: 10px !important; padding-bottom: 10px !important; gap: 8px !important; }
+          .landing-nav-logo { height: 26px !important; }
+          .landing-nav-wordmark { font-size: 14px !important; }
+          .landing-nav-actions { gap: 8px !important; }
+          .landing-nav-cta { padding: 8px 12px !important; font-size: 10.5px !important; }
+        }
+      `}</style>
       <div
-        className="salon-container"
+        className="salon-container landing-nav-row"
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingTop: 16,
-          paddingBottom: 16,
-          gap: 16,
         }}
       >
         <a
           href={getCanonicalAppUrl("/") ?? "/"}
-          style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}
+          style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}
         >
-          <img src="/kimawalogo.svg" alt="Kimawa" style={{ height: 40 }} className="max-sm:h-8" />
-          <span style={{ fontFamily: serif, fontSize: 18, fontWeight: 400, color: DARK, letterSpacing: "-0.3px" }} className="max-sm:text-base">
+          <img src="/kimawalogo.svg" alt="Kimawa" className="landing-nav-logo" style={{ flexShrink: 0 }} />
+          <span className="landing-nav-wordmark" style={{ fontFamily: serif, fontWeight: 400, color: DARK, letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
             Kimawa
           </span>
         </a>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div className="landing-nav-actions" style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
           <a
             href={loginHref}
-            style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: "#5c4c3d", textDecoration: "none" }}
+            style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: "#5c4c3d", textDecoration: "none", whiteSpace: "nowrap" }}
           >
             Login
           </a>
           <a
             href={signupHref}
+            className="landing-nav-cta"
             style={{
               fontFamily: sans,
-              fontSize: 12,
               fontWeight: 600,
               letterSpacing: "0.02em",
               color: "#fff",
               backgroundColor: PRIMARY,
-              padding: "10px 20px",
               borderRadius: 10,
               textDecoration: "none",
               whiteSpace: "nowrap",
