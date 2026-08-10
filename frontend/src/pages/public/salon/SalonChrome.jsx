@@ -122,21 +122,18 @@ export function PageBanner({ profile, tall, eyebrow, title, subtitle, children }
       >
         <SalonPillNav businessName={profile.businessName} />
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: tall ? 40 : 28 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingTop: 28, paddingBottom: tall ? 40 : 28 }}>
           {eyebrow && (
             <span
               style={{
                 display: "inline-block",
                 alignSelf: "flex-start",
                 fontFamily: sans,
-                fontSize: 10,
-                fontWeight: 500,
-                letterSpacing: "0.12em",
-                color: "#fff",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                backdropFilter: "blur(8px)",
-                padding: "5px 12px",
-                borderRadius: 20,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.8)",
                 marginBottom: 12,
               }}
             >
