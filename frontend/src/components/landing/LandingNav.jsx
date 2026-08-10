@@ -1,5 +1,5 @@
 import { getCanonicalAppUrl } from "../../router/TenantRoute";
-import { PRIMARY, CREAM, BORDER, DARK, serif, sans } from "../../pages/public/salon/theme";
+import { PRIMARY, CREAM, BORDER, DARK, serif, sans, LAYOUT_CSS } from "../../pages/public/salon/theme";
 
 export default function LandingNav() {
   const loginHref = getCanonicalAppUrl("/login") ?? "/login";
@@ -15,19 +15,17 @@ export default function LandingNav() {
         zIndex: 50,
       }}
     >
+      <style>{LAYOUT_CSS}</style>
       <div
+        className="salon-container"
         style={{
-          width: "100%",
-          maxWidth: 1200,
-          margin: "0 auto",
-          boxSizing: "border-box",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "16px 64px",
+          paddingTop: 16,
+          paddingBottom: 16,
           gap: 16,
         }}
-        className="max-sm:px-5 max-sm:py-3.5"
       >
         <a
           href={getCanonicalAppUrl("/") ?? "/"}

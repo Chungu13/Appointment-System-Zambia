@@ -15,11 +15,11 @@ import Sidebar from './components/layout/Sidebar'
 import BottomNav from './components/layout/BottomNav'
 
 // Public pages — lazy loaded
-// SalonDirectory (marketing pitch page, formerly the "/" root) is kept in the
-// codebase but intentionally unrouted — see the "/" route below.
+// SalonDirectory (marketing pitch page, formerly the "/" root) and
+// SalonServices (Services now lives inline on SalonLanding, not its own
+// route) are kept in the codebase but intentionally unrouted.
 const SalonLanding        = lazy(() => import('./pages/public/SalonLanding'))
 const SalonBooking        = lazy(() => import('./pages/public/SalonBooking'))
-const SalonServices       = lazy(() => import('./pages/public/SalonServices'))
 const SalonGallery        = lazy(() => import('./pages/public/SalonGallery'))
 const SalonStylists       = lazy(() => import('./pages/public/SalonStylists'))
 const SalonPolicies       = lazy(() => import('./pages/public/SalonPolicies'))
@@ -104,10 +104,9 @@ export default function App() {
                 <Route path="/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
                 <Route path="/:salonSlug/book" element={<TenantRoute><SalonBooking /></TenantRoute>} />
 
-                {/* Storefront pages — each nav pill is its own route; booking itself
-                    stays in the in-page chat widget, not a separate page. */}
-                <Route path="/services" element={<TenantRoute><SalonServices /></TenantRoute>} />
-                <Route path="/:salonSlug/services" element={<TenantRoute><SalonServices /></TenantRoute>} />
+                {/* Storefront pages — Gallery/Stylists/Policies are each their own
+                    route; Services lives inline on the home page instead; booking
+                    itself stays in the in-page chat widget, not a separate page. */}
                 <Route path="/gallery" element={<TenantRoute><SalonGallery /></TenantRoute>} />
                 <Route path="/:salonSlug/gallery" element={<TenantRoute><SalonGallery /></TenantRoute>} />
                 <Route path="/stylists" element={<TenantRoute><SalonStylists /></TenantRoute>} />

@@ -7,7 +7,7 @@ import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 import SalonCard from '../../components/salon/SalonCard'
-import { PRIMARY, BORDER, serif, sans } from './salon/theme'
+import { PRIMARY, BORDER, serif, sans, LAYOUT_CSS } from './salon/theme'
 
 const CATEGORIES = [
   { value: 'all',           label: 'All' },
@@ -58,14 +58,12 @@ export default function Directory() {
 
   return (
     <div style={{ backgroundColor: '#fff' }}>
+      <style>{LAYOUT_CSS}</style>
       <LandingNav />
 
       {/* Search hero */}
-      <section style={{ paddingTop: 64, paddingBottom: 48, borderBottom: `0.5px solid ${BORDER}` }} className="px-16 max-sm:px-5 max-sm:pt-10 max-sm:pb-8">
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: PRIMARY, margin: '0 0 16px' }}>
-            Beauty marketplace · Zambia
-          </p>
+      <section style={{ paddingTop: 64, paddingBottom: 48, borderBottom: `0.5px solid ${BORDER}` }} className="max-sm:pt-10 max-sm:pb-8">
+        <div className="salon-container">
           <h1 style={{ fontFamily: serif, fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.08, color: '#1a1a1a', margin: '0 0 16px' }} className="text-[52px] max-sm:text-[32px]">
             Find Your Perfect{' '}
             <em style={{ color: PRIMARY, fontStyle: 'normal' }}>Beauty Professional</em>
@@ -127,8 +125,8 @@ export default function Directory() {
       </section>
 
       {/* Filters bar */}
-      <section style={{ paddingTop: 16, paddingBottom: 16, borderBottom: `0.5px solid ${BORDER}` }} className="px-16 max-sm:px-5">
-        <div className="flex-wrap max-sm:flex-nowrap max-sm:overflow-x-auto" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <section style={{ paddingTop: 16, paddingBottom: 16, borderBottom: `0.5px solid ${BORDER}` }}>
+        <div className="salon-container flex-wrap max-sm:flex-nowrap max-sm:overflow-x-auto" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* City selector */}
           <select
             value={city}
@@ -169,8 +167,8 @@ export default function Directory() {
       </section>
 
       {/* Results */}
-      <section style={{ paddingTop: 40, paddingBottom: 80, backgroundColor: '#fff' }} className="px-16 max-sm:px-5">
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <section style={{ paddingTop: 40, paddingBottom: 80, backgroundColor: '#fff' }}>
+        <div className="salon-container">
           {!loading && salons.length > 0 && (
             <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#333', margin: '0 0 24px' }}>
               Showing {salons.length} {salons.length === 1 ? 'business' : 'businesses'}{city !== 'All Cities' ? ` in ${city}` : ' in Zambia'}

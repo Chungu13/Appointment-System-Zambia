@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { DARK, serif, sans } from "../../pages/public/salon/theme";
+import { DARK, serif, sans, LAYOUT_CSS } from "../../pages/public/salon/theme";
 
 const LINKS = [
   { label: "How it Works", to: "/how-it-works" },
@@ -15,19 +15,17 @@ export default function LandingFooter() {
         paddingTop: 24,
         paddingBottom: 24,
       }}
-      className="px-16 max-sm:px-5"
     >
+      <style>{LAYOUT_CSS}</style>
       <div
+        className="salon-container max-sm:flex-col max-sm:items-start max-sm:gap-4"
         style={{
-          maxWidth: 1200,
-          margin: "0 auto",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 24,
           flexWrap: "wrap",
         }}
-        className="max-sm:flex-col max-sm:items-start max-sm:gap-4"
       >
         {/* Logo */}
         <Link

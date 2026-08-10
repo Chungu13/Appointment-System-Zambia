@@ -85,7 +85,7 @@ export default function SalonPolicies() {
 
       <PageBanner profile={profile} title="Good to Know" subtitle="Everything about booking, deposits, and cancellations — in plain language." />
 
-      <div className="px-16 max-sm:px-5" style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 64px" }}>
+      <div className="salon-container salon-fab-clear" style={{ paddingTop: 48 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 720 }}>
           {cancelItems.length > 0 && (
             <PolicyAccordionItem title="Cancellations & No-Shows" defaultOpen>

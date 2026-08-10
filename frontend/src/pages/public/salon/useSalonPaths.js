@@ -7,9 +7,11 @@ import { getSubdomain } from "../../../router/TenantRoute";
 export function useSalonPaths() {
   const { salonSlug } = useParams();
   const prefix = getSubdomain() ? "" : salonSlug ? `/${salonSlug}` : "";
+  const home = prefix || "/";
   return {
-    home: prefix || "/",
-    services: `${prefix}/services`,
+    home,
+    // Services isn't its own route — it's a section on the home page.
+    services: `${home}#services`,
     gallery: `${prefix}/gallery`,
     stylists: `${prefix}/stylists`,
     policies: `${prefix}/policies`,

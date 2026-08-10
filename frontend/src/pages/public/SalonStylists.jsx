@@ -75,7 +75,7 @@ export default function SalonStylists() {
 
       <PageBanner profile={profile} title="Meet the Team" subtitle="The hands behind every appointment." />
 
-      <div className="px-16 max-sm:px-5" style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 64px" }}>
+      <div className="salon-container salon-fab-clear" style={{ paddingTop: 48 }}>
         {visible.length === 0 ? (
           <p style={{ fontFamily: sans, fontSize: 13, color: "#7a6a5a" }}>No team members listed yet.</p>
         ) : (

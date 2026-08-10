@@ -84,7 +84,7 @@ export default function SalonGallery() {
 
       <PageBanner profile={profile} title="Gallery" subtitle="A look at our recent work." />
 
-      <div className="px-16 max-sm:px-5" style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 64px" }}>
+      <div className="salon-container salon-fab-clear" style={{ paddingTop: 48 }}>
         {images.length === 0 ? (
           <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: "40px 24px", textAlign: "center" }}>
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: "#666", margin: 0 }}>No portfolio photos yet.</p>

@@ -7,8 +7,25 @@ export const DARK = "#241812"; // near-black espresso — banner overlay, footer
 export const BORDER = "#EDE3D6"; // warm sand border
 export const CREAM = "#FBF7F1"; // warm off-white section background
 export const GOLD = "#B4895A"; // warm accent for tags / small caps
-export const serif = "'Cormorant Garamond', Georgia, serif";
 export const sans = "Inter, sans-serif";
+// Kept as an alias (rather than removing every `serif` import) — every
+// storefront/marketing heading should render in the sans stack, no serif.
+export const serif = sans;
+
+// Single shared horizontal-container definition — every page's heading,
+// filter pills, card grid, and footer use this ONE class instead of a mix
+// of Tailwind's "px-16 max-sm:px-5" (whose "max-sm:" variant doesn't
+// compile in this project's build, see index.css) and ad-hoc inline
+// padding, which is what caused headings/pills to sit flush while cards
+// picked up stray extra padding elsewhere. Fix here once, not per-page.
+export const LAYOUT_CSS = `
+  .salon-container { max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding-left: 64px; padding-right: 64px; }
+  .salon-fab-clear { padding-bottom: 40px; }
+  @media (max-width: 640px) {
+    .salon-container { padding-left: 20px !important; padding-right: 20px !important; }
+    .salon-fab-clear { padding-bottom: 96px !important; }
+  }
+`;
 
 export const TYPE_LABELS = {
   salon: "Salon",

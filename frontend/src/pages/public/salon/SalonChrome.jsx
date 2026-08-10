@@ -13,6 +13,7 @@ import {
   bannerFor,
   formatTime,
   checkOpenNow,
+  LAYOUT_CSS,
 } from "./theme";
 
 // ── Pill navigation — overlaid on the banner photo, no hamburger. Each pill
@@ -111,16 +112,13 @@ export function PageBanner({ profile, tall, eyebrow, title, subtitle, children }
         }}
       />
       <div
-        className="px-16 max-sm:px-5"
+        className="salon-container"
         style={{
           position: "relative",
           zIndex: 10,
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          maxWidth: 1200,
-          margin: "0 auto",
-          width: "100%",
         }}
       >
         <SalonPillNav businessName={profile.businessName} />
@@ -325,7 +323,7 @@ export function SalonFooter({ profile }) {
 
   return (
     <footer style={{ backgroundColor: DARK, paddingTop: 48, paddingBottom: 24 }}>
-      <div className="salon-footer-grid px-16 max-sm:px-5" style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 32 }}>
+      <div className="salon-footer-grid salon-container" style={{ paddingBottom: 32 }}>
         <div>
           <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, letterSpacing: "0.06em", textTransform: "uppercase", color: "#fff", margin: 0 }}>
             {profile.businessName}
@@ -360,8 +358,8 @@ export function SalonFooter({ profile }) {
       </div>
       <div style={{ height: "0.5px", backgroundColor: "rgba(255,255,255,0.08)" }} />
       <p
-        className="px-16 max-sm:px-5"
-        style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: "rgba(255,255,255,0.45)", margin: 0, paddingTop: 20, maxWidth: 1200, marginLeft: "auto", marginRight: "auto", textAlign: "center" }}
+        className="salon-container"
+        style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: "rgba(255,255,255,0.45)", margin: 0, paddingTop: 20, textAlign: "center" }}
       >
         &copy; {new Date().getFullYear()} {profile.businessName} &middot; Powered by{" "}
         <a href={homeUrl} style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>
@@ -418,6 +416,7 @@ export function ChatFab({ chat, salonName }) {
 
 // ── Shared page chrome CSS ────────────────────────────────────────────────────
 export const CHROME_STYLE = `
+  ${LAYOUT_CSS}
   html { scroll-behavior: smooth; }
   .salon-hero { height: 460px; }
   .salon-page-banner { height: 260px; }
@@ -427,7 +426,7 @@ export const CHROME_STYLE = `
   .salon-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .salon-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding-top: 8px; }
   .visual-services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .service-card-image { height: 230px; }
+  .service-card-image { aspect-ratio: 4 / 5; }
   .visual-service-card img { transition: transform 0.25s ease; }
   .visual-service-card:hover img { transform: scale(1.05); }
   .nav-pill-row::-webkit-scrollbar, .pill-row::-webkit-scrollbar { display: none; }
@@ -440,6 +439,5 @@ export const CHROME_STYLE = `
     .salon-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
     .salon-footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
     .visual-services-grid { grid-template-columns: 1fr !important; }
-    .service-card-image { height: 210px !important; }
   }
 `;
