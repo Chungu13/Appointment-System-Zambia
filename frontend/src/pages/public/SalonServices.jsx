@@ -30,31 +30,34 @@ function ServicePrice({ min, max }) {
 
 function ServiceCard({ svc, imageUrl, onBook }) {
   return (
-    <div className="visual-service-card" style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, overflow: "hidden", display: "flex", flexDirection: "column", backgroundColor: "#fff" }}>
-      <div className="service-card-image" style={{ overflow: "hidden" }}>
+    <div className="visual-service-card" style={{ border: `0.5px solid ${BORDER}`, borderRadius: 16, backgroundColor: "#fff", padding: 12, display: "flex", flexDirection: "column" }}>
+      <div className="service-card-image" style={{ overflow: "hidden", borderRadius: 12, marginBottom: 14 }}>
         <img src={imageUrl} alt={svc.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
-      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
-        <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: DARK, margin: 0 }}>{svc.name}</p>
-        {svc.description && (
-          <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: "#888", margin: 0, lineHeight: 1.4, flex: 1 }}>{svc.description}</p>
-        )}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: 8 }}>
-          <div>
-            <ServicePrice min={svc.priceZmw} max={svc.priceMaxZmw} />
-            <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: "#999", margin: "2px 0 0" }}>{svc.durationMinutes} min</p>
-          </div>
-          <button
-            onClick={() => {
-              const label = svc.category ? `${svc.category}, ${svc.name}` : svc.name;
-              onBook(`I want to book ${label} [service_id:${svc.id}]`, false, svc);
-            }}
-            style={{ fontFamily: sans, fontSize: 11, fontWeight: 600, color: "#fff", background: PRIMARY, border: "none", cursor: "pointer", padding: "8px 16px", borderRadius: 10, letterSpacing: "0.04em", whiteSpace: "nowrap" }}
-          >
-            Book
-          </button>
-        </div>
+      <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 600, color: DARK, margin: "0 0 6px" }}>{svc.name}</p>
+      {svc.description && (
+        <p
+          style={{
+            fontFamily: sans, fontSize: 13, fontWeight: 300, color: "#888", margin: "0 0 14px", lineHeight: 1.5,
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}
+        >
+          {svc.description}
+        </p>
+      )}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", marginBottom: 12 }}>
+        <ServicePrice min={svc.priceZmw} max={svc.priceMaxZmw} />
+        <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: "#999" }}>{svc.durationMinutes} min</span>
       </div>
+      <button
+        onClick={() => {
+          const label = svc.category ? `${svc.category}, ${svc.name}` : svc.name;
+          onBook(`I want to book ${label} [service_id:${svc.id}]`, false, svc);
+        }}
+        style={{ width: "100%", fontFamily: sans, fontSize: 13, fontWeight: 600, color: "#fff", background: PRIMARY, border: "none", cursor: "pointer", padding: "14px 0", borderRadius: 10, letterSpacing: "0.02em" }}
+      >
+        Book Now
+      </button>
     </div>
   );
 }

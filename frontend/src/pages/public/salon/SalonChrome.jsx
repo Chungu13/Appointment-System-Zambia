@@ -20,6 +20,21 @@ import {
 // page); Discover sits apart from the row since it leaves this business
 // entirely. ──────────────────────────────────────────────────────────────────
 function pillStyle(solid) {
+  if (solid) {
+    return {
+      fontFamily: sans,
+      fontSize: 12,
+      fontWeight: 600,
+      color: DARK,
+      textDecoration: "none",
+      padding: "8px 16px",
+      borderRadius: 10,
+      whiteSpace: "nowrap",
+      backgroundColor: "#F5EFE6",
+      border: "none",
+      flexShrink: 0,
+    };
+  }
   return {
     fontFamily: sans,
     fontSize: 12,
@@ -29,12 +44,15 @@ function pillStyle(solid) {
     padding: "8px 16px",
     borderRadius: 10,
     whiteSpace: "nowrap",
-    backgroundColor: solid ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.14)",
     backdropFilter: "blur(6px)",
     border: "0.5px solid rgba(255,255,255,0.22)",
+    flexShrink: 0,
   };
 }
 
+// Single horizontally-scrollable row: business name pill (solid, acts as
+// Home), then each page pill, then Discover — all one line, no wrapping.
 function SalonPillNav({ businessName }) {
   const paths = useSalonPaths();
   const appDomain = import.meta.env.VITE_TENANT_APP_DOMAIN;
@@ -48,22 +66,18 @@ function SalonPillNav({ businessName }) {
   ];
 
   return (
-    <div style={{ position: "relative", zIndex: 20, paddingTop: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-        <Link to={paths.home} style={{ ...pillStyle(true), fontWeight: 600, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis" }}>
-          {businessName}
+    <div className="nav-pill-row" style={{ position: "relative", zIndex: 20, paddingTop: 18, display: "flex", alignItems: "center", gap: 8, overflowX: "auto" }}>
+      <Link to={paths.home} style={{ ...pillStyle(true), maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis" }}>
+        {businessName}
+      </Link>
+      {links.map((l) => (
+        <Link key={l.to} to={l.to} style={pillStyle(false)}>
+          {l.label}
         </Link>
-        <a href={discoverUrl} style={pillStyle(false)}>
-          Discover
-        </a>
-      </div>
-      <div className="nav-pill-row" style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-        {links.map((l) => (
-          <Link key={l.to} to={l.to} style={pillStyle(false)}>
-            {l.label}
-          </Link>
-        ))}
-      </div>
+      ))}
+      <a href={discoverUrl} style={pillStyle(false)}>
+        Discover
+      </a>
     </div>
   );
 }
@@ -413,7 +427,7 @@ export const CHROME_STYLE = `
   .salon-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .salon-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding-top: 8px; }
   .visual-services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .service-card-image { height: 220px; }
+  .service-card-image { height: 230px; }
   .visual-service-card img { transition: transform 0.25s ease; }
   .visual-service-card:hover img { transform: scale(1.05); }
   .nav-pill-row::-webkit-scrollbar, .pill-row::-webkit-scrollbar { display: none; }
@@ -426,6 +440,6 @@ export const CHROME_STYLE = `
     .salon-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
     .salon-footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
     .visual-services-grid { grid-template-columns: 1fr !important; }
-    .service-card-image { height: 170px !important; }
+    .service-card-image { height: 210px !important; }
   }
 `;

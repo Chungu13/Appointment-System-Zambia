@@ -15,7 +15,8 @@ import Sidebar from './components/layout/Sidebar'
 import BottomNav from './components/layout/BottomNav'
 
 // Public pages — lazy loaded
-const SalonDirectory      = lazy(() => import('./pages/public/SalonDirectory'))
+// SalonDirectory (marketing pitch page, formerly the "/" root) is kept in the
+// codebase but intentionally unrouted — see the "/" route below.
 const SalonLanding        = lazy(() => import('./pages/public/SalonLanding'))
 const SalonBooking        = lazy(() => import('./pages/public/SalonBooking'))
 const SalonServices       = lazy(() => import('./pages/public/SalonServices'))
@@ -86,13 +87,16 @@ export default function App() {
             <BrowserRouter>
               <Suspense fallback={null}>
               <Routes>
-                {/* Root — landing on subdomain, directory on plain localhost */}
+                {/* Root — tenant landing on subdomain, the marketplace search
+                    (same page as /discover) on the apex domain. SalonDirectory
+                    (the old marketing pitch page) stays in the codebase, just
+                    unrouted — swap it back in here if we want it again. */}
                 <Route
                   path="/"
                   element={
                     getSubdomain()
                       ? <TenantRoute><SalonLanding /></TenantRoute>
-                      : <SalonDirectory />
+                      : <Directory />
                   }
                 />
 
