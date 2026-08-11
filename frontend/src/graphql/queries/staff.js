@@ -27,6 +27,16 @@ export const PUBLIC_STAFF = gql`
   }
 `
 
+export const STAFF_DAY_SLOTS = gql`
+  query StaffDaySlots($staffId: Int!, $date: Date!) {
+    staffDaySlots(staffId: $staffId, date: $date) {
+      startsAt
+      endsAt
+      isBooked
+    }
+  }
+`
+
 export const STAFF_LIST = gql`
   query StaffList {
     staffList {

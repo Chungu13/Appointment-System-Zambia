@@ -44,6 +44,13 @@ class WorkingHoursType:
 
 
 @strawberry.type
+class StaffTimeSlotType:
+    starts_at: datetime.datetime
+    ends_at: datetime.datetime
+    is_booked: bool
+
+
+@strawberry.type
 class StaffDetailType:
     id: int
     username: str
