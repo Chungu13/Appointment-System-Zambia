@@ -9,10 +9,10 @@ import { useAuth } from '../../context/AuthContext'
 import { useLogout } from '../../hooks/useAuth'
 import { startTour, resetTour } from '../../lib/tour'
 
-const BURG   = '#6B2737'
-const MUTED  = '#6b4a52'
-const BORDER = '#ede5e7'
-const TEXT   = '#1a0a0d'
+const BURG   = '#3B2A1E'
+const MUTED  = '#5C4C3D'
+const BORDER = '#EDE3D6'
+const TEXT   = '#241812'
 
 const sans = "'Inter', sans-serif"
 

@@ -3,10 +3,10 @@ import { Helmet } from 'react-helmet-async'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
-const BURG   = '#6B2737'
-const TEXT   = '#1a0a0d'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
 const MUTED  = '#6b6b6b'
-const BORDER = '#ede5e7'
+const BORDER = '#EDE3D6'
 const sans   = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const sections = [

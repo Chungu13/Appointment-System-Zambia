@@ -4,11 +4,11 @@ import { useQuery } from '@apollo/client/react'
 import { AGENT_ACTIVITY } from '../../graphql/queries/bookings'
 import { toDateInputValue } from '../../lib/utils'
 
-const BURG   = '#6B2737'
-const TEXT   = '#1a0a0d'
-const MUTED  = '#4a1527'
-const HINT   = '#8a6268'
-const BORDER = '#ede5e7'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
+const MUTED  = '#5C4C3D'
+const HINT   = '#8A7A6A'
+const BORDER = '#EDE3D6'
 const sans   = "'Inter', sans-serif"
 
 // Reminder delivery isn't wired up end-to-end yet — hide these from the feed

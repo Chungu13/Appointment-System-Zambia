@@ -5,13 +5,13 @@ import { ALL_APPOINTMENTS_TODAY } from '../../graphql/queries/tenant'
 import { VERIFY_STAFF_KEY } from '../../graphql/mutations/tenant'
 import { toDateInputValue, addDays, formatTime } from '../../lib/utils'
 
-const BURG      = '#6B2737'
-const DARK_BURG = '#1A0A0D'
-const TEXT      = '#1a0a0d'
-const MUTED     = '#b09090'
-const HINT      = '#c0a8a8'
-const BORDER    = '#ede5e7'
-const OFF_WHITE = '#faf7f7'
+const BURG      = '#3B2A1E'
+const DARK_BURG = '#241812'
+const TEXT      = '#241812'
+const MUTED     = '#8A7A6A'
+const HINT      = '#8A7A6A'
+const BORDER    = '#EDE3D6'
+const OFF_WHITE = '#FBF7F1'
 
 const sans  = "'Inter', sans-serif"
 

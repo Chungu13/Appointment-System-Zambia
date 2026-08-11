@@ -22,10 +22,10 @@ export default function AppointmentDetail() {
 
   if (loading) return <PageSpinner />
   if (error) return <ErrorMessage message={error.message} />
-  if (!appt) return <p style={{ textAlign: 'center', padding: '64px 0', color: '#6B4A50', fontSize: 14 }}>Appointment not found.</p>
+  if (!appt) return <p style={{ textAlign: 'center', padding: '64px 0', color: '#5C4C3D', fontSize: 14 }}>Appointment not found.</p>
 
-  const lbl = { fontSize: 11, color: '#6B4A50', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }
-  const val = { fontSize: 13, fontWeight: 500, color: '#1A0A0D', margin: 0 }
+  const lbl = { fontSize: 11, color: '#5C4C3D', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }
+  const val = { fontSize: 13, fontWeight: 500, color: '#241812', margin: 0 }
 
   return (
     <PageWrapper maxWidth="2xl">
@@ -40,8 +40,8 @@ export default function AppointmentDetail() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
             <Avatar name={appt.customer.fullName} size="lg" />
             <div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: '#1A0A0D', margin: '0 0 2px' }}>{appt.customer.fullName}</p>
-              <p style={{ fontSize: 13, color: '#6B4A50', margin: '0 0 6px' }}>{appt.customer.phone}</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#241812', margin: '0 0 2px' }}>{appt.customer.fullName}</p>
+              <p style={{ fontSize: 13, color: '#5C4C3D', margin: '0 0 6px' }}>{appt.customer.phone}</p>
               <div style={{ display: 'flex', gap: 6 }}>
                 {appt.customer.noShowCount > 0 && (
                   <Badge color="yellow">{appt.customer.noShowCount} no-shows</Badge>

@@ -2,22 +2,22 @@
 :root {
   --driver-overlay-color: rgba(26, 10, 13, 0.78);
   --driver-popover-bg-color: #ffffff;
-  --driver-popover-title-color: #6B2737;
-  --driver-popover-description-color: #7a5a5e;
+  --driver-popover-title-color: #3B2A1E;
+  --driver-popover-description-color: #5C4C3D;
   --driver-popover-arrow-color: #ffffff;
   --driver-popover-border-radius: 0px;
 }
 
 .driver-popover {
   box-shadow: none !important;
-  border: 0.5px solid #ede5e7 !important;
+  border: 0.5px solid #EDE3D6 !important;
   padding: 24px !important;
   max-width: 300px !important;
   border-radius: 0 !important;
 }
 
 .driver-popover-title {
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 22px !important;
   font-weight: 300 !important;
   line-height: 1.3 !important;
@@ -30,7 +30,7 @@
   font-size: 13px !important;
   font-weight: 300 !important;
   line-height: 1.6 !important;
-  color: #7a5a5e !important;
+  color: #5C4C3D !important;
 }
 
 .driver-popover-progress-text {
@@ -38,12 +38,12 @@
   font-size: 10px !important;
   font-weight: 300 !important;
   letter-spacing: 0.08em !important;
-  color: #c0a8a8 !important;
+  color: #8A7A6A !important;
   text-transform: uppercase !important;
 }
 
 .driver-popover-next-btn {
-  background-color: #6B2737 !important;
+  background-color: #3B2A1E !important;
   color: #ffffff !important;
   border: none !important;
   border-radius: 0 !important;
@@ -57,7 +57,7 @@
 }
 
 .driver-popover-next-btn:hover {
-  background-color: #5a1f2d !important;
+  background-color: #241812 !important;
 }
 
 .driver-popover-prev-btn {
@@ -67,25 +67,25 @@
   font-weight: 300 !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
-  color: #6B2737 !important;
-  border: 0.5px solid #ede5e7 !important;
+  color: #3B2A1E !important;
+  border: 0.5px solid #EDE3D6 !important;
   background-color: transparent !important;
   padding: 8px 18px !important;
 }
 
 .driver-popover-prev-btn:hover {
-  background-color: #fdf8f8 !important;
-  border-color: #6B2737 !important;
+  background-color: #FBF7F1 !important;
+  border-color: #3B2A1E !important;
 }
 
 .driver-popover-close-btn {
-  color: #c0a8a8 !important;
+  color: #8A7A6A !important;
   font-size: 1.1rem !important;
   border-radius: 0 !important;
 }
 
 .driver-popover-close-btn:hover {
-  color: #6B2737 !important;
+  color: #3B2A1E !important;
 }
 
 .driver-popover-footer {

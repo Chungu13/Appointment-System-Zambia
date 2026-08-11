@@ -11,12 +11,12 @@ import { MY_PROFILE } from '../../graphql/queries/staff'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { startTour, resetTour } from '../../lib/tour'
 
-const BURG    = '#6B2737'
-const TEXT    = '#1a0a0d'
-const MUTED   = '#7a5060'
-const BORDER  = '#ede5e7'
-const BLUSH   = '#fdf8f8'
-const NAV_MUTED = '#5c4848'
+const BURG    = '#3B2A1E'
+const TEXT    = '#241812'
+const MUTED   = '#5C4C3D'
+const BORDER  = '#EDE3D6'
+const BLUSH   = '#FBF7F1'
+const NAV_MUTED = '#5C4C3D'
 
 const sans = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"

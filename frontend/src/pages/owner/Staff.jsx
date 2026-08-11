@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { ChevronLeft, ChevronRight, Check, Camera, Eye, EyeOff } from 'lucide-react'
-import { STAFF_LIST, MY_PROFILE } from '../../graphql/queries/staff'
+import { STAFF_LIST, MY_PROFILE, STAFF_DAY_SLOTS } from '../../graphql/queries/staff'
 import { SERVICES } from '../../graphql/queries/services'
 import {
   CREATE_STAFF,
@@ -17,12 +17,12 @@ import Input from '../../components/ui/Input'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { formatZMW } from '../../lib/utils'
 
-const BURG     = '#6B2737'
-const TEXT     = '#1a0a0d'
-const MUTED    = '#7a5060'
-const HINT     = '#8a6268'
-const BORDER   = '#ede5e7'
-const BLUSH    = '#fdf8f8'
+const BURG     = '#3B2A1E'
+const TEXT     = '#241812'
+const MUTED    = '#5C4C3D'
+const HINT     = '#8A7A6A'
+const BORDER   = '#EDE3D6'
+const BLUSH    = '#FBF7F1'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"
@@ -469,6 +469,90 @@ function ServicesTab({ member, allServices }) {
   )
 }
 
+// ── Detail — Available Times tab ──────────────────────────────────────────────
+function dateStr(offsetDays = 0) {
+  const d = new Date()
+  d.setDate(d.getDate() + offsetDays)
+  return d.toISOString().slice(0, 10)
+}
+
+function formatSlotTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+function AvailableTimesTab({ member }) {
+  const today = dateStr(0)
+  const tomorrow = dateStr(1)
+  const [date, setDate] = useState(today)
+
+  const { data, loading, error } = useQuery(STAFF_DAY_SLOTS, {
+    variables: { staffId: member.id, date },
+    fetchPolicy: 'network-only',
+  })
+
+  const slots = data?.staffDaySlots ?? []
+  const firstName = member.fullName?.split(' ')[0] ?? 'This staff member'
+
+  function quickPillStyle(active) {
+    return {
+      fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '8px 16px',
+      borderRadius: 10, cursor: 'pointer',
+      border: active ? 'none' : `0.5px solid ${BORDER}`,
+      backgroundColor: active ? BURG : '#fff',
+      color: active ? '#fff' : MUTED,
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button onClick={() => setDate(today)} style={quickPillStyle(date === today)}>Today</button>
+        <button onClick={() => setDate(tomorrow)} style={quickPillStyle(date === tomorrow)}>Tomorrow</button>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+        />
+      </div>
+
+      {loading && <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>Loading…</p>}
+      {error && <ErrorMessage message={error.message} />}
+
+      {!loading && !error && slots.length === 0 && (
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
+          {firstName} isn't scheduled to work this day, so there are no slots to show.
+        </p>
+      )}
+
+      {slots.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))', gap: 8 }}>
+          {slots.map((s) => (
+            <div
+              key={s.startsAt}
+              title={s.isBooked ? 'Booked' : 'Available'}
+              style={{
+                textAlign: 'center', padding: '9px 6px', borderRadius: 8,
+                fontFamily: sans, fontSize: 12, fontWeight: 500,
+                border: `0.5px solid ${s.isBooked ? BORDER : '#d4a8b0'}`,
+                backgroundColor: s.isBooked ? '#f2eeee' : BLUSH,
+                color: s.isBooked ? HINT : BURG,
+                textDecoration: s.isBooked ? 'line-through' : 'none',
+              }}
+            >
+              {formatSlotTime(s.startsAt)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0 }}>
+        Updates automatically as bookings come in — based on {firstName}'s hours and the salon's slot interval.
+      </p>
+    </div>
+  )
+}
+
 // ── Detail view ────────────────────────────────────────────────────────────────
 function StaffDetail({ member, allMembers, allServices, onBack }) {
   const [tab, setTab] = useState('profile')
@@ -478,6 +562,7 @@ function StaffDetail({ member, allMembers, allServices, onBack }) {
     { key: 'profile', label: 'Profile' },
     { key: 'hours', label: 'Hours' },
     { key: 'services', label: 'Services' },
+    { key: 'times', label: 'Available Times' },
   ]
 
   return (
@@ -531,6 +616,7 @@ function StaffDetail({ member, allMembers, allServices, onBack }) {
         {tab === 'profile' && <ProfileTab member={member} />}
         {tab === 'hours' && <HoursTab member={member} allMembers={allMembers} />}
         {tab === 'services' && <ServicesTab member={member} allServices={allServices} />}
+        {tab === 'times' && <AvailableTimesTab member={member} />}
       </div>
     </div>
   )

@@ -4,8 +4,8 @@ const colors = {
   red:     { backgroundColor: '#FEE2E2', color: '#991B1B' },
   blue:    { backgroundColor: '#DBEAFE', color: '#1E40AF' },
   gray:    { backgroundColor: '#F3F4F6', color: '#6B7280' },
-  purple:  { backgroundColor: '#FDF0F2', color: '#6B2737' },
-  primary: { backgroundColor: '#FDF0F2', color: '#6B2737' },
+  purple:  { backgroundColor: '#F0E5D5', color: '#3B2A1E' },
+  primary: { backgroundColor: '#F0E5D5', color: '#3B2A1E' },
 }
 
 const statusMap = {

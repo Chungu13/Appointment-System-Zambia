@@ -3,13 +3,13 @@ import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import LandingNav from '../../components/landing/LandingNav'
 import LandingFooter from '../../components/landing/LandingFooter'
 
-const PRIMARY   = '#6B2737'
-const DARK_CARD = '#4A1A25'
-const TEXT      = '#1A0A0D'
-const MUTED     = '#6B4A50'
-const CREAM     = '#FDF5F6'
-const CHIP      = '#E8C4CC'
-const BORDER    = '#D4B0B8'
+const PRIMARY   = '#3B2A1E'
+const DARK_CARD = '#241812'
+const TEXT      = '#241812'
+const MUTED     = '#5C4C3D'
+const CREAM     = '#FBF7F1'
+const CHIP      = '#E5D5C0'
+const BORDER    = '#EDE3D6'
 
 const INCLUDED = [
   'Your own booking page',

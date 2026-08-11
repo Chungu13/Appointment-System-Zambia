@@ -5,10 +5,10 @@ import { Check, CheckCheck, ChevronRight, Copy } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
 import { STAFF_LIST } from '../../graphql/queries/staff'
 
-const PRIMARY = '#6B2737'
+const PRIMARY = '#3B2A1E'
 const MUTED   = '#8B4A5A'
-const BORDER  = '#D4B0B8'
-const CREAM   = '#FDF5F6'
+const BORDER  = '#EDE3D6'
+const CREAM   = '#FBF7F1'
 
 function getBookingUrl() {
   const { hostname, port } = window.location

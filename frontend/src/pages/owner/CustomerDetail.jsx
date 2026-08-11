@@ -4,12 +4,12 @@ import { ArrowLeft, Phone, Calendar, TrendingUp, AlertCircle } from 'lucide-reac
 import { CUSTOMER_DETAIL, CUSTOMER_APPOINTMENTS_BY_ID } from '../../graphql/queries/bookings'
 import PageWrapper from '../../components/layout/PageWrapper'
 
-const BURG   = '#6B2737'
-const TEXT   = '#1a0a0d'
-const MUTED  = '#7a5060'
-const HINT   = '#8a6268'
-const BORDER = '#ede5e7'
-const BLUSH  = '#fdf8f8'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
+const MUTED  = '#5C4C3D'
+const HINT   = '#8A7A6A'
+const BORDER = '#EDE3D6'
+const BLUSH  = '#FBF7F1'
 const sans   = "'Inter', sans-serif"
 
 const STATUS_LABEL = {

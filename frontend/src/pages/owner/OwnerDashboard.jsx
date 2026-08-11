@@ -11,12 +11,12 @@ import { formatZMW, toDateInputValue, formatTime } from '../../lib/utils'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
 import { startTour, isTourDone } from '../../lib/tour'
 
-const BURG      = '#6B2737'
-const TEXT      = '#1a0a0d'
-const MUTED     = '#4a1527'
-const HINT      = '#5c2232'
-const BORDER    = '#ede5e7'
-const OFF_WHITE = '#faf7f7'
+const BURG      = '#3B2A1E'
+const TEXT      = '#241812'
+const MUTED     = '#5C4C3D'
+const HINT      = '#241812'
+const BORDER    = '#EDE3D6'
+const OFF_WHITE = '#FBF7F1'
 
 const serif = "'Inter', sans-serif"
 const sans  = "'Inter', sans-serif"

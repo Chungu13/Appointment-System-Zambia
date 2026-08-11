@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 
-const BURG   = '#6B2737'
-const TEXT   = '#1a0a0d'
-const MUTED  = '#b09090'
-const BORDER = '#ede5e7'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
+const MUTED  = '#8A7A6A'
+const BORDER = '#EDE3D6'
 
-const serif = '"Cormorant Garamond", Georgia, serif'
+const serif = "'Inter', sans-serif"
 const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const API_BASE = (
@@ -41,14 +41,14 @@ export default function VerifyEmail() {
 
   if (status === 'verifying') {
     return (
-      <div style={{ minHeight: '100vh', background: '#faf7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: sans }}>
+      <div style={{ minHeight: '100vh', background: '#FBF7F1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: sans }}>
         <p style={{ fontSize: 13, color: MUTED }}>Verifying your email…</p>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#faf7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: sans }}>
+    <div style={{ minHeight: '100vh', background: '#FBF7F1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: sans }}>
       <div style={{ background: '#fff', border: `0.5px solid ${BORDER}`, padding: '48px 40px', width: '100%', maxWidth: 420, textAlign: 'center' }}>
         <h1 style={{ fontFamily: serif, fontSize: 26, fontWeight: 300, color: TEXT, margin: '0 0 16px' }}>
           {status === 'expired' ? 'Link expired' : 'Invalid link'}

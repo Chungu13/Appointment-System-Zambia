@@ -53,8 +53,8 @@ export default function WalkInForm({ onSuccess }) {
 
   const selectStyle = {
     width: '100%', boxSizing: 'border-box', padding: '10px 12px',
-    border: '1px solid #D4B0B8', borderRadius: 10, fontSize: 13,
-    color: '#1A0A0D', backgroundColor: '#fff', outline: 'none',
+    border: '1px solid #EDE3D6', borderRadius: 10, fontSize: 13,
+    color: '#241812', backgroundColor: '#fff', outline: 'none',
   }
 
   return (
@@ -63,10 +63,10 @@ export default function WalkInForm({ onSuccess }) {
       <Input label="Customer name" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} required />
       <Input label="Phone number" value={form.customerPhone} onChange={(e) => set('customerPhone', e.target.value)} placeholder="+260..." required />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <label style={{ fontSize: 12, fontWeight: 500, color: '#6B4A50' }}>Service</label>
+        <label style={{ fontSize: 12, fontWeight: 500, color: '#5C4C3D' }}>Service</label>
         <select value={form.serviceId} onChange={(e) => set('serviceId', e.target.value)} required style={selectStyle}
-          onFocus={(e) => (e.target.style.borderColor = '#6B2737')}
-          onBlur={(e) => (e.target.style.borderColor = '#D4B0B8')}
+          onFocus={(e) => (e.target.style.borderColor = '#3B2A1E')}
+          onBlur={(e) => (e.target.style.borderColor = '#EDE3D6')}
         >
           <option value="">Select a service…</option>
           {servicesData?.services?.map((s) => (
@@ -75,10 +75,10 @@ export default function WalkInForm({ onSuccess }) {
         </select>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <label style={{ fontSize: 12, fontWeight: 500, color: '#6B4A50' }}>Staff</label>
+        <label style={{ fontSize: 12, fontWeight: 500, color: '#5C4C3D' }}>Staff</label>
         <select value={form.staffId} onChange={(e) => set('staffId', e.target.value)} required style={selectStyle}
-          onFocus={(e) => (e.target.style.borderColor = '#6B2737')}
-          onBlur={(e) => (e.target.style.borderColor = '#D4B0B8')}
+          onFocus={(e) => (e.target.style.borderColor = '#3B2A1E')}
+          onBlur={(e) => (e.target.style.borderColor = '#EDE3D6')}
         >
           <option value="">Select staff…</option>
           {staffData?.staffList?.map((s) => (

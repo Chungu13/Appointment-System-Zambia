@@ -328,13 +328,13 @@ function BookingFlow() {
           {!chatOpen && (
             <span
               className="absolute inset-0 rounded-full animate-ping opacity-60"
-              style={{ background: '#6B2737' }}
+              style={{ background: '#3B2A1E' }}
             />
           )}
           <button
             onClick={() => { playPopSound(); setChatOpen((v) => !v) }}
             className="relative w-16 h-16 rounded-full text-white shadow-xl flex items-center justify-center transition-transform hover:scale-105"
-            style={{ background: '#4A1A25' }}
+            style={{ background: '#241812' }}
             title="Chat with booking assistant"
           >
             {chatOpen ? <X size={22} /> : <MessageCircle size={22} />}

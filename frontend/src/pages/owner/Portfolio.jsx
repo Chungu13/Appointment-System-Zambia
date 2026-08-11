@@ -8,12 +8,12 @@ import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Button from '../../components/ui/Button'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 
-const BURG    = '#6B2737'
-const TEXT    = '#1a0a0d'
-const MUTED   = '#b09090'
-const HINT    = '#c0a8a8'
-const BORDER  = '#ede5e7'
-const BLUSH   = '#fdf8f8'
+const BURG    = '#3B2A1E'
+const TEXT    = '#241812'
+const MUTED   = '#8A7A6A'
+const HINT    = '#8A7A6A'
+const BORDER  = '#EDE3D6'
+const BLUSH   = '#FBF7F1'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"
@@ -174,7 +174,7 @@ function PhotoCard({ image, isFirst, isLast, onDelete, onMoveUp, onMoveDown }) {
       {/* Overlay */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(107,39,55,0.75)',
+        background: 'rgba(59,42,30,0.75)',
         opacity: hovered ? 1 : 0,
         transition: 'opacity 0.2s',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',

@@ -83,7 +83,7 @@ function handleSchemaMismatch(graphQLErrors) {
   sessionStorage.setItem(RELOAD_GUARD_KEY, '1')
   const overlay = document.createElement('div')
   overlay.textContent = 'Updating…'
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#fff;font-family:sans-serif;font-size:14px;color:#1a0a0d;'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#fff;font-family:sans-serif;font-size:14px;color:#241812;'
   document.body.appendChild(overlay)
   window.location.reload()
   return true

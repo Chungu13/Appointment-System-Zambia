@@ -10,8 +10,8 @@ import { clearToken } from '../../lib/auth'
 import { getCanonicalAppUrl, getSubdomain } from '../../router/TenantRoute'
 
 const sans   = 'Inter, ui-sans-serif, system-ui, sans-serif'
-const BURG   = '#6B2737'
-const BORDER = '#ede5e7'
+const BURG   = '#3B2A1E'
+const BORDER = '#EDE3D6'
 
 const inputStyle = {
   width: '100%',
@@ -184,7 +184,7 @@ export default function Login() {
       {/* Left dark panel */}
       <div
         className="hidden lg:flex"
-        style={{ width: 280, minWidth: 280, backgroundColor: '#1A0A0D', padding: '48px 40px', flexDirection: 'column', justifyContent: 'flex-start' }}
+        style={{ width: 280, minWidth: 280, backgroundColor: '#241812', padding: '48px 40px', flexDirection: 'column', justifyContent: 'flex-start' }}
       />
 
       {/* Right form panel */}
@@ -244,13 +244,13 @@ export default function Login() {
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
             <div style={{ flex: 1, height: '0.5px', background: BORDER }} />
-            <span style={{ fontFamily: sans, fontSize: 11, color: '#b09090', fontWeight: 300 }}>or</span>
+            <span style={{ fontFamily: sans, fontSize: 11, color: '#8A7A6A', fontWeight: 300 }}>or</span>
             <div style={{ flex: 1, height: '0.5px', background: BORDER }} />
           </div>
 
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={{ display: 'block', fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#b09090', marginBottom: 6, letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#8A7A6A', marginBottom: 6, letterSpacing: '0.04em' }}>
                 Email
               </label>
               <input
@@ -267,7 +267,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#b09090', marginBottom: 6, letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontFamily: sans, fontSize: 11, fontWeight: 400, color: '#8A7A6A', marginBottom: 6, letterSpacing: '0.04em' }}>
                 Password
               </label>
               <input

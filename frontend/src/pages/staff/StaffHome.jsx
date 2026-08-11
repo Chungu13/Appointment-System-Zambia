@@ -18,7 +18,7 @@ function AppointmentBlock({ appt, onDone, loading }) {
   const done = ['completed', 'cancelled', 'no_show'].includes(appt.status)
 
   return (
-    <div className={`rounded-2xl p-5 ${done ? 'opacity-60' : ''}`} style={{ backgroundColor: '#fff', border: done ? '1px solid #E8D8DC' : '1.5px solid #6B2737' }}>
+    <div className={`rounded-2xl p-5 ${done ? 'opacity-60' : ''}`} style={{ backgroundColor: '#fff', border: done ? '1px solid #EDE3D6' : '1.5px solid #3B2A1E' }}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <p className="text-2xl font-bold text-primary font-display">{formatTime(appt.startsAt)}</p>
@@ -39,7 +39,7 @@ function AppointmentBlock({ appt, onDone, loading }) {
           disabled={loading}
           onClick={() => onDone(appt.id, 'COMPLETED')}
           disabled={loading}
-          style={{ width: '100%', padding: '12px 0', borderRadius: 10, fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, backgroundColor: '#1A0A0D', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, transition: 'opacity 0.15s' }}
+          style={{ width: '100%', padding: '12px 0', borderRadius: 10, fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, backgroundColor: '#241812', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, transition: 'opacity 0.15s' }}
         >
           {loading ? '…' : 'Mark as done ✓'}
         </button>
@@ -102,7 +102,7 @@ export default function StaffHome() {
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: '#FAF8F6' }}>
       {/* Header */}
-      <header className="px-5 pt-10 pb-8 flex items-start justify-between" style={{ backgroundColor: '#1A0A0D', color: '#fff' }}>
+      <header className="px-5 pt-10 pb-8 flex items-start justify-between" style={{ backgroundColor: '#241812', color: '#fff' }}>
         <div>
           <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Today</p>
           <h1 className="font-display text-2xl font-bold">

@@ -2,13 +2,13 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-const BURG   = '#6B2737'
-const TEXT   = '#1a0a0d'
-const MUTED  = '#b09090'
-const HINT   = '#c0a8a8'
-const BORDER = '#ede5e7'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
+const MUTED  = '#8A7A6A'
+const HINT   = '#8A7A6A'
+const BORDER = '#EDE3D6'
 
-const serif = '"Cormorant Garamond", Georgia, serif'
+const serif = "'Inter', sans-serif"
 const sans  = 'Inter, ui-sans-serif, system-ui, sans-serif'
 
 const STEPS = [
@@ -30,7 +30,7 @@ export default function PendingApproval() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#faf7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: sans }}>
+    <div style={{ minHeight: '100vh', background: '#FBF7F1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: sans }}>
       <div
         style={{
           background: '#fff',

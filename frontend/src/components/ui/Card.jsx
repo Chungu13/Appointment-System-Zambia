@@ -4,9 +4,9 @@ export default function Card({ className = '', children, padding = true, style =
       className={className}
       style={{
         backgroundColor: '#fff',
-        border: '1px solid #E8D8DC',
+        border: '1px solid #EDE3D6',
         borderRadius: 14,
-        boxShadow: '0 1px 4px rgba(107,39,55,0.04)',
+        boxShadow: '0 1px 4px rgba(59,42,30,0.04)',
         ...(padding ? { padding: 20 } : {}),
         ...style,
       }}
@@ -27,7 +27,7 @@ export function CardHeader({ className = '', children }) {
 
 export function CardTitle({ className = '', children }) {
   return (
-    <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 400, color: '#1A0A0D', margin: 0 }} className={className}>
+    <h2 style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 500, color: '#241812', margin: 0 }} className={className}>
       {children}
     </h2>
   )

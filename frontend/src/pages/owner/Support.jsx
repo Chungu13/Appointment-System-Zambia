@@ -2,11 +2,11 @@ import { Mail, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 
-const BURG   = '#6B2737'
-const TEXT   = '#1a0a0d'
-const MUTED  = '#b09090'
-const BORDER = '#ede5e7'
-const BLUSH  = '#fdf8f8'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
+const MUTED  = '#8A7A6A'
+const BORDER = '#EDE3D6'
+const BLUSH  = '#FBF7F1'
 const sans   = "'Inter', sans-serif"
 
 const FAQS = [

@@ -7,9 +7,9 @@ import { playPopSound, playDingSound } from "../../lib/sounds";
 import { trackEvent } from "../../lib/analytics";
 import { CHECK_PAYMENT_STATUS } from "../../graphql/queries/bookings";
 
-const DARK    = "#1A0A0D";
-const PRIMARY = "#6B2737";
-const serif   = "'Cormorant Garamond', Georgia, serif";
+const DARK    = "#241812";
+const PRIMARY = "#3B2A1E";
+const serif   = "'Inter', sans-serif";
 const sans    = "Inter, sans-serif";
 
 // ── Parsing helpers ───────────────────────────────────────────────────────────
@@ -402,16 +402,16 @@ function ReceiptCard({ booking, salonName }) {
   })();
 
   const Row = ({ label, value, bold, mono }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: "0.5px solid #e8d8dc" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: "0.5px solid #EDE3D6" }}>
       <span style={{ fontSize: 11, color: "#9B7A80", textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: bold ? 600 : 400, color: "#1A0A0D", textAlign: "right", fontFamily: mono ? "monospace" : sans }}>{value}</span>
+      <span style={{ fontSize: 13, fontWeight: bold ? 600 : 400, color: "#241812", textAlign: "right", fontFamily: mono ? "monospace" : sans }}>{value}</span>
     </div>
   );
 
   return (
     <div style={{ backgroundColor: "#fff", borderRadius: 12, overflow: "hidden", marginTop: 4, boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
       {/* Header */}
-      <div style={{ backgroundColor: "#1A0A0D", padding: "20px 20px 16px", textAlign: "center" }}>
+      <div style={{ backgroundColor: "#241812", padding: "20px 20px 16px", textAlign: "center" }}>
         <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
           <span style={{ color: "#fff", fontSize: 20, lineHeight: 1 }}>✓</span>
         </div>
@@ -428,9 +428,9 @@ function ReceiptCard({ booking, salonName }) {
       </div>
 
       {/* Payment strip */}
-      <div style={{ backgroundColor: "#FDF5F6", borderTop: "0.5px solid #E8D8DC", borderBottom: "0.5px solid #E8D8DC", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", margin: "8px 0 0" }}>
+      <div style={{ backgroundColor: "#FBF7F1", borderTop: "0.5px solid #EDE3D6", borderBottom: "0.5px solid #EDE3D6", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", margin: "8px 0 0" }}>
         <span style={{ fontSize: 12, color: "#9B7A80" }}>Deposit paid</span>
-        <span style={{ fontFamily: sans, fontSize: 18, fontWeight: 600, color: "#1A0A0D" }}>ZMW {booking.amount}</span>
+        <span style={{ fontFamily: sans, fontSize: 18, fontWeight: 600, color: "#241812" }}>ZMW {booking.amount}</span>
       </div>
 
       {/* Ref */}

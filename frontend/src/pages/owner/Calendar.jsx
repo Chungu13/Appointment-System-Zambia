@@ -10,12 +10,12 @@ import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
 import { toDateInputValue, formatTime, formatZMW, addDays, classNames } from '../../lib/utils'
 
 // ── Config ───────────────────────────────────────────────────────────────────
-const BURG       = '#6B2737'
-const MUTED      = '#7a5060'
-const HINT       = '#8a6268'
-const BORDER     = '#ede5e7'
-const TEXT       = '#1a0a0d'
-const NAV_MUTED  = '#5c4848'
+const BURG       = '#3B2A1E'
+const MUTED      = '#5C4C3D'
+const HINT       = '#8A7A6A'
+const BORDER     = '#EDE3D6'
+const TEXT       = '#241812'
+const NAV_MUTED  = '#5C4C3D'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"
@@ -27,7 +27,7 @@ const SLOTS     = (DAY_END - DAY_START) * 2
 
 // Staff palette — solid backgrounds for calendar blocks
 const PALETTES = [
-  { bg: '#6B2737', border: '#4A1A25', text: '#fff' },
+  { bg: '#3B2A1E', border: '#241812', text: '#fff' },
   { bg: '#2D6A4F', border: '#1B4332', text: '#fff' },
   { bg: '#1D4E89', border: '#0D2E57', text: '#fff' },
   { bg: '#7B5E2A', border: '#5A3E15', text: '#fff' },
@@ -186,7 +186,7 @@ function ListView({ days, appointments, today, onSelect, onAction }) {
               display: 'flex', alignItems: 'baseline', gap: 8,
               padding: '12px 20px',
               borderBottom: `0.5px solid ${BORDER}`,
-              backgroundColor: isToday ? '#fdf8f8' : '#faf7f7',
+              backgroundColor: isToday ? '#FBF7F1' : '#FBF7F1',
             }}>
               <h3 style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.08em', color: isToday ? BURG : TEXT, margin: 0 }}>
                 {label}
@@ -217,7 +217,7 @@ function ListView({ days, appointments, today, onSelect, onAction }) {
                     padding: '16px 20px', cursor: 'pointer',
                     transition: 'background-color 0.1s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fdf8f8')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FBF7F1')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
@@ -343,8 +343,8 @@ function RebookModal({ appt, onClose, onRebooked }) {
 }
 
 // ── Appointment modal ─────────────────────────────────────────────────────────
-const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#7a5060', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
-const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#1a0a0d', margin: 0 }
+const detailLabel = { fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 300, color: '#5C4C3D', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }
+const detailValue = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#241812', margin: 0 }
 
 function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
   return (
@@ -390,7 +390,7 @@ function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
           )}
 
           {appt.customerNotes && (
-            <div style={{ backgroundColor: '#faf7f7', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
+            <div style={{ backgroundColor: '#FBF7F1', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
               {appt.customerNotes}
             </div>
           )}
@@ -544,7 +544,7 @@ export default function Calendar() {
                   border: `0.5px solid ${BORDER}`, background: '#fff', cursor: 'pointer', color: MUTED,
                   transition: 'background-color 0.1s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#faf7f7')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FBF7F1')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
               >
                 <ChevronLeft size={14} />
@@ -556,7 +556,7 @@ export default function Calendar() {
                   border: `0.5px solid ${BORDER}`, background: '#fff', cursor: 'pointer', color: MUTED,
                   transition: 'background-color 0.1s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#faf7f7')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FBF7F1')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
               >
                 <ChevronRight size={14} />
@@ -623,7 +623,7 @@ export default function Calendar() {
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   padding: '8px 12px', flexShrink: 0, border: 'none', cursor: 'pointer',
                   transition: 'background-color 0.1s',
-                  backgroundColor: active ? BURG : isToday ? '#fdf8f8' : 'transparent',
+                  backgroundColor: active ? BURG : isToday ? '#FBF7F1' : 'transparent',
                   color: active ? '#fff' : isToday ? BURG : MUTED,
                 }}
               >

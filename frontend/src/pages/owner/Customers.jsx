@@ -6,12 +6,12 @@ import { CUSTOMERS } from '../../graphql/queries/bookings'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import { ErrorMessage } from '../../components/ui/Spinner'
 
-const BURG    = '#6B2737'
-const TEXT    = '#1a0a0d'
-const MUTED   = '#7a5060'
-const HINT    = '#8a6268'
-const BORDER  = '#ede5e7'
-const BLUSH   = '#fdf8f8'
+const BURG    = '#3B2A1E'
+const TEXT    = '#241812'
+const MUTED   = '#5C4C3D'
+const HINT    = '#8A7A6A'
+const BORDER  = '#EDE3D6'
+const BLUSH   = '#FBF7F1'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"
@@ -177,7 +177,7 @@ export default function Customers() {
       {/* Table */}
       <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
         {/* Column headers */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', backgroundColor: '#faf7f7', borderBottom: `0.5px solid ${BORDER}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', backgroundColor: '#FBF7F1', borderBottom: `0.5px solid ${BORDER}` }}>
           <div style={{ width: 36, flexShrink: 0 }} />
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED, margin: 0, flex: 1 }}>Customer</p>
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED, margin: 0, minWidth: 44, textAlign: 'center' }}>Visits</p>
