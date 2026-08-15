@@ -352,8 +352,11 @@ function HoursTab({ member, allMembers }) {
               staffId: member.id,
               dayOfWeek: d.dayOfWeek,
               isDayOff: d.isDayOff,
-              availableTimes: d.isDayOff ? [] : d.availableTimes,
+              availableTimes: d.isDayOff ? [] : (d.availableTimes || []),
             },
+          }).catch((err) => {
+            console.error(`Failed to save ${DAYS[d.dayOfWeek]}:`, err)
+            throw err
           }),
         ),
       )
@@ -370,6 +373,9 @@ function HoursTab({ member, allMembers }) {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      console.error('Error saving working hours:', err)
+      alert(`Error saving: ${err.message || 'Unknown error'}`)
     } finally {
       setSaving(false)
     }

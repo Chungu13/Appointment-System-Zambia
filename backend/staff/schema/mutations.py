@@ -208,7 +208,7 @@ class StaffMutation:
         staff_id: int,
         day_of_week: int,
         is_day_off: bool = False,
-        available_times: Optional[list[str]] = None,
+        available_times: list[str] = None,
     ) -> WorkingHoursType:
         from beautybook.permissions import require_owner
         from staff.models import User, WorkingHours
@@ -218,12 +218,16 @@ class StaffMutation:
         if not user:
             raise ValueError("Staff member not found.")
 
+        times_to_save = []
+        if not is_day_off and available_times:
+            times_to_save = sorted(available_times)
+
         wh, _ = WorkingHours.objects.update_or_create(
             staff=user,
             day_of_week=day_of_week,
             defaults={
                 "is_day_off": is_day_off,
-                "available_times": [] if is_day_off else sorted(available_times or []),
+                "available_times": times_to_save,
             },
         )
         from beautybook.cache_utils import invalidate_hours_cache
