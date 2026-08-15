@@ -42,7 +42,7 @@ export const SET_WORKING_HOURS = gql`
     $staffId: Int!
     $dayOfWeek: Int!
     $isDayOff: Boolean!
-    $availableTimes: [String!]!
+    $availableTimes: [String!]
   ) {
     setWorkingHours(
       staffId: $staffId
