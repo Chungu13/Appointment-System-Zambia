@@ -827,7 +827,9 @@ function StaffDetail({ member, allMembers, allServices, onBack }) {
 export default function Staff() {
   const [showCreate, setShowCreate] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-  const { data: staffData, loading: staffLoading, error: staffError } = useQuery(STAFF_LIST)
+  const { data: staffData, loading: staffLoading, error: staffError } = useQuery(STAFF_LIST, {
+    fetchPolicy: 'cache-and-network',
+  })
   const { data: serviceData } = useQuery(SERVICES, { variables: { activeOnly: true } })
 
   const members = staffData?.staffList ?? []
