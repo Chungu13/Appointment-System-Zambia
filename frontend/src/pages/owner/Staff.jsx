@@ -34,14 +34,21 @@ function initials(name) {
   return name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
-// 24h "HH:MM(:SS)" -> 12h "8:00 AM" for display in the <input type="time">'s
-// adjacent label isn't needed since the native picker already shows this,
-// but we still need a safe default set of hours for brand-new staff.
+// Default available times: 30-min intervals from 9:00 to 18:00
+function generateDefaultTimes() {
+  const times = []
+  for (let h = 9; h < 18; h++) {
+    times.push(`${String(h).padStart(2, '0')}:00`)
+    times.push(`${String(h).padStart(2, '0')}:30`)
+  }
+  times.push('18:00')
+  return times
+}
+
 const DEFAULT_HOURS = DAYS.map((_, day) => ({
   dayOfWeek: day,
   isDayOff: day === 6, // Sunday off by default
-  startTime: '09:00',
-  endTime: '18:00',
+  availableTimes: day === 6 ? [] : generateDefaultTimes(),
 }))
 
 function hoursMapFor(member, allMembers) {
@@ -51,22 +58,18 @@ function hoursMapFor(member, allMembers) {
     return DAYS.map((_, day) => {
       const wh = byDay[day]
       return wh
-        ? { dayOfWeek: day, isDayOff: wh.isDayOff, startTime: (wh.startTime || '09:00').slice(0, 5), endTime: (wh.endTime || '18:00').slice(0, 5) }
-        : { dayOfWeek: day, isDayOff: true, startTime: '09:00', endTime: '18:00' }
+        ? { dayOfWeek: day, isDayOff: wh.isDayOff, availableTimes: wh.availableTimes || [] }
+        : { dayOfWeek: day, isDayOff: true, availableTimes: [] }
     })
   }
-  // No hours saved yet for this person — copy from another staff member who
-  // already has hours set (closest proxy for "the salon's hours"), else a
-  // sensible fallback. Never leave it blank — a blank/looks-open row is what
-  // silently drops someone from availability.
   const donor = (allMembers ?? []).find((m) => m.id !== member.id && (m.workingHours ?? []).length > 0)
   if (donor) {
     const byDay = Object.fromEntries(donor.workingHours.map((wh) => [wh.dayOfWeek, wh]))
     return DAYS.map((_, day) => {
       const wh = byDay[day]
       return wh
-        ? { dayOfWeek: day, isDayOff: wh.isDayOff, startTime: (wh.startTime || '09:00').slice(0, 5), endTime: (wh.endTime || '18:00').slice(0, 5) }
-        : { dayOfWeek: day, isDayOff: true, startTime: '09:00', endTime: '18:00' }
+        ? { dayOfWeek: day, isDayOff: wh.isDayOff, availableTimes: wh.availableTimes || [] }
+        : { dayOfWeek: day, isDayOff: true, availableTimes: [] }
     })
   }
   return DEFAULT_HOURS
@@ -310,6 +313,34 @@ function HoursTab({ member, allMembers }) {
     setHours((prev) => prev.map((d) => (d.dayOfWeek === day ? { ...d, ...patch } : d)))
   }
 
+  function toggleTime(dayOfWeek, time) {
+    updateDay(dayOfWeek, {
+      availableTimes: hours[dayOfWeek].availableTimes.includes(time)
+        ? hours[dayOfWeek].availableTimes.filter((t) => t !== time)
+        : [...hours[dayOfWeek].availableTimes, time].sort(),
+    })
+  }
+
+  function addCustomTime(dayOfWeek, timeStr) {
+    const times = hours[dayOfWeek].availableTimes
+    if (!times.includes(timeStr)) {
+      updateDay(dayOfWeek, { availableTimes: [...times, timeStr].sort() })
+    }
+  }
+
+  function removeTime(dayOfWeek, time) {
+    updateDay(dayOfWeek, {
+      availableTimes: hours[dayOfWeek].availableTimes.filter((t) => t !== time),
+    })
+  }
+
+  function copyToAllDays(dayOfWeek) {
+    const source = hours[dayOfWeek].availableTimes
+    setHours((prev) =>
+      prev.map((d) => (d.dayOfWeek === dayOfWeek ? d : { ...d, availableTimes: source }))
+    )
+  }
+
   async function saveAll() {
     setSaving(true)
     try {
@@ -320,8 +351,7 @@ function HoursTab({ member, allMembers }) {
               staffId: member.id,
               dayOfWeek: d.dayOfWeek,
               isDayOff: d.isDayOff,
-              startTime: d.isDayOff ? null : `${d.startTime}:00`,
-              endTime: d.isDayOff ? null : `${d.endTime}:00`,
+              availableTimes: d.isDayOff ? [] : d.availableTimes,
             },
           }),
         ),
@@ -333,42 +363,101 @@ function HoursTab({ member, allMembers }) {
     }
   }
 
+  // Generate 30-min pills from 06:00 to 22:00
+  const allCandidateTimes = []
+  for (let h = 6; h < 22; h++) {
+    allCandidateTimes.push(`${String(h).padStart(2, '0')}:00`)
+    allCandidateTimes.push(`${String(h).padStart(2, '0')}:30`)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {hours.map((d) => (
-          <div key={d.dayOfWeek} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '12px 14px', backgroundColor: '#fff' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: d.isDayOff ? HINT : TEXT }}>{DAYS[d.dayOfWeek]}</span>
-              <button
-                type="button"
-                onClick={() => updateDay(d.dayOfWeek, { isDayOff: !d.isDayOff })}
-                style={{ width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: d.isDayOff ? BORDER : BURG, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
-              >
-                <span style={{ position: 'absolute', top: 2, left: d.isDayOff ? 2 : 18, width: 16, height: 16, borderRadius: '50%', backgroundColor: '#fff', transition: 'left 0.15s' }} />
-              </button>
-            </div>
-            {d.isDayOff ? (
-              <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: '6px 0 0' }}>Day off</p>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                <input
-                  type="time"
-                  value={d.startTime}
-                  onChange={(e) => updateDay(d.dayOfWeek, { startTime: e.target.value })}
-                  style={{ flex: 1, border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '8px 10px', fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
-                />
-                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>to</span>
-                <input
-                  type="time"
-                  value={d.endTime}
-                  onChange={(e) => updateDay(d.dayOfWeek, { endTime: e.target.value })}
-                  style={{ flex: 1, border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '8px 10px', fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
-                />
+        {hours.map((d) => {
+          const customTimes = d.availableTimes.filter((t) => !allCandidateTimes.includes(t))
+          return (
+            <div key={d.dayOfWeek} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '12px 14px', backgroundColor: '#fff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: d.isDayOff ? HINT : TEXT }}>{DAYS[d.dayOfWeek]}</span>
+                <button
+                  type="button"
+                  onClick={() => updateDay(d.dayOfWeek, { isDayOff: !d.isDayOff })}
+                  style={{ width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: d.isDayOff ? BORDER : BURG, transition: 'background-color 0.15s', padding: 0, position: 'relative' }}
+                >
+                  <span style={{ position: 'absolute', top: 2, left: d.isDayOff ? 2 : 18, width: 16, height: 16, borderRadius: '50%', backgroundColor: '#fff', transition: 'left 0.15s' }} />
+                </button>
               </div>
-            )}
-          </div>
-        ))}
+
+              {d.isDayOff ? (
+                <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>Day off</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Pill grid for 30-min intervals */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {allCandidateTimes.map((time) => {
+                      const selected = d.availableTimes.includes(time)
+                      return (
+                        <button
+                          key={time}
+                          onClick={() => toggleTime(d.dayOfWeek, time)}
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 11,
+                            fontWeight: 500,
+                            padding: '6px 10px',
+                            borderRadius: 6,
+                            border: `0.5px solid ${selected ? BURG : BORDER}`,
+                            backgroundColor: selected ? BURG : '#fff',
+                            color: selected ? '#fff' : TEXT,
+                            cursor: 'pointer',
+                            transition: 'all 0.1s',
+                          }}
+                        >
+                          {time}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Custom time input */}
+                  <CustomTimeAdder
+                    dayOfWeek={d.dayOfWeek}
+                    existingTimes={d.availableTimes}
+                    onAdd={(time) => addCustomTime(d.dayOfWeek, time)}
+                    onRemove={(time) => removeTime(d.dayOfWeek, time)}
+                    sans={sans}
+                    TEXT={TEXT}
+                    BORDER={BORDER}
+                    BURG={BURG}
+                    MUTED={MUTED}
+                    HINT={HINT}
+                  />
+
+                  {/* Copy to all days button */}
+                  {d.availableTimes.length > 0 && (
+                    <button
+                      onClick={() => copyToAllDays(d.dayOfWeek)}
+                      style={{
+                        fontFamily: sans,
+                        fontSize: 11,
+                        fontWeight: 500,
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: `0.5px solid ${BORDER}`,
+                        backgroundColor: '#fff',
+                        color: MUTED,
+                        cursor: 'pointer',
+                        alignSelf: 'flex-start',
+                      }}
+                    >
+                      Same for all days
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -381,6 +470,106 @@ function HoursTab({ member, allMembers }) {
         </button>
         {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#16a34a' }}>Saved ✓</span>}
       </div>
+    </div>
+  )
+}
+
+// Custom time input component
+function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, sans, TEXT, BORDER, BURG, MUTED, HINT }) {
+  const [customTime, setCustomTime] = useState('')
+  const customTimes = existingTimes.filter(
+    (t) => !/^(0[6-9]|1\d|2[0-1]):(00|30)$/.test(t)
+  )
+
+  function handleAdd(e) {
+    e.preventDefault()
+    if (customTime && !existingTimes.includes(customTime)) {
+      onAdd(customTime)
+      setCustomTime('')
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+        <input
+          type="time"
+          value={customTime}
+          onChange={(e) => setCustomTime(e.target.value)}
+          style={{
+            flex: 1,
+            border: `0.5px solid ${BORDER}`,
+            borderRadius: 6,
+            padding: '6px 8px',
+            fontFamily: sans,
+            fontSize: 11,
+            fontWeight: 300,
+            color: TEXT,
+            backgroundColor: '#fff',
+            outline: 'none',
+          }}
+        />
+        <button
+          onClick={handleAdd}
+          disabled={!customTime || existingTimes.includes(customTime)}
+          style={{
+            fontFamily: sans,
+            fontSize: 11,
+            fontWeight: 500,
+            padding: '6px 12px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: BURG,
+            color: '#fff',
+            cursor: 'pointer',
+            opacity: !customTime || existingTimes.includes(customTime) ? 0.5 : 1,
+          }}
+        >
+          Add
+        </button>
+      </div>
+
+      {customTimes.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {customTimes.map((time) => (
+            <div
+              key={time}
+              style={{
+                fontFamily: sans,
+                fontSize: 11,
+                fontWeight: 500,
+                padding: '4px 8px',
+                borderRadius: 4,
+                border: `0.5px solid #d4a8b0`,
+                backgroundColor: BLUSH,
+                color: BURG,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {time}
+              <button
+                onClick={() => onRemove(time)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: BURG,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

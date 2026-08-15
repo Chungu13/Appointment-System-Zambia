@@ -208,8 +208,7 @@ class StaffMutation:
         staff_id: int,
         day_of_week: int,
         is_day_off: bool = False,
-        start_time: Optional[datetime.time] = None,
-        end_time: Optional[datetime.time] = None,
+        available_times: Optional[list[str]] = None,
     ) -> WorkingHoursType:
         from beautybook.permissions import require_owner
         from staff.models import User, WorkingHours
@@ -224,8 +223,7 @@ class StaffMutation:
             day_of_week=day_of_week,
             defaults={
                 "is_day_off": is_day_off,
-                "start_time": None if is_day_off else start_time,
-                "end_time": None if is_day_off else end_time,
+                "available_times": [] if is_day_off else sorted(available_times or []),
             },
         )
         from beautybook.cache_utils import invalidate_hours_cache

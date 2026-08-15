@@ -41,6 +41,7 @@ class WorkingHoursType:
     start_time: Optional[datetime.time]
     end_time: Optional[datetime.time]
     is_day_off: bool
+    available_times: List[str]
 
 
 @strawberry.type
@@ -97,6 +98,7 @@ def working_hours_to_type(wh) -> WorkingHoursType:
         start_time=wh.start_time,
         end_time=wh.end_time,
         is_day_off=wh.is_day_off,
+        available_times=wh.available_times or [],
     )
 
 

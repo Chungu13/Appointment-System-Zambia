@@ -56,8 +56,7 @@ export const STAFF_LIST = gql`
         id
         dayOfWeek
         dayName
-        startTime
-        endTime
+        availableTimes
         isDayOff
       }
     }

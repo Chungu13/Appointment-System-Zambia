@@ -42,6 +42,7 @@ class WorkingHours(models.Model):
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
     is_day_off = models.BooleanField(default=False)
+    available_times = models.JSONField(default=list, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -51,9 +52,8 @@ class WorkingHours(models.Model):
                 fields=["staff", "day_of_week"],
                 name="workinghours_staff_day_uniq",
             ),
-            # When it's not a day off, end_time must be after start_time.
             models.CheckConstraint(
-                condition=Q(is_day_off=True) | Q(end_time__gt=F("start_time")),
+                condition=Q(is_day_off=True) | Q(start_time__isnull=True, end_time__isnull=True) | Q(end_time__gt=F("start_time")),
                 name="workinghours_end_after_start",
             ),
         ]

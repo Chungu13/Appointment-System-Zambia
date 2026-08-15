@@ -44,8 +44,6 @@ def build_availability_slots(
 
     tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
     slot_duration = datetime.timedelta(minutes=service.duration_minutes + service.buffer_minutes)
-    tenant = Tenant.objects.filter(schema_name=connection.schema_name).only("slot_interval_minutes").first()
-    step = datetime.timedelta(minutes=tenant.slot_interval_minutes if tenant else 30)
 
     eligible_staff = StaffService.objects.filter(service=service).select_related("staff")
     if staff_id:
@@ -80,23 +78,16 @@ def build_availability_slots(
 
     for ss in eligible_staff:
         wh = wh_by_staff.get(ss.staff_id)
-        if not wh or wh.is_day_off or not wh.start_time or not wh.end_time:
-            continue  # No working-hours configured — skip, no fallback
-
-        # replace(tzinfo=None) strips any unexpected tzinfo before stamping CAT
-        day_start = datetime.datetime.combine(date, wh.start_time.replace(tzinfo=None), tzinfo=tz)
-        day_end   = datetime.datetime.combine(date, wh.end_time.replace(tzinfo=None), tzinfo=tz)
-
-        if earliest is not None and earliest >= day_end:
-            continue  # All of today's slots have passed for this staff member
+        if not wh or wh.is_day_off or not wh.available_times:
+            continue  # No times configured for this day — skip, no fallback
 
         booked = booked_by_staff.get(ss.staff_id, [])
-        cursor = day_start
 
-        while cursor + slot_duration <= day_end:
+        for time_str in wh.available_times:
+            h, m = map(int, time_str.split(":"))
+            cursor = datetime.datetime.combine(date, datetime.time(h, m), tzinfo=tz)
             slot_end = cursor + slot_duration
             if earliest is not None and cursor < earliest:
-                cursor += step
                 continue
             if not any(
                 not (slot_end <= b_start or cursor >= b_end)
@@ -112,6 +103,5 @@ def build_availability_slots(
                     "service_name": service.name,
                     "duration_minutes": service.duration_minutes,
                 })
-            cursor += step
 
     return slots
