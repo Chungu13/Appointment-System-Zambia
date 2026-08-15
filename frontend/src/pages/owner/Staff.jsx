@@ -307,6 +307,7 @@ function HoursTab({ member, allMembers }) {
   const [hours, setHours] = useState(() => hoursMapFor(member, allMembers))
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState(null)
   const client = useApolloClient()
   const [setWorkingHours] = useMutation(SET_WORKING_HOURS)
 
@@ -344,6 +345,7 @@ function HoursTab({ member, allMembers }) {
 
   async function saveAll() {
     setSaving(true)
+    setSaveError(null)
     try {
       await Promise.all(
         hours.map((d) =>
@@ -354,9 +356,6 @@ function HoursTab({ member, allMembers }) {
               isDayOff: d.isDayOff,
               availableTimes: d.isDayOff ? [] : (d.availableTimes || []),
             },
-          }).catch((err) => {
-            console.error(`Failed to save ${DAYS[d.dayOfWeek]}:`, err)
-            throw err
           }),
         ),
       )
@@ -374,8 +373,7 @@ function HoursTab({ member, allMembers }) {
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
     } catch (err) {
-      console.error('Error saving working hours:', err)
-      alert(`Error saving: ${err.message || 'Unknown error'}`)
+      setSaveError(err.graphQLErrors?.[0]?.message ?? err.message ?? 'Could not save. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -487,6 +485,7 @@ function HoursTab({ member, allMembers }) {
           {saving ? 'Saving…' : 'Save working hours'}
         </button>
         {saved && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#16a34a' }}>Saved ✓</span>}
+        {saveError && <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#dc2626' }}>{saveError}</span>}
       </div>
     </div>
   )
@@ -728,7 +727,7 @@ function AvailableTimesTab({ member }) {
 
       {!loading && !error && slots.length === 0 && (
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
-          {firstName} isn't scheduled to work this day, so there are no slots to show.
+          No times picked for this day yet — set them in the Hours tab and they'll show up here.
         </p>
       )}
 
@@ -754,7 +753,7 @@ function AvailableTimesTab({ member }) {
       )}
 
       <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0 }}>
-        Updates automatically as bookings come in — based on {firstName}'s hours and the salon's slot interval.
+        The times you picked for {firstName} in the Hours tab. Updates automatically as bookings come in.
       </p>
     </div>
   )
