@@ -827,8 +827,8 @@ function StaffDetail({ member, allMembers, allServices, onBack }) {
 export default function Staff() {
   const [showCreate, setShowCreate] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-  const { data: staffData, loading: staffLoading, error: staffError } = useQuery(STAFF_LIST, {
-    fetchPolicy: 'cache-and-network',
+  const { data: staffData, loading: staffLoading, error: staffError, refetch: refetchStaff } = useQuery(STAFF_LIST, {
+    fetchPolicy: 'cache-first',
   })
   const { data: serviceData } = useQuery(SERVICES, { variables: { activeOnly: true } })
 
