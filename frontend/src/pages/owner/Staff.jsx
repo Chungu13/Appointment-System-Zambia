@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useQuery, useMutation } from '@apollo/client/react'
+import { useQuery, useMutation, useApolloClient } from '@apollo/client/react'
 import { ChevronLeft, ChevronRight, Check, Camera, Eye, EyeOff } from 'lucide-react'
 import { STAFF_LIST, MY_PROFILE, STAFF_DAY_SLOTS } from '../../graphql/queries/staff'
 import { SERVICES } from '../../graphql/queries/services'
@@ -307,6 +307,7 @@ function HoursTab({ member, allMembers }) {
   const [hours, setHours] = useState(() => hoursMapFor(member, allMembers))
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const client = useApolloClient()
   const [setWorkingHours] = useMutation(SET_WORKING_HOURS)
 
   function updateDay(day, patch) {
@@ -356,6 +357,17 @@ function HoursTab({ member, allMembers }) {
           }),
         ),
       )
+      // Refetch availability for the next 7 days to reflect new times
+      const today = new Date()
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today)
+        d.setDate(d.getDate() + i)
+        const dateStr = d.toISOString().slice(0, 10)
+        client.refetchQueries({
+          include: [STAFF_DAY_SLOTS],
+          variables: { staffId: member.id, date: dateStr },
+        })
+      }
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
     } finally {
