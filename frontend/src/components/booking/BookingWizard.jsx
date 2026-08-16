@@ -22,6 +22,15 @@ function ymd(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+function isPastClosingToday(openingHours, now) {
+  if (!openingHours?.length) return false;
+  const todayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  const row = openingHours.find((h) => h.dayOfWeek === todayIdx);
+  if (!row || row.isClosed || !row.closesAt) return false;
+  const [ch, cm] = row.closesAt.split(":").map(Number);
+  return now.getHours() * 60 + now.getMinutes() >= ch * 60 + cm;
+}
+
 function dayLabel(d, i) {
   if (i === 0) return "Today";
   if (i === 1) return "Tomorrow";
@@ -110,16 +119,19 @@ export default function BookingWizard({ service: initialService, profile, confir
     (s) => !service?.name || !s.serviceNames?.length || s.serviceNames.includes(service.name),
   );
 
-  // Next 14 days as day options.
+  // Next 14 days as day options. Today drops off the list once the business
+  // has already closed for the day, since nothing bookable is left on it.
   const days = useMemo(() => {
     const out = [];
+    const now = new Date();
     for (let i = 0; i < 14; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
+      if (i === 0 && isPastClosingToday(profile?.openingHours, now)) continue;
       out.push({ iso: ymd(d), label: dayLabel(d, i), sub: d.toLocaleDateString("en-US", { day: "numeric", month: "short" }) });
     }
     return out;
-  }, []);
+  }, [profile?.openingHours]);
 
   const { data: availData, loading: loadingSlots } = useQuery(AVAILABILITY, {
     variables: { serviceId: service?.id, date, staffId: staff?.id ?? null },
@@ -302,7 +314,7 @@ export default function BookingWizard({ service: initialService, profile, confir
             {step === 2 && (
               <>
                 <Bubble>Which day suits you{staff ? ` with ${staff.fullName.split(" ")[0]}` : ""}?</Bubble>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                   {days.map((d) => (
                     <OptionCard
                       key={d.iso}
