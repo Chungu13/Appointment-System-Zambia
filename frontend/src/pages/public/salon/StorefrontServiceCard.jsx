@@ -46,7 +46,7 @@ export default function StorefrontServiceCard({ svc, imageUrl, onBook }) {
         />
       </div>
 
-      <p style={{ fontFamily: sans, fontSize: 22, fontWeight: 600, color: DARK, margin: "0 0 8px", lineHeight: 1.2 }}>
+      <p style={{ fontFamily: sans, fontSize: 18, fontWeight: 600, color: DARK, margin: "0 0 8px", lineHeight: 1.2 }}>
         {svc.name}
       </p>
 
@@ -74,9 +74,9 @@ export default function StorefrontServiceCard({ svc, imageUrl, onBook }) {
             onBook(`I want to book ${label} [service_id:${svc.id}]`, false, svc);
           }}
           style={{
-            flexShrink: 0, fontFamily: sans, fontSize: 15, fontWeight: 600, color: "#fff",
+            flexShrink: 0, fontFamily: sans, fontSize: 13, fontWeight: 600, color: "#fff",
             background: PRIMARY, border: "none", cursor: "pointer",
-            padding: "15px 34px", borderRadius: 999, letterSpacing: "0.01em",
+            padding: "10px 22px", borderRadius: 10, letterSpacing: "0.01em",
           }}
         >
           Book
