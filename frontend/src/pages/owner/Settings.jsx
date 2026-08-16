@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin, Clock } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
@@ -63,6 +63,16 @@ const fieldStyle = {
 }
 
 const savedSpan = { fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#2d6a4f' }
+
+// Report a section's unsaved state up to the page, so switching away can warn
+// instead of silently discarding edits. Cleans up on unmount so a section that
+// is navigated away from never leaves the page stuck on "dirty".
+function useReportDirty(onDirty, dirty) {
+  useEffect(() => {
+    onDirty?.(dirty)
+    return () => onDirty?.(false)
+  }, [onDirty, dirty])
+}
 
 function SaveBtn({ onClick, disabled, loading, children }) {
   return (
@@ -200,7 +210,7 @@ function BusinessProfileCard({ currentImageUrl }) {
 
 // ── Location ──────────────────────────────────────────────────────────────────
 
-function LocationCard({ currentCity, currentArea, currentAddress }) {
+function LocationCard({ currentCity, currentArea, currentAddress, onDirty }) {
   const [city, setCity]           = useState(currentCity || 'Lusaka')
   const [area, setArea]           = useState(currentArea || '')
   const [areaOther, setAreaOther] = useState('')
@@ -214,6 +224,12 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
 
   const isLusaka = city === 'Lusaka'
   const effectiveArea = isLusaka ? (area === 'Other' ? areaOther.trim() : area) : area
+
+  useReportDirty(onDirty,
+    city !== (currentCity || 'Lusaka')
+    || effectiveArea !== (currentArea || '')
+    || address !== (currentAddress || ''),
+  )
 
   function handleCityChange(e) {
     setCity(e.target.value)
@@ -319,7 +335,7 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
 
 const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-function OpeningHoursCard({ current }) {
+function OpeningHoursCard({ current, onDirty }) {
   const [rows, setRows] = useState(() =>
     DAY_LABELS.map((_, day) => {
       const row = (current ?? []).find((h) => h.dayOfWeek === day)
@@ -337,6 +353,12 @@ function OpeningHoursCard({ current }) {
     refetchQueries: [SALON_SETTINGS],
     onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
   })
+
+  useReportDirty(onDirty, rows.some((r) => {
+    const row = (current ?? []).find((h) => h.dayOfWeek === r.dayOfWeek)
+    return r.closed !== (row?.closed ?? false)
+      || (!r.closed && (r.opens !== (row?.opens || '08:00') || r.closes !== (row?.closes || '18:00')))
+  }))
 
   function updateDay(day, patch) {
     setRows((prev) => prev.map((r) => (r.dayOfWeek === day ? { ...r, ...patch } : r)))
@@ -467,10 +489,12 @@ function CopyableUrl({ url }) {
   )
 }
 
-function StaffKeyCard({ currentKey }) {
+function StaffKeyCard({ currentKey, onDirty }) {
   const [key, setKey]       = useState(currentKey || '')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved]   = useState(false)
+
+  useReportDirty(onDirty, key.trim() !== (currentKey || ''))
 
   const [setStaffKey, { loading, error }] = useMutation(SET_STAFF_ACCESS_KEY, {
     refetchQueries: [SALON_SETTINGS],
@@ -644,7 +668,7 @@ function PolicyGroup({ title, children }) {
 
 // ── AI assistant policies ─────────────────────────────────────────────────────
 
-function BusinessPoliciesCard({ current }) {
+function BusinessPoliciesCard({ current, onDirty }) {
   const [saved, setSaved] = useState(false)
 
   const init = (p) => ({
@@ -682,6 +706,7 @@ function BusinessPoliciesCard({ current }) {
   })
 
   const [form, setForm] = useState(() => init(current))
+  useReportDirty(onDirty, JSON.stringify(form) !== JSON.stringify(init(current)))
   function set(key, val) { setForm((f) => ({ ...f, [key]: val })) }
   function toggleBring(item) {
     setForm((f) => ({
@@ -929,8 +954,40 @@ function BusinessPoliciesCard({ current }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+const SECTIONS = [
+  { key: 'profile',  label: 'Profile' },
+  { key: 'location', label: 'Location' },
+  { key: 'hours',    label: 'Hours' },
+  { key: 'access',   label: 'Staff access' },
+  { key: 'policies', label: 'Policies' },
+]
+
+function settingsPill(active) {
+  return {
+    fontFamily: sans, fontSize: 13, fontWeight: 500,
+    padding: '10px 18px', borderRadius: 999, cursor: 'pointer',
+    whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.1s',
+    backgroundColor: active ? BURG : '#fff',
+    color: active ? '#fff' : TEXT,
+    border: active ? 'none' : `0.5px solid ${BORDER}`,
+  }
+}
+
 export default function Settings() {
   const { data, loading, error } = useQuery(SALON_SETTINGS)
+  const [section, setSection] = useState('profile')
+  const [dirty, setDirty] = useState(false)
+
+  // Each section holds its edits in local state until saved, so leaving one
+  // with unsaved changes would drop them without a trace. Ask first.
+  function goTo(next) {
+    if (next === section) return
+    if (dirty && !window.confirm('You have unsaved changes here. Leave without saving?')) return
+    setDirty(false)
+    setSection(next)
+  }
+
+  const s = data?.salonSettings
 
   return (
     <PageWrapper>
@@ -939,17 +996,33 @@ export default function Settings() {
       {loading && <PageSpinner />}
       {error && <ErrorMessage message={error.message} />}
 
-      {data && (
-        <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <BusinessProfileCard currentImageUrl={data.salonSettings.coverImageUrl} />
-          <LocationCard
-            currentCity={data.salonSettings.city}
-            currentArea={data.salonSettings.area}
-            currentAddress={data.salonSettings.address}
-          />
-          <OpeningHoursCard current={data.salonSettings.openingHours} />
-          <StaffKeyCard currentKey={data.salonSettings.staffAccessKey} />
-          <BusinessPoliciesCard current={data.salonSettings.businessPolicies} />
+      {s && (
+        <div style={{ maxWidth: 560 }}>
+          <div
+            className="settings-pill-row"
+            style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2, marginBottom: 24 }}
+          >
+            {SECTIONS.map((t) => (
+              <button key={t.key} type="button" onClick={() => goTo(t.key)} style={settingsPill(section === t.key)}>
+                {t.label}
+                {dirty && section === t.key && ' •'}
+              </button>
+            ))}
+          </div>
+          <style>{`.settings-pill-row::-webkit-scrollbar { display: none; }`}</style>
+
+          {section === 'profile'  && <BusinessProfileCard currentImageUrl={s.coverImageUrl} />}
+          {section === 'location' && (
+            <LocationCard
+              currentCity={s.city}
+              currentArea={s.area}
+              currentAddress={s.address}
+              onDirty={setDirty}
+            />
+          )}
+          {section === 'hours'    && <OpeningHoursCard current={s.openingHours} onDirty={setDirty} />}
+          {section === 'access'   && <StaffKeyCard currentKey={s.staffAccessKey} onDirty={setDirty} />}
+          {section === 'policies' && <BusinessPoliciesCard current={s.businessPolicies} onDirty={setDirty} />}
         </div>
       )}
     </PageWrapper>
