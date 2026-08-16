@@ -4,6 +4,11 @@
 .env.*
 !.env.example
 
+# Local Claude Code permissions — allow-rules routinely embed real commands,
+# including ones carrying DB credentials. settings.local.json is tracked and
+# must stay credential-free.
+.claude/settings.json
+
 # ── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
