@@ -66,7 +66,7 @@ export default function SignupVerifyEmail() {
               Account created
             </h1>
             <p style={{ fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.7, margin: '0 0 8px' }}>
-              Your Google account has been verified. Your business is now under review — we'll email you at
+              Your Google account has been verified. Your business is now under review. We'll email you at
             </p>
             <p style={{ fontSize: 13, fontWeight: 400, color: TEXT, margin: '0 0 20px' }}>{email}</p>
             <p style={{ fontSize: 13, fontWeight: 300, color: MUTED, lineHeight: 1.7, margin: '0 0 32px' }}>

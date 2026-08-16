@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Camera, X, ChevronDown } from 'lucide-react'
+import { Camera, X, ChevronDown, Trash2, Eye, EyeOff } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
-import { CREATE_SERVICE, UPDATE_SERVICE, TOGGLE_SERVICE } from '../../graphql/mutations/services'
+import { CREATE_SERVICE, UPDATE_SERVICE, TOGGLE_SERVICE, DELETE_SERVICE } from '../../graphql/mutations/services'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
@@ -59,7 +59,7 @@ function readImage(file, onDone, onError) {
 function priceLabel(service) {
   const from = Number(service.priceZmw)
   const to = service.priceMaxZmw != null ? Number(service.priceMaxZmw) : null
-  return to != null && to !== from ? `${from} — ${to}` : `${from}`
+  return to != null && to !== from ? `${from} to ${to}` : `${from}`
 }
 
 // ── One boxed figure under a service (duration / price / deposit) ─────────────
@@ -83,7 +83,7 @@ function StatBox({ label, value, unit, onClick, caret }) {
 }
 
 // ── Service card ──────────────────────────────────────────────────────────────
-function ServiceCard({ service, onSave, onToggle }) {
+function ServiceCard({ service, onSave, onToggle, onDelete }) {
   const [name, setName] = useState(service.name)
   const [description, setDescription] = useState(service.description || '')
   const [imgError, setImgError] = useState('')
@@ -175,7 +175,15 @@ function ServiceCard({ service, onSave, onToggle }) {
             title={service.isActive ? 'Hide from customers' : 'Show to customers'}
             style={{ width: 34, height: 34, borderRadius: 10, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <X size={15} color={TEXT} />
+            {service.isActive ? <EyeOff size={15} color={TEXT} /> : <Eye size={15} color={TEXT} />}
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(service)}
+            title="Delete this service"
+            style={{ width: 34, height: 34, borderRadius: 10, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Trash2 size={15} color="#b4413c" />
           </button>
         </div>
 
@@ -194,7 +202,7 @@ function ServiceCard({ service, onSave, onToggle }) {
 
       {!service.isActive && (
         <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: HINT, margin: '8px 0 0' }}>
-          Hidden from customers — tap ✕ to show it again.
+          Hidden from customers. Tap the eye to show it again.
         </p>
       )}
 
@@ -428,6 +436,18 @@ export default function Services() {
   const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, { refetchQueries: refetchOpts })
   const [updateService] = useMutation(UPDATE_SERVICE, { refetchQueries: refetchOpts })
   const [toggleService] = useMutation(TOGGLE_SERVICE, { refetchQueries: refetchOpts })
+  const [deleteService] = useMutation(DELETE_SERVICE, { refetchQueries: refetchOpts })
+  const [deleteError, setDeleteError] = useState('')
+
+  // Deleting is permanent, so confirm by name. The server refuses outright
+  // once a service has bookings; that message is surfaced as-is.
+  function handleDelete(service) {
+    setDeleteError('')
+    if (!window.confirm(`Delete "${service.name}" permanently? This cannot be undone.`)) return
+    deleteService({ variables: { id: service.id } }).catch((err) => {
+      setDeleteError(err.graphQLErrors?.[0]?.message ?? err.message ?? 'Could not delete that service.')
+    })
+  }
 
   const uncategorised = allServices.filter((s) => !s.category)
   const shown = active === '__none' ? uncategorised : allServices.filter((s) => s.category === active)
@@ -499,24 +519,27 @@ export default function Services() {
             </div>
           )}
 
+          {deleteError && <ErrorMessage message={deleteError} />}
+
           {shown.map((svc) => (
             <ServiceCard
               key={svc.id}
               service={svc}
               onSave={(vars) => updateService({ variables: vars })}
               onToggle={(id) => toggleService({ variables: { id } })}
+              onDelete={handleDelete}
             />
           ))}
 
           {active && shown.length === 0 && (
             <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, padding: '36px 0' }}>
-              Nothing in {active === '__none' ? 'Uncategorised' : active} yet — tap “+ Add” to create one.
+              Nothing in {active === '__none' ? 'Uncategorised' : active} yet. Tap “+ Add” to create one.
             </p>
           )}
 
           {categories.length === 0 && uncategorised.length === 0 && (
             <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, padding: '40px 0' }}>
-              No services yet — tap “+ Add” to create your first one.
+              No services yet. Tap “+ Add” to create your first one.
             </p>
           )}
         </>

@@ -227,7 +227,7 @@ export function HoursCard({ hours }) {
             >
               <span style={{ fontFamily: sans, fontSize: 13, fontWeight: isToday ? 500 : 400, color: isToday ? DARK : "#555" }}>{h.dayName}</span>
               <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: h.isClosed ? "#999" : DARK }}>
-                {h.isClosed ? "Closed" : `${formatTime(h.opensAt)} – ${formatTime(h.closesAt)}`}
+                {h.isClosed ? "Closed" : `${formatTime(h.opensAt)} to ${formatTime(h.closesAt)}`}
               </span>
             </div>
           );

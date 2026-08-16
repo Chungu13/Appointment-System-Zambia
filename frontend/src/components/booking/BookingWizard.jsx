@@ -3,6 +3,7 @@ import { useQuery } from "@apollo/client/react";
 import { X, ChevronLeft, Check } from "lucide-react";
 import { AVAILABILITY } from "../../graphql/queries/services";
 import { useBookingSubmit } from "../../hooks/useBookingSubmit";
+import { isValidZambianPhone } from "../../lib/phone";
 
 // Espresso / cream tokens, matching the rest of the storefront.
 const PRIMARY = "#3B2A1E";
@@ -132,7 +133,9 @@ export default function BookingWizard({ service: initialService, profile, confir
   async function confirm() {
     setFormError("");
     if (!form.name.trim()) return setFormError("Please enter your name.");
-    if (!form.phone.trim()) return setFormError("Please enter your phone number.");
+    if (!isValidZambianPhone(form.phone)) {
+      return setFormError("Enter a valid MTN, Airtel or Zamtel number, e.g. 0971234567.");
+    }
     try {
       const result = await submit({ service, slot, customer: form });
       if (!result.redirected) setDone(result);
@@ -340,7 +343,7 @@ export default function BookingWizard({ service: initialService, profile, confir
 
             {step === 4 && (
               <>
-                <Bubble>Almost there — who is this booking for?</Bubble>
+                <Bubble>Almost there. Who is this booking for?</Bubble>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   <div>
                     <label style={LABEL}>Your name</label>

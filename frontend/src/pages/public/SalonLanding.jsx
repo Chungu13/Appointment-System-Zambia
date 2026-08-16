@@ -22,7 +22,7 @@ function ServicePrice({ min, max }) {
       style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: sans }}
     >
       <span style={{ fontSize: 13, fontWeight: 500, color: DARK, whiteSpace: "nowrap" }}>
-        {expanded ? `${formatZMW(min)} – ${formatZMW(max)}` : `From ${formatZMW(min)}`}
+        {expanded ? `${formatZMW(min)} to ${formatZMW(max)}` : `From ${formatZMW(min)}`}
       </span>
       <ChevronDown size={12} style={{ color: "#999", transition: "transform 0.18s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }} />
     </button>

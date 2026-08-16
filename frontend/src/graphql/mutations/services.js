@@ -84,6 +84,12 @@ export const UPDATE_SERVICE = gql`
   }
 `
 
+export const DELETE_SERVICE = gql`
+  mutation DeleteService($id: Int!) {
+    deleteService(id: $id)
+  }
+`
+
 export const TOGGLE_SERVICE = gql`
   mutation ToggleService($id: Int!) {
     toggleService(id: $id) {

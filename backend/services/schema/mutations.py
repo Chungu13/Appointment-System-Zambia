@@ -128,6 +128,34 @@ class ServicesMutation:
         return service_to_type(service)
 
     @strawberry.mutation
+    def delete_service(self, info: Info, id: int) -> bool:
+        """
+        Permanently remove a service. Refused once it has appointments against
+        it — Appointment protects its Service FK, and deleting anyway would
+        erase the record of what a customer actually booked and paid for. Hide
+        it with toggle_service instead.
+        """
+        require_owner(info)
+        service = Service.objects.filter(pk=id).first()
+        if not service:
+            raise ValueError("Service not found.")
+
+        # Counts it both as the booked service and as an add-on on someone
+        # else's booking — the add-on link is a M2M, which would be silently
+        # stripped on delete rather than blocking it.
+        booked = service.appointments.count() + service.addon_appointments.count()
+        if booked:
+            raise ValueError(
+                f"{service.name} has {booked} booking{'s' if booked != 1 else ''} against it, "
+                "so it cannot be deleted. Hide it instead and customers will stop seeing it."
+            )
+
+        service.delete()
+        from beautybook.cache_utils import invalidate_services_cache
+        invalidate_services_cache(info.context.request.tenant.schema_name)
+        return True
+
+    @strawberry.mutation
     def toggle_service(self, info: Info, id: int) -> ServiceType:
         require_owner(info)
         service = Service.objects.filter(pk=id).first()

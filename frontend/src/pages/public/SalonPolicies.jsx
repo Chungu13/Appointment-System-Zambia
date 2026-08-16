@@ -83,7 +83,7 @@ export default function SalonPolicies() {
       </Helmet>
       <style>{CHROME_STYLE}</style>
 
-      <PageBanner profile={profile} title="Good to Know" subtitle="Everything about booking, deposits, and cancellations — in plain language." />
+      <PageBanner profile={profile} title="Good to Know" subtitle="Everything about booking, deposits, and cancellations, in plain language." />
 
       <div className="salon-container salon-fab-clear" style={{ paddingTop: 48 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 720 }}>

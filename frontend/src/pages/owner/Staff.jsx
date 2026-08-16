@@ -436,18 +436,18 @@ function HoursTab({ member, allMembers, businessHours }) {
 
               {businessClosed ? (
                 <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
-                  Business closed this day — change it in Settings → Opening hours.
+                  Business closed this day. Change it in Settings → Opening hours.
                 </p>
               ) : allCandidateTimes.length === 0 ? (
                 <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
-                  No opening hours set for this day — add them in Settings → Opening hours.
+                  No opening hours set for this day. Add them in Settings → Opening hours.
                 </p>
               ) : d.isDayOff ? (
                 <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>Day off</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0 }}>
-                    Open {business.opens}–{business.closes}
+                    Open {business.opens} to {business.closes}
                   </p>
                   {/* Pill grid for 30-min intervals */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -553,7 +553,7 @@ function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, opens, clo
     // Custom times obey the same business-hours window as the pills.
     const mins = toMinutes(customTime)
     if (mins < toMinutes(opens) || mins > toMinutes(closes)) {
-      setError(`Must be between ${opens} and ${closes} — your opening hours for this day.`)
+      setError(`Must be between ${opens} and ${closes}, your opening hours for this day.`)
       return
     }
     onAdd(customTime)
@@ -785,7 +785,7 @@ function AvailableTimesTab({ member }) {
 
       {!loading && !error && slots.length === 0 && (
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
-          No times picked for this day yet — set them in the Hours tab and they'll show up here.
+          No times picked for this day yet. Set them in the Hours tab and they'll show up here.
         </p>
       )}
 

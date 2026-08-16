@@ -61,13 +61,28 @@ class BookingsMutation:
         if not StaffService.objects.filter(staff=staff, service=service).exists():
             raise ValueError("This staff member does not offer that service.")
 
+        # Enforced here rather than in any one caller, so every front door
+        # (wizard panel, /book page, staff walk-in form) gets the same rule.
+        from core.phone import is_valid_zambian_phone, normalise_phone
+
+        if not customer_name.strip():
+            raise ValueError("Please enter your name.")
+        if not is_valid_zambian_phone(customer_phone):
+            raise ValueError(
+                "That does not look like a valid Zambian mobile number. "
+                "Please use an MTN, Airtel or Zamtel number, e.g. 0971234567."
+            )
+        # Store one canonical form, so the same person booking as 0971234567
+        # and +260971234567 is not split across two customer records.
+        customer_phone = normalise_phone(customer_phone)
+
         ends_at = starts_at + datetime.timedelta(
             minutes=service.duration_minutes + service.buffer_minutes
         )
 
         customer, _ = Customer.objects.get_or_create(
             phone=customer_phone,
-            defaults={"full_name": customer_name},
+            defaults={"full_name": customer_name.strip()},
         )
 
         deposit_required = float(service.deposit_zmw)
