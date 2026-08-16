@@ -42,6 +42,12 @@ export const UPDATE_TENANT_PROFILE = gql`
   }
 `
 
+export const UPDATE_OPENING_HOURS = gql`
+  mutation UpdateOpeningHours($hours: [OpeningHoursSettingInput!]!) {
+    updateOpeningHours(hours: $hours)
+  }
+`
+
 export const UPDATE_BUSINESS_POLICIES = gql`
   mutation UpdateBusinessPolicies($policies: BusinessPoliciesInput!) {
     updateBusinessPolicies(policies: $policies)

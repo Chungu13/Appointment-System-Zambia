@@ -13,6 +13,15 @@ from .types import ServiceType, service_to_type, PortfolioImageType, portfolio_i
 _DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 
+def _parse_hhmm(value) -> Optional[datetime.time]:
+    """"HH:MM" -> time, or None if absent/malformed."""
+    try:
+        h, m = (int(part) for part in value.split(":")[:2])
+        return datetime.time(h, m)
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
 def _public_active_services():
     """
     Active services in the order the business entered them (creation order),
@@ -115,7 +124,6 @@ class ServicesQuery:
         from django.db import connection
         from tenants.models import Tenant
         from services.models import StaffService
-        from staff.models import WorkingHours
         from beautybook.cache_utils import (
             get_cached_services, set_cached_services,
             get_cached_hours, set_cached_hours,
@@ -140,31 +148,32 @@ class ServicesQuery:
             services = [service_to_type(s) for s in _public_active_services()]
             set_cached_services(schema_name, services)
 
-        # Opening hours — the span of times any staff member offers that day,
-        # i.e. earliest offered start through latest offered start. Cached 1 hour.
+        # Opening hours — the business's own published hours, set in Settings.
+        # Deliberately NOT derived from staff bookable times: these drive the
+        # public hours card, the open/closed badge, and the JSON-LD that search
+        # engines index, so they must be what the owner actually declares.
+        # Cached 1 hour; update_opening_hours invalidates on save.
         opening_hours = get_cached_hours(schema_name)
         if opening_hours is None:
-            times_by_day: dict[int, list[datetime.time]] = {}
-            for day, times in WorkingHours.objects.filter(is_day_off=False).values_list(
-                "day_of_week", "available_times"
-            ):
-                for time_str in times or []:
-                    try:
-                        h, m = (int(part) for part in time_str.split(":")[:2])
-                    except (ValueError, AttributeError):
-                        continue  # Ignore malformed entries rather than break the storefront
-                    times_by_day.setdefault(day, []).append(datetime.time(h, m))
-
+            stored = tenant.opening_hours or {}
             opening_hours = []
             for day in range(7):
-                offered = times_by_day.get(day)
-                opening_hours.append(OpeningHoursType(
-                    day_of_week=day,
-                    day_name=_DAY_NAMES[day],
-                    opens_at=min(offered) if offered else None,
-                    closes_at=max(offered) if offered else None,
-                    is_closed=not offered,
-                ))
+                row = stored.get(str(day)) or {}
+                closed = bool(row.get("closed", False))
+                opens = _parse_hhmm(row.get("opens"))
+                closes = _parse_hhmm(row.get("closes"))
+                # A row missing either end is not a usable range — treat as closed
+                # rather than emitting a half-open range into structured data.
+                if closed or opens is None or closes is None:
+                    opening_hours.append(OpeningHoursType(
+                        day_of_week=day, day_name=_DAY_NAMES[day],
+                        opens_at=None, closes_at=None, is_closed=True,
+                    ))
+                else:
+                    opening_hours.append(OpeningHoursType(
+                        day_of_week=day, day_name=_DAY_NAMES[day],
+                        opens_at=opens, closes_at=closes, is_closed=False,
+                    ))
             set_cached_hours(schema_name, opening_hours)
 
         # Bookable staff = users who have at least one service assigned

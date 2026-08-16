@@ -33,6 +33,12 @@ class Tenant(TenantMixin):
     whatsapp_number = models.CharField(max_length=20, blank=True, default='')
     cover_image_url = models.TextField(blank=True)
     portfolio_preview_url = models.TextField(blank=True)
+    # When the business is open, keyed by weekday "0"(Mon)-"6"(Sun):
+    #   {"0": {"opens": "08:00", "closes": "18:00", "closed": false}, ...}
+    # Public-facing (storefront card, open/closed badge, JSON-LD for search).
+    # Distinct from WorkingHours.available_times, which is the bookable times
+    # an owner picks per staff member — those are constrained to this window.
+    opening_hours = models.JSONField(default=dict, blank=True)
     business_policies = models.JSONField(default=dict, blank=True)
     onboarding_completed = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)

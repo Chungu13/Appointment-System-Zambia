@@ -14,6 +14,13 @@ export const SALON_SETTINGS = gql`
       whatsappNumber
       staffAccessKey
       coverImageUrl
+      openingHours {
+        dayOfWeek
+        dayName
+        opens
+        closes
+        closed
+      }
       onboardingCompleted
       businessPolicies {
         cancellationPolicy

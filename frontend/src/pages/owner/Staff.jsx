@@ -3,6 +3,7 @@ import { useQuery, useMutation, useApolloClient } from '@apollo/client/react'
 import { ChevronLeft, ChevronRight, Check, Camera, Eye, EyeOff } from 'lucide-react'
 import { STAFF_LIST, MY_PROFILE, STAFF_DAY_SLOTS } from '../../graphql/queries/staff'
 import { SERVICES } from '../../graphql/queries/services'
+import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import {
   CREATE_STAFF,
   SET_WORKING_HOURS,
@@ -34,15 +35,28 @@ function initials(name) {
   return name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
+function toMinutes(hhmm) {
+  const [h, m] = (hhmm || '').split(':').map(Number)
+  return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null
+}
+
+// 30-min pills across a business's open window, inclusive of the closing time
+// (an appointment may start right as you close). Empty when the window is
+// missing or invalid, which renders as "no times available that day".
+function pillsBetween(opens, closes) {
+  const from = toMinutes(opens)
+  const to = toMinutes(closes)
+  if (from === null || to === null || to <= from) return []
+  const out = []
+  for (let mins = from; mins <= to; mins += 30) {
+    out.push(`${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`)
+  }
+  return out
+}
+
 // Default available times: 30-min intervals from 9:00 to 18:00
 function generateDefaultTimes() {
-  const times = []
-  for (let h = 9; h < 18; h++) {
-    times.push(`${String(h).padStart(2, '0')}:00`)
-    times.push(`${String(h).padStart(2, '0')}:30`)
-  }
-  times.push('18:00')
-  return times
+  return pillsBetween('09:00', '18:00')
 }
 
 const DEFAULT_HOURS = DAYS.map((_, day) => ({
@@ -303,7 +317,7 @@ function ProfileTab({ member }) {
 }
 
 // ── Detail — Hours tab ────────────────────────────────────────────────────────
-function HoursTab({ member, allMembers }) {
+function HoursTab({ member, allMembers, businessHours }) {
   const [hours, setHours] = useState(() => hoursMapFor(member, allMembers))
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -336,10 +350,30 @@ function HoursTab({ member, allMembers }) {
     })
   }
 
+  // Keep only times that fall inside that day's business hours. Applied on copy
+  // and on save so stored times can never contradict the published hours — an
+  // owner narrowing their hours later would otherwise leave times stranded
+  // outside the window, bookable but past closing.
+  function withinBusinessHours(dayOfWeek, times) {
+    const b = businessHours?.find((x) => x.dayOfWeek === dayOfWeek)
+    if (!b || b.closed) return []
+    const from = toMinutes(b.opens)
+    const to = toMinutes(b.closes)
+    if (from === null || to === null) return []
+    return (times || []).filter((t) => {
+      const m = toMinutes(t)
+      return m !== null && m >= from && m <= to
+    })
+  }
+
   function copyToAllDays(dayOfWeek) {
     const source = hours[dayOfWeek].availableTimes
     setHours((prev) =>
-      prev.map((d) => (d.dayOfWeek === dayOfWeek ? d : { ...d, availableTimes: source }))
+      prev.map((d) =>
+        d.dayOfWeek === dayOfWeek
+          ? d
+          : { ...d, availableTimes: withinBusinessHours(d.dayOfWeek, source) },
+      ),
     )
   }
 
@@ -354,7 +388,7 @@ function HoursTab({ member, allMembers }) {
               staffId: member.id,
               dayOfWeek: d.dayOfWeek,
               isDayOff: d.isDayOff,
-              availableTimes: d.isDayOff ? [] : (d.availableTimes || []),
+              availableTimes: d.isDayOff ? [] : withinBusinessHours(d.dayOfWeek, d.availableTimes),
             },
           }),
         ),
@@ -379,18 +413,14 @@ function HoursTab({ member, allMembers }) {
     }
   }
 
-  // Generate 30-min pills from 06:00 to 22:00
-  const allCandidateTimes = []
-  for (let h = 6; h < 22; h++) {
-    allCandidateTimes.push(`${String(h).padStart(2, '0')}:00`)
-    allCandidateTimes.push(`${String(h).padStart(2, '0')}:30`)
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {hours.map((d) => {
-          const customTimes = d.availableTimes.filter((t) => !allCandidateTimes.includes(t))
+          const business = businessHours?.find((b) => b.dayOfWeek === d.dayOfWeek)
+          const businessClosed = business?.closed ?? false
+          // Pills only span the hours the business is actually open that day.
+          const allCandidateTimes = pillsBetween(business?.opens, business?.closes)
           return (
             <div key={d.dayOfWeek} style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '12px 14px', backgroundColor: '#fff' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -404,10 +434,21 @@ function HoursTab({ member, allMembers }) {
                 </button>
               </div>
 
-              {d.isDayOff ? (
+              {businessClosed ? (
+                <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
+                  Business closed this day — change it in Settings → Opening hours.
+                </p>
+              ) : allCandidateTimes.length === 0 ? (
+                <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>
+                  No opening hours set for this day — add them in Settings → Opening hours.
+                </p>
+              ) : d.isDayOff ? (
                 <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: HINT, margin: 0 }}>Day off</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0 }}>
+                    Open {business.opens}–{business.closes}
+                  </p>
                   {/* Pill grid for 30-min intervals */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {allCandidateTimes.map((time) => {
@@ -441,6 +482,9 @@ function HoursTab({ member, allMembers }) {
                     existingTimes={d.availableTimes}
                     onAdd={(time) => addCustomTime(d.dayOfWeek, time)}
                     onRemove={(time) => removeTime(d.dayOfWeek, time)}
+                    opens={business.opens}
+                    closes={business.closes}
+                    gridTimes={allCandidateTimes}
                     sans={sans}
                     TEXT={TEXT}
                     BORDER={BORDER}
@@ -492,18 +536,28 @@ function HoursTab({ member, allMembers }) {
 }
 
 // Custom time input component
-function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, sans, TEXT, BORDER, BURG, MUTED, HINT }) {
+function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, opens, closes, gridTimes, sans, TEXT, BORDER, BURG, MUTED, HINT }) {
   const [customTime, setCustomTime] = useState('')
-  const customTimes = existingTimes.filter(
-    (t) => !/^(0[6-9]|1\d|2[0-1]):(00|30)$/.test(t)
-  )
+  const [error, setError] = useState('')
+  // Anything the owner added that isn't one of this day's grid pills.
+  const customTimes = existingTimes.filter((t) => !gridTimes.includes(t))
 
   function handleAdd(e) {
     e.preventDefault()
-    if (customTime && !existingTimes.includes(customTime)) {
-      onAdd(customTime)
-      setCustomTime('')
+    setError('')
+    if (!customTime) return
+    if (existingTimes.includes(customTime)) {
+      setError('That time is already added.')
+      return
     }
+    // Custom times obey the same business-hours window as the pills.
+    const mins = toMinutes(customTime)
+    if (mins < toMinutes(opens) || mins > toMinutes(closes)) {
+      setError(`Must be between ${opens} and ${closes} — your opening hours for this day.`)
+      return
+    }
+    onAdd(customTime)
+    setCustomTime('')
   }
 
   return (
@@ -528,7 +582,7 @@ function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, sans, TEXT
         />
         <button
           onClick={handleAdd}
-          disabled={!customTime || existingTimes.includes(customTime)}
+          disabled={!customTime}
           style={{
             fontFamily: sans,
             fontSize: 11,
@@ -538,13 +592,17 @@ function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, sans, TEXT
             border: 'none',
             backgroundColor: BURG,
             color: '#fff',
-            cursor: 'pointer',
-            opacity: !customTime || existingTimes.includes(customTime) ? 0.5 : 1,
+            cursor: customTime ? 'pointer' : 'default',
+            opacity: customTime ? 1 : 0.5,
           }}
         >
           Add
         </button>
       </div>
+
+      {error && (
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: '#dc2626', margin: 0 }}>{error}</p>
+      )}
 
       {customTimes.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -760,7 +818,7 @@ function AvailableTimesTab({ member }) {
 }
 
 // ── Detail view ────────────────────────────────────────────────────────────────
-function StaffDetail({ member, allMembers, allServices, onBack }) {
+function StaffDetail({ member, allMembers, allServices, businessHours, onBack }) {
   const [tab, setTab] = useState('profile')
   const isOwner = member.role === 'OWNER'
 
@@ -820,7 +878,7 @@ function StaffDetail({ member, allMembers, allServices, onBack }) {
 
       <div style={{ backgroundColor: BLUSH, borderRadius: '0 0 16px 16px', padding: 20 }}>
         {tab === 'profile' && <ProfileTab member={member} />}
-        {tab === 'hours' && <HoursTab member={member} allMembers={allMembers} />}
+        {tab === 'hours' && <HoursTab member={member} allMembers={allMembers} businessHours={businessHours} />}
         {tab === 'services' && <ServicesTab member={member} allServices={allServices} />}
         {tab === 'times' && <AvailableTimesTab member={member} />}
       </div>
@@ -836,9 +894,11 @@ export default function Staff() {
     fetchPolicy: 'cache-first',
   })
   const { data: serviceData } = useQuery(SERVICES, { variables: { activeOnly: true } })
+  const { data: settingsData } = useQuery(SALON_SETTINGS)
 
   const members = staffData?.staffList ?? []
   const services = serviceData?.services ?? []
+  const businessHours = settingsData?.salonSettings?.openingHours ?? []
   const selected = members.find((m) => m.id === selectedId)
 
   if (selected) {
@@ -848,6 +908,7 @@ export default function Staff() {
           member={selected}
           allMembers={members}
           allServices={services}
+          businessHours={businessHours}
           onBack={() => setSelectedId(null)}
         />
       </PageWrapper>

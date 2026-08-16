@@ -4,7 +4,13 @@ from typing import List, Optional
 import strawberry
 from strawberry.types import Info
 
-from tenants.schema.types import SalonSettingsType, StaffPortalAppointmentType, _check_staff_key, _policies_from_db
+from tenants.schema.types import (
+    SalonSettingsType,
+    StaffPortalAppointmentType,
+    _check_staff_key,
+    _opening_hours_from_db,
+    _policies_from_db,
+)
 
 
 @strawberry.type
@@ -26,6 +32,7 @@ class TenantQuery:
             whatsapp_number=tenant.whatsapp_number or "",
             staff_access_key=tenant.staff_access_key or "",
             cover_image_url=tenant.cover_image_url or "",
+            opening_hours=_opening_hours_from_db(tenant.opening_hours or {}),
             business_policies=_policies_from_db(tenant.business_policies or {}),
             onboarding_completed=tenant.onboarding_completed,
         )

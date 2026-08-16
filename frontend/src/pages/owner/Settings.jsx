@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin } from 'lucide-react'
+import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin, Clock } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
-import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
+import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES, UPDATE_OPENING_HOURS } from '../../graphql/mutations/tenant'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
@@ -309,6 +309,125 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <SaveBtn onClick={save} loading={loading}>Save location</SaveBtn>
+        {saved && <span style={savedSpan}>Saved ✓</span>}
+      </div>
+    </div>
+  )
+}
+
+// ── Opening hours ─────────────────────────────────────────────────────────────
+
+const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+function OpeningHoursCard({ current }) {
+  const [rows, setRows] = useState(() =>
+    DAY_LABELS.map((_, day) => {
+      const row = (current ?? []).find((h) => h.dayOfWeek === day)
+      return {
+        dayOfWeek: day,
+        opens: row?.opens || '08:00',
+        closes: row?.closes || '18:00',
+        closed: row?.closed ?? false,
+      }
+    }),
+  )
+  const [saved, setSaved] = useState(false)
+
+  const [updateHours, { loading, error }] = useMutation(UPDATE_OPENING_HOURS, {
+    refetchQueries: [SALON_SETTINGS],
+    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
+  })
+
+  function updateDay(day, patch) {
+    setRows((prev) => prev.map((r) => (r.dayOfWeek === day ? { ...r, ...patch } : r)))
+  }
+
+  function copyToAll(day) {
+    const src = rows[day]
+    setRows((prev) => prev.map((r) => (r.dayOfWeek === day ? r : { ...r, opens: src.opens, closes: src.closes, closed: src.closed })))
+  }
+
+  function save() {
+    updateHours({
+      variables: {
+        hours: rows.map((r) => ({
+          dayOfWeek: r.dayOfWeek,
+          opens: r.closed ? '' : r.opens,
+          closes: r.closed ? '' : r.closes,
+          closed: r.closed,
+        })),
+      },
+    })
+  }
+
+  return (
+    <div style={cardStyle}>
+      <div>
+        <h2 style={headingStyle}>
+          <Clock size={18} color={BURG} />
+          Opening hours
+        </h2>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
+          When your business is open. Shown on your public page and used by search engines.
+          Appointment times are picked per staff member in Staff → Hours, within these hours.
+        </p>
+      </div>
+
+      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {rows.map((r) => (
+          <div
+            key={r.dayOfWeek}
+            style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}
+          >
+            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: r.closed ? '#999' : TEXT, width: 88, flexShrink: 0 }}>
+              {DAY_LABELS[r.dayOfWeek]}
+            </span>
+
+            {r.closed ? (
+              <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: '#999', flex: 1 }}>Closed</span>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200 }}>
+                <input
+                  type="time"
+                  value={r.opens}
+                  onChange={(e) => updateDay(r.dayOfWeek, { opens: e.target.value })}
+                  style={{ ...fieldStyle, padding: '7px 9px', fontSize: 12, flex: 1, minWidth: 0 }}
+                />
+                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>to</span>
+                <input
+                  type="time"
+                  value={r.closes}
+                  onChange={(e) => updateDay(r.dayOfWeek, { closes: e.target.value })}
+                  style={{ ...fieldStyle, padding: '7px 9px', fontSize: 12, flex: 1, minWidth: 0 }}
+                />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => updateDay(r.dayOfWeek, { closed: !r.closed })}
+              style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 6, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', color: MUTED, cursor: 'pointer', flexShrink: 0 }}
+            >
+              {r.closed ? 'Set open' : 'Set closed'}
+            </button>
+
+            {!r.closed && (
+              <button
+                type="button"
+                onClick={() => copyToAll(r.dayOfWeek)}
+                style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 6, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', color: MUTED, cursor: 'pointer', flexShrink: 0 }}
+              >
+                Same for all days
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <SaveBtn onClick={save} loading={loading}>Save opening hours</SaveBtn>
         {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
     </div>
@@ -828,6 +947,7 @@ export default function Settings() {
             currentArea={data.salonSettings.area}
             currentAddress={data.salonSettings.address}
           />
+          <OpeningHoursCard current={data.salonSettings.openingHours} />
           <StaffKeyCard currentKey={data.salonSettings.staffAccessKey} />
           <BusinessPoliciesCard current={data.salonSettings.businessPolicies} />
         </div>

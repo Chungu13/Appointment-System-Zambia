@@ -55,6 +55,47 @@ def _policies_from_db(data: dict) -> BusinessPoliciesType:
 
 
 @strawberry.type
+class OpeningHoursSettingType:
+    """One weekday of the business's public opening hours."""
+    day_of_week: int
+    day_name: str
+    opens: str
+    closes: str
+    closed: bool
+
+
+@strawberry.input
+class OpeningHoursSettingInput:
+    day_of_week: int
+    opens: str = ""
+    closes: str = ""
+    closed: bool = False
+
+
+_OPENING_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+# Used when a tenant has no hours stored at all — keeps the storefront and the
+# Settings form showing something coherent instead of seven blank rows.
+_OPENING_HOURS_FALLBACK = {"opens": "08:00", "closes": "18:00", "closed": False}
+
+
+def _opening_hours_from_db(data: dict) -> List[OpeningHoursSettingType]:
+    """Always returns all 7 days in weekday order, filling gaps with the fallback."""
+    out: List[OpeningHoursSettingType] = []
+    for day in range(7):
+        row = (data or {}).get(str(day)) or _OPENING_HOURS_FALLBACK
+        closed = bool(row.get("closed", False))
+        out.append(OpeningHoursSettingType(
+            day_of_week=day,
+            day_name=_OPENING_DAY_NAMES[day],
+            opens="" if closed else (row.get("opens") or ""),
+            closes="" if closed else (row.get("closes") or ""),
+            closed=closed,
+        ))
+    return out
+
+
+@strawberry.type
 class SalonSettingsType:
     business_name: str
     business_type: str
@@ -67,6 +108,7 @@ class SalonSettingsType:
     whatsapp_number: str
     staff_access_key: str
     cover_image_url: str
+    opening_hours: List[OpeningHoursSettingType]
     business_policies: BusinessPoliciesType
     onboarding_completed: bool
 
