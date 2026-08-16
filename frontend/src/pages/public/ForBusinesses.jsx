@@ -63,10 +63,10 @@ export default function ForBusinesses() {
             Kimawa automates your bookings, collects payments, and gives you insights so you can focus on what you do best.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
-            <a href="/signup" style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: PRIMARY, backgroundColor: '#fff', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
+            <a href="/signup" style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: PRIMARY, backgroundColor: '#fff', padding: '14px 32px', textDecoration: 'none', display: 'inline-block', borderRadius: 10 }}>
               List Your Business Free
             </a>
-            <a href="/how-it-works" style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', border: '0.5px solid rgba(255,255,255,0.32)', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
+            <a href="/how-it-works" style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', border: '0.5px solid rgba(255,255,255,0.32)', padding: '14px 32px', textDecoration: 'none', display: 'inline-block', borderRadius: 10 }}>
               See how it works
             </a>
           </div>
@@ -180,7 +180,7 @@ export default function ForBusinesses() {
           </ul>
           <a
             href="/signup"
-            style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: PRIMARY, backgroundColor: '#fff', padding: '16px 40px', textDecoration: 'none', display: 'inline-block' }}
+            style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: PRIMARY, backgroundColor: '#fff', padding: '16px 40px', textDecoration: 'none', display: 'inline-block', borderRadius: 10 }}
           >
             List Your Business Free
           </a>

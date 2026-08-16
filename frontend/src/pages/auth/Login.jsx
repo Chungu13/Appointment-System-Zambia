@@ -17,7 +17,7 @@ const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
   border: `0.5px solid ${BORDER}`,
-  borderRadius: 0,
+  borderRadius: 10,
   padding: '10px 14px',
   fontSize: 12,
   color: '#1a1a1a',
@@ -203,23 +203,23 @@ export default function Login() {
           </p>
 
           {verified && (
-            <div style={{ border: '0.5px solid #bbf7d0', backgroundColor: '#f0fdf4', padding: '10px 14px', fontSize: 13, color: '#166534', marginBottom: 20 }}>
+            <div style={{ border: '0.5px solid #bbf7d0', backgroundColor: '#f0fdf4', padding: '10px 14px', fontSize: 13, color: '#166534', marginBottom: 20, borderRadius: 10 }}>
               Email verified! You can now sign in.
             </div>
           )}
           {tokenErr === 'token_expired' && (
-            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20, borderRadius: 10 }}>
               Your verification link has expired. Please sign up again to get a new link.
             </div>
           )}
           {tokenErr === 'invalid_token' && (
-            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20 }}>
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20, borderRadius: 10 }}>
               Invalid verification link. Please try again or contact support.
             </div>
           )}
 
           {errorMsg && (
-            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 16 }}>
+            <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', padding: '10px 14px', fontSize: 13, color: '#dc2626', marginBottom: 16, borderRadius: 10 }}>
               {errorMsg}
             </div>
           )}
@@ -231,7 +231,7 @@ export default function Login() {
             disabled={googleLoading || loading}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              border: `0.5px solid ${BORDER}`, borderRadius: 0,
+              border: `0.5px solid ${BORDER}`, borderRadius: 10,
               padding: '10px 14px', background: '#fff', cursor: 'pointer',
               fontSize: 12, fontWeight: 300, color: '#1a1a1a', fontFamily: sans,
               opacity: (googleLoading || loading) ? 0.6 : 1,
@@ -285,7 +285,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading || googleLoading}
-              style={{ width: '100%', padding: '11px 0', backgroundColor: BURG, color: '#fff', border: 'none', borderRadius: 0, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1 }}
+              style={{ width: '100%', padding: '11px 0', backgroundColor: BURG, color: '#fff', border: 'none', borderRadius: 10, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1 }}
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
