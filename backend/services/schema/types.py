@@ -15,6 +15,7 @@ class ServiceType:
     deposit_zmw: float
     buffer_minutes: int
     requires_reference_picture: bool
+    image_url: str
     is_active: bool
 
 
@@ -38,6 +39,7 @@ def service_to_type(s) -> ServiceType:
         deposit_zmw=float(s.deposit_zmw),
         buffer_minutes=s.buffer_minutes,
         requires_reference_picture=s.requires_reference_picture,
+        image_url=s.image_url or "",
         is_active=s.is_active,
     )
 

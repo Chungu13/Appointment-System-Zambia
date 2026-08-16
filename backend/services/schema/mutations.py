@@ -11,6 +11,19 @@ from services.models import Service, PortfolioImage
 from .types import ServiceType, service_to_type, PortfolioImageType, portfolio_image_to_type
 
 
+def _store_service_image(info, image_url: str) -> str:
+    """
+    Persist a service photo. Accepts a base64 data URL from the picker (stored
+    to disk, returns the served URL) or an already-stored URL (passed through).
+    Empty string clears the photo.
+    """
+    value = (image_url or "").strip()
+    if not value or not value.startswith("data:image"):
+        return value
+    from beautybook.storage import save_image_from_base64
+    return save_image_from_base64(value, "services", info.context.request.tenant.schema_name)
+
+
 def _sync_portfolio_preview(info):
     """Update tenant.portfolio_preview_url with the first active image URL."""
     tenant = info.context.request.tenant
@@ -34,6 +47,7 @@ class ServicesMutation:
         buffer_minutes: int = 0,
         price_max_zmw: Optional[float] = None,
         requires_reference_picture: bool = False,
+        image_url: str = "",
     ) -> ServiceType:
         require_owner(info)
         service = Service.objects.create(
@@ -46,6 +60,7 @@ class ServicesMutation:
             deposit_zmw=deposit_zmw,
             buffer_minutes=buffer_minutes,
             requires_reference_picture=requires_reference_picture,
+            image_url=_store_service_image(info, image_url),
         )
         from beautybook.cache_utils import invalidate_services_cache
         invalidate_services_cache(info.context.request.tenant.schema_name)
@@ -65,6 +80,7 @@ class ServicesMutation:
         buffer_minutes: Optional[int] = None,
         price_max_zmw: Optional[float] = strawberry.UNSET,
         requires_reference_picture: Optional[bool] = None,
+        image_url: Optional[str] = None,
     ) -> ServiceType:
         require_owner(info)
         service = Service.objects.filter(pk=id).first()
@@ -99,6 +115,9 @@ class ServicesMutation:
         if requires_reference_picture is not None:
             service.requires_reference_picture = requires_reference_picture
             update_fields.append("requires_reference_picture")
+        if image_url is not None:
+            service.image_url = _store_service_image(info, image_url)
+            update_fields.append("image_url")
 
         if update_fields:
             update_fields.append("updated_at")

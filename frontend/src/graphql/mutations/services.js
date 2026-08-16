@@ -11,6 +11,7 @@ export const CREATE_SERVICE = gql`
     $bufferMinutes: Int
     $priceMaxZmw: Float
     $requiresReferencePicture: Boolean
+    $imageUrl: String
   ) {
     createService(
       name: $name
@@ -22,6 +23,7 @@ export const CREATE_SERVICE = gql`
       bufferMinutes: $bufferMinutes
       priceMaxZmw: $priceMaxZmw
       requiresReferencePicture: $requiresReferencePicture
+      imageUrl: $imageUrl
     ) {
       id
       name
@@ -33,6 +35,7 @@ export const CREATE_SERVICE = gql`
       depositZmw
       bufferMinutes
       requiresReferencePicture
+      imageUrl
       isActive
     }
   }
@@ -50,6 +53,7 @@ export const UPDATE_SERVICE = gql`
     $bufferMinutes: Int
     $priceMaxZmw: Float
     $requiresReferencePicture: Boolean
+    $imageUrl: String
   ) {
     updateService(
       id: $id
@@ -62,6 +66,7 @@ export const UPDATE_SERVICE = gql`
       bufferMinutes: $bufferMinutes
       priceMaxZmw: $priceMaxZmw
       requiresReferencePicture: $requiresReferencePicture
+      imageUrl: $imageUrl
     ) {
       id
       name
@@ -73,6 +78,7 @@ export const UPDATE_SERVICE = gql`
       depositZmw
       bufferMinutes
       requiresReferencePicture
+      imageUrl
       isActive
     }
   }

@@ -13,6 +13,7 @@ export const SERVICES = gql`
       depositZmw
       bufferMinutes
       requiresReferencePicture
+      imageUrl
       isActive
     }
   }

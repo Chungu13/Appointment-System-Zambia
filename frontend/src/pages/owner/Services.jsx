@@ -1,399 +1,402 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Plus, Camera } from 'lucide-react'
+import { Camera, X, ChevronDown } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
 import { CREATE_SERVICE, UPDATE_SERVICE, TOGGLE_SERVICE } from '../../graphql/mutations/services'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
-import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
+import PageWrapper from '../../components/layout/PageWrapper'
 import { PageSpinner, ErrorMessage } from '../../components/ui/Spinner'
-import { CATEGORY_CHIPS, DURATIONS } from '../../lib/services'
+import { CATEGORY_CHIPS, DURATIONS, formatDuration } from '../../lib/services'
 
-const BURG    = '#3B2A1E'
-const TEXT    = '#241812'
-const MUTED   = '#5C4C3D'
-const HINT    = '#8A7A6A'
-const BORDER  = '#EDE3D6'
+const BURG   = '#3B2A1E'
+const TEXT   = '#241812'
+const MUTED  = '#5C4C3D'
+const HINT   = '#8A7A6A'
+const BORDER = '#EDE3D6'
+const BLUSH  = '#FBF7F1'
+const PAGE   = '#F7F2EC'
 
 const sans = "'Inter', sans-serif"
 
-function chipStyle(active) {
+const LABEL = {
+  fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.12em',
+  textTransform: 'uppercase', color: MUTED, display: 'block', marginBottom: 8,
+}
+
+const FIELD = {
+  width: '100%', boxSizing: 'border-box', backgroundColor: '#fff',
+  border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '13px 14px',
+  fontFamily: sans, fontSize: 14, fontWeight: 400, color: TEXT, outline: 'none',
+}
+
+function pillStyle(active) {
   return {
-    border: `0.5px solid ${BURG}`,
-    padding: '7px 16px',
-    fontSize: 11,
-    fontFamily: sans,
-    fontWeight: 400,
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    cursor: 'pointer',
-    transition: 'all 0.1s',
+    fontFamily: sans, fontSize: 13, fontWeight: 500,
+    padding: '11px 20px', borderRadius: 999, cursor: 'pointer',
+    whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.1s',
     backgroundColor: active ? BURG : '#fff',
-    color: active ? '#fff' : BURG,
-    whiteSpace: 'nowrap',
+    color: active ? '#fff' : TEXT,
+    border: active ? 'none' : `0.5px solid ${BORDER}`,
   }
 }
 
-// ── Service row — inline editable ─────────────────────────────────────────────
-function ServiceRow({ service, onSave, onToggle, toggling }) {
+// Read an image file as a base64 data URL for the mutation to store.
+function readImage(file, onDone, onError) {
+  if (!file) return
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    onError('Use a JPG, PNG or WEBP image.')
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    onError('Image must be under 5 MB.')
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = (e) => onDone(e.target.result)
+  reader.readAsDataURL(file)
+}
+
+function priceLabel(service) {
+  const from = Number(service.priceZmw)
+  const to = service.priceMaxZmw != null ? Number(service.priceMaxZmw) : null
+  return to != null && to !== from ? `${from} — ${to}` : `${from}`
+}
+
+// ── One boxed figure under a service (duration / price / deposit) ─────────────
+function StatBox({ label, value, unit, onClick, caret }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        flex: 1, minWidth: 0, backgroundColor: BLUSH, borderRadius: 12,
+        padding: '10px 12px', cursor: onClick ? 'pointer' : 'default',
+      }}
+    >
+      <span style={{ ...LABEL, fontSize: 9, marginBottom: 4 }}>{label}</span>
+      <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 500, color: TEXT, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
+        {unit && <span style={{ fontSize: 11, fontWeight: 400, color: MUTED }}>{unit}</span>}
+        {caret && <ChevronDown size={13} color={MUTED} style={{ flexShrink: 0 }} />}
+      </span>
+    </div>
+  )
+}
+
+// ── Service card ──────────────────────────────────────────────────────────────
+function ServiceCard({ service, onSave, onToggle }) {
   const [name, setName] = useState(service.name)
   const [description, setDescription] = useState(service.description || '')
-  const [duration, setDuration] = useState(service.durationMinutes)
-  const [price, setPrice] = useState(Number(service.priceZmw).toString())
-  const [deposit, setDeposit] = useState(Number(service.depositZmw ?? 0).toString())
-  const [customDur, setCustomDur] = useState(!DURATIONS.some((d) => d.value === service.durationMinutes))
-  const [rangeEnabled, setRangeEnabled] = useState(service.priceMaxZmw != null)
-  const [priceMax, setPriceMax] = useState(service.priceMaxZmw != null ? Number(service.priceMaxZmw).toString() : '')
-  const [requiresRef, setRequiresRef] = useState(!!service.requiresReferencePicture)
+  const [imgError, setImgError] = useState('')
+  const fileRef = useRef(null)
 
-  function save(overrides = {}) {
-    const nextRangeEnabled = overrides.rangeEnabled ?? rangeEnabled
-    onSave({
-      id: service.id,
-      name: (overrides.name ?? name).trim() || service.name,
-      description: (overrides.description ?? description).trim(),
-      durationMinutes: overrides.duration ?? duration,
-      priceZmw: parseFloat(overrides.price ?? price) || 0,
-      depositZmw: parseFloat(overrides.deposit ?? deposit) || 0,
-      priceMaxZmw: nextRangeEnabled ? (parseFloat(overrides.priceMax ?? priceMax) || null) : null,
-      requiresReferencePicture: overrides.requiresRef ?? requiresRef,
-    })
+  // Server is the source of truth — resync when a refetch brings new values.
+  useEffect(() => { setName(service.name) }, [service.name])
+  useEffect(() => { setDescription(service.description || '') }, [service.description])
+
+  function save(patch) {
+    onSave({ id: service.id, ...patch })
   }
 
-  const inputBase = {
-    border: 'none',
-    borderBottom: '0.5px solid transparent',
-    padding: '2px 4px',
-    fontFamily: sans,
-    fontSize: 12,
-    fontWeight: 400,
-    outline: 'none',
-    background: 'transparent',
-    color: TEXT,
-    transition: 'border-color 0.1s',
+  function pickImage(file) {
+    setImgError('')
+    readImage(file, (dataUrl) => save({ imageUrl: dataUrl }), setImgError)
+  }
+
+  const inlineInput = {
+    border: 'none', borderBottom: '0.5px solid transparent', background: 'transparent',
+    fontFamily: sans, outline: 'none', color: TEXT, padding: '1px 0', width: '100%',
   }
 
   return (
-    <div style={{
-      padding: '10px 16px',
-      borderBottom: `0.5px solid ${BORDER}`,
-      opacity: service.isActive ? 1 : 0.4,
-    }}>
-      {/* Row 1: Name */}
-      <input
-        value={name}
-        onChange={e => setName(e.target.value)}
-        onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-        onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ name: e.target.value }) }}
-        style={{ ...inputBase, width: '100%', marginBottom: 4 }}
-      />
-      {/* Row 1.5: Description — shown to customers on the public booking page */}
-      <input
-        value={description}
-        placeholder="Add a short description customers will see (optional)"
-        onChange={e => setDescription(e.target.value)}
-        onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-        onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ description: e.target.value }) }}
-        style={{ ...inputBase, width: '100%', marginBottom: 6, fontSize: 11, fontWeight: 300, color: MUTED }}
-      />
-      {/* Row 2: Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, rowGap: 8 }}>
-        {customDur ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-            <input
-              type="number"
-              min="5"
-              step="5"
-              value={duration}
-              onChange={e => setDuration(Number(e.target.value))}
-              onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-              onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ duration: Number(e.target.value) }) }}
-              style={{ ...inputBase, width: 44, textAlign: 'center', fontSize: 11 }}
-            />
-            <span style={{ fontFamily: sans, fontSize: 10, color: MUTED }}>min</span>
-            <button
-              type="button"
-              title="Back to presets"
-              onClick={() => setCustomDur(false)}
-              style={{ fontFamily: sans, fontSize: 10, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
-            >↩</button>
-          </div>
-        ) : (
-          <select
-            value={duration}
-            onChange={e => {
-              if (e.target.value === 'custom') { setCustomDur(true); return }
-              const v = Number(e.target.value); setDuration(v); save({ duration: v })
+    <div
+      style={{
+        backgroundColor: '#fff', borderRadius: 16, padding: 14,
+        marginBottom: 12, opacity: service.isActive ? 1 : 0.55,
+      }}
+    >
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        {/* Photo */}
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          title={service.imageUrl ? 'Change photo' : 'Add a photo'}
+          style={{
+            width: 76, height: 76, borderRadius: 14, flexShrink: 0, cursor: 'pointer',
+            border: 'none', padding: 0, overflow: 'hidden',
+            backgroundColor: service.imageUrl ? BORDER : '#F6E9EA',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {service.imageUrl
+            ? <img src={service.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <Camera size={22} color={HINT} />}
+        </button>
+
+        {/* Name + description */}
+        <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onFocus={(e) => (e.target.style.borderBottomColor = BORDER)}
+            onBlur={(e) => {
+              e.target.style.borderBottomColor = 'transparent'
+              const next = e.target.value.trim()
+              if (next && next !== service.name) save({ name: next })
+              else setName(service.name)
             }}
-            style={{ ...inputBase, fontSize: 11, color: MUTED, cursor: 'pointer', flexShrink: 0 }}
+            style={{ ...inlineInput, fontSize: 16, fontWeight: 600 }}
+          />
+          <input
+            value={description}
+            placeholder="Add a short description (optional)"
+            onChange={(e) => setDescription(e.target.value)}
+            onFocus={(e) => (e.target.style.borderBottomColor = BORDER)}
+            onBlur={(e) => {
+              e.target.style.borderBottomColor = 'transparent'
+              if (e.target.value.trim() !== (service.description || '')) save({ description: e.target.value.trim() })
+            }}
+            style={{ ...inlineInput, fontSize: 13, fontWeight: 300, color: MUTED, marginTop: 3 }}
+          />
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            title="Change photo"
+            style={{ width: 34, height: 34, borderRadius: 10, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-            <option value="custom">Custom…</option>
-          </select>
-        )}
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-          <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>ZMW</span>
-          <input
-            type="number"
-            min="0"
-            value={price}
-            onChange={e => setPrice(e.target.value)}
-            onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-            onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ price: e.target.value }) }}
-            style={{ ...inputBase, width: 56, textAlign: 'right' }}
-          />
-          {rangeEnabled ? (
-            <>
-              <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>–</span>
-              <input
-                type="number"
-                min="0"
-                value={priceMax}
-                onChange={e => setPriceMax(e.target.value)}
-                onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-                onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ priceMax: e.target.value }) }}
-                style={{ ...inputBase, width: 56, textAlign: 'right' }}
-              />
-              <button
-                type="button"
-                title="Remove price range"
-                onClick={() => { setRangeEnabled(false); save({ rangeEnabled: false }) }}
-                style={{ fontFamily: sans, fontSize: 10, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
-              >↩</button>
-            </>
-          ) : (
-            <button
-              type="button"
-              title="Price varies by design, add a range"
-              onClick={() => setRangeEnabled(true)}
-              style={{ fontFamily: sans, fontSize: 10, color: BURG, background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', whiteSpace: 'nowrap' }}
-            >+ range</button>
-          )}
+            <Camera size={15} color={TEXT} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggle(service.id)}
+            title={service.isActive ? 'Hide from customers' : 'Show to customers'}
+            style={{ width: 34, height: 34, borderRadius: 10, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <X size={15} color={TEXT} />
+          </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-          <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, color: MUTED }}>dep.</span>
-          <input
-            type="number"
-            min="0"
-            value={deposit}
-            onChange={e => setDeposit(e.target.value)}
-            onFocus={e => (e.target.style.borderBottomColor = BORDER)}
-            onBlur={e => { e.target.style.borderBottomColor = 'transparent'; save({ deposit: e.target.value }) }}
-            style={{ ...inputBase, width: 50, textAlign: 'right', color: MUTED }}
-          />
-        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          style={{ display: 'none' }}
+          onChange={(e) => pickImage(e.target.files?.[0])}
+        />
+      </div>
 
-        <button
-          type="button"
-          title={requiresRef ? 'Reference photo required, click to turn off' : 'Require customers to attach a reference photo'}
-          onClick={() => { const next = !requiresRef; setRequiresRef(next); save({ requiresRef: next }) }}
-          style={{
-            display: 'flex', alignItems: 'center', padding: '2px 4px', border: 'none',
-            background: 'none', cursor: 'pointer', flexShrink: 0,
-            color: requiresRef ? BURG : '#c0a0a8',
-          }}
-        >
-          <Camera size={14} />
-        </button>
+      {imgError && (
+        <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', margin: '8px 0 0' }}>{imgError}</p>
+      )}
 
-        <button
-          type="button"
-          title={service.isActive ? 'Deactivate' : 'Restore'}
-          onClick={() => onToggle(service.id)}
-          disabled={toggling}
-          style={{
-            fontSize: 16, lineHeight: 1, padding: '2px 4px', border: 'none',
-            background: 'none', cursor: 'pointer', flexShrink: 0,
-            color: service.isActive ? '#c0a0a8' : '#16a34a',
-          }}
-        >
-          {service.isActive ? '×' : '↺'}
-        </button>
+      {!service.isActive && (
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, color: HINT, margin: '8px 0 0' }}>
+          Hidden from customers — tap ✕ to show it again.
+        </p>
+      )}
+
+      {/* Figures */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <StatBox label="Duration" value={formatDuration(service.durationMinutes)} />
+        <StatBox label="Price" value={priceLabel(service)} unit="ZMW" />
+        <StatBox label="Deposit" value={Number(service.depositZmw ?? 0)} unit="ZMW" />
       </div>
     </div>
   )
 }
 
-// ── Category section ──────────────────────────────────────────────────────────
-function CategorySection({ category, services, onSave, onToggle, toggling, onCreate, creating }) {
-  const [showDraft, setShowDraft] = useState(false)
-  const blank = { name: '', description: '', durationMinutes: 60, priceZmw: '', priceMaxZmw: '', depositZmw: '', requiresReferencePicture: false }
-  const [draft, setDraft] = useState(blank)
-  const [customDraftDur, setCustomDraftDur] = useState(false)
-
-  function setD(k, v) { setDraft(d => ({ ...d, [k]: v })) }
-
-  function submitDraft() {
-    if (!draft.name.trim() || !draft.priceZmw) return
-    onCreate(
-      {
-        name: draft.name.trim(),
-        category,
-        durationMinutes: Number(draft.durationMinutes),
-        priceZmw: parseFloat(draft.priceZmw),
-        priceMaxZmw: parseFloat(draft.priceMaxZmw) || null,
-        depositZmw: parseFloat(draft.depositZmw) || 0,
-        requiresReferencePicture: draft.requiresReferencePicture,
-        description: draft.description.trim(),
-        bufferMinutes: 0,
-      },
-      () => { setDraft(blank); setShowDraft(false); setCustomDraftDur(false) },
-    )
+// ── New service sheet ─────────────────────────────────────────────────────────
+function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creating }) {
+  const blank = {
+    name: '', category: initialCategory || categories[0] || '', description: '',
+    durationMinutes: '', priceZmw: '', priceMaxZmw: '', depositZmw: '', imageUrl: '',
   }
+  const [form, setForm] = useState(blank)
+  const [error, setError] = useState('')
+  const fileRef = useRef(null)
+  function set(k, v) { setForm((f) => ({ ...f, [k]: v })) }
 
-  const fieldStyle = {
-    border: `0.5px solid ${BORDER}`,
-    padding: '6px 10px',
-    fontFamily: sans,
-    fontSize: 12,
-    fontWeight: 300,
-    outline: 'none',
-    background: '#fff',
-    color: TEXT,
+  function submit() {
+    setError('')
+    if (!form.name.trim()) return setError('Give the service a name.')
+    if (!form.category) return setError('Pick a category.')
+    if (!form.durationMinutes) return setError('Choose how long it takes.')
+    if (!form.priceZmw) return setError('Enter a starting price.')
+
+    const from = parseFloat(form.priceZmw)
+    const to = form.priceMaxZmw ? parseFloat(form.priceMaxZmw) : null
+    if (to != null && to < from) return setError('"Price to" cannot be less than "Price from".')
+    const deposit = parseFloat(form.depositZmw) || 0
+    // Mirrors the DB constraint (deposit <= price) so it fails here with a
+    // readable message instead of as a database error.
+    if (deposit > from) return setError('Deposit cannot be more than the starting price.')
+
+    onCreate({
+      name: form.name.trim(),
+      category: form.category,
+      description: form.description.trim(),
+      durationMinutes: Number(form.durationMinutes),
+      priceZmw: from,
+      priceMaxZmw: to,
+      depositZmw: deposit,
+      imageUrl: form.imageUrl,
+      bufferMinutes: 0,
+      requiresReferencePicture: false,
+    })
   }
 
   return (
-    <div style={{ border: `0.5px solid ${BORDER}`, marginBottom: 12, backgroundColor: '#fff' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
-        <p style={{ fontFamily: sans, fontWeight: 400, fontSize: 12, color: TEXT, margin: 0 }}>
-          {category || 'Uncategorised'}
-        </p>
-        <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>
-          {services.length} service{services.length !== 1 ? 's' : ''}
-        </span>
-      </div>
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(36,24,18,0.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: PAGE, width: '100%', maxWidth: 560,
+          borderRadius: '22px 22px 0 0', maxHeight: '92vh',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        <div style={{ padding: '10px 0 0', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ width: 42, height: 4, borderRadius: 2, backgroundColor: BORDER }} />
+        </div>
 
-      {/* Existing rows */}
-      {services.map(svc => (
-        <ServiceRow key={svc.id} service={svc} onSave={onSave} onToggle={onToggle} toggling={toggling} />
-      ))}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 16px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
+          <h2 style={{ fontFamily: sans, fontSize: 22, fontWeight: 500, color: TEXT, margin: 0 }}>New service</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, lineHeight: 0 }}>
+            <X size={20} color={MUTED} />
+          </button>
+        </div>
 
-      {/* Draft / add-service row */}
-      {showDraft ? (
-        <div style={{ padding: '12px 20px', borderTop: `0.5px solid ${BORDER}`, backgroundColor: '#FBF7F1' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+        <div style={{ overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {error && <ErrorMessage message={error} />}
+
+          <div>
+            <label style={LABEL}>Service name</label>
             <input
               autoFocus
-              placeholder="Service name"
-              value={draft.name}
-              onChange={e => setD('name', e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && submitDraft()}
-              style={{ ...fieldStyle, flex: 1, minWidth: 130 }}
-            />
-            {customDraftDur ? (
-              <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input
-                  type="number"
-                  min="5"
-                  step="5"
-                  value={draft.durationMinutes}
-                  onChange={e => setD('durationMinutes', Number(e.target.value))}
-                  style={{ width: 52, border: 'none', outline: 'none', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, background: 'transparent' }}
-                />
-                <span style={{ fontFamily: sans, fontSize: 11, color: MUTED }}>min</span>
-                <button
-                  type="button"
-                  title="Back to presets"
-                  onClick={() => { setCustomDraftDur(false); setD('durationMinutes', 60) }}
-                  style={{ fontFamily: sans, fontSize: 11, color: HINT, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                >↩</button>
-              </div>
-            ) : (
-              <select
-                value={draft.durationMinutes}
-                onChange={e => {
-                  if (e.target.value === 'custom') { setCustomDraftDur(true); return }
-                  setD('durationMinutes', Number(e.target.value))
-                }}
-                style={{ ...fieldStyle, cursor: 'pointer' }}
-              >
-                {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                <option value="custom">Custom…</option>
-              </select>
-            )}
-            <input
-              placeholder="Price ZMW"
-              type="number"
-              min="0"
-              value={draft.priceZmw}
-              onChange={e => setD('priceZmw', e.target.value)}
-              style={{ ...fieldStyle, width: 90 }}
-            />
-            <input
-              placeholder="Deposit"
-              type="number"
-              min="0"
-              value={draft.depositZmw}
-              onChange={e => setD('depositZmw', e.target.value)}
-              style={{ ...fieldStyle, width: 80 }}
-            />
-            <input
-              placeholder="Max ZMW (optional)"
-              type="number"
-              min="0"
-              value={draft.priceMaxZmw}
-              onChange={e => setD('priceMaxZmw', e.target.value)}
-              style={{ ...fieldStyle, width: 130 }}
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              placeholder="e.g. Acrylic Full Set"
+              style={FIELD}
             />
           </div>
-          <input
-            placeholder="Short description customers will see (optional)"
-            value={draft.description}
-            onChange={e => setD('description', e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && submitDraft()}
-            style={{ ...fieldStyle, width: '100%', marginBottom: 8, boxSizing: 'border-box' }}
-          />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={draft.requiresReferencePicture}
-              onChange={e => setD('requiresReferencePicture', e.target.checked)}
+
+          <div>
+            <label style={LABEL}>Category</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {categories.map((c) => (
+                <button key={c} type="button" onClick={() => set('category', c)} style={pillStyle(form.category === c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label style={LABEL}>Description <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>(optional)</span></label>
+            <textarea
+              value={form.description}
+              onChange={(e) => set('description', e.target.value)}
+              placeholder="A short line customers will see…"
+              rows={2}
+              style={{ ...FIELD, resize: 'none' }}
             />
-            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED }}>
-              Requires a reference photo (e.g. nail art, custom styles)
-            </span>
-          </label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={submitDraft}
-              disabled={creating || !draft.name || !draft.priceZmw}
-              style={{
-                fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em',
-                textTransform: 'uppercase', color: '#fff', backgroundColor: BURG,
-                border: 'none', padding: '7px 18px', cursor: 'pointer',
-                opacity: (!draft.name || !draft.priceZmw) ? 0.4 : 1,
-              }}
+          </div>
+
+          <div>
+            <label style={LABEL}>Duration</label>
+            <select
+              value={form.durationMinutes}
+              onChange={(e) => set('durationMinutes', e.target.value)}
+              style={{ ...FIELD, cursor: 'pointer', color: form.durationMinutes ? TEXT : HINT }}
             >
-              {creating ? 'Saving…' : 'Save'}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setDraft(blank); setShowDraft(false) }}
-              style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}
-            >
-              Cancel
-            </button>
+              <option value="">Select duration</option>
+              {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12 }}>
+            <MoneyField label="Price from" value={form.priceZmw} onChange={(v) => set('priceZmw', v)} placeholder="250" />
+            <MoneyField label="Price to" value={form.priceMaxZmw} onChange={(v) => set('priceMaxZmw', v)} placeholder="500" />
+          </div>
+
+          <div style={{ maxWidth: 220 }}>
+            <MoneyField label="Deposit required" value={form.depositZmw} onChange={(v) => set('depositZmw', v)} placeholder="50" />
+          </div>
+
+          <div>
+            <label style={LABEL}>Photo</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: 12 }}>
+              <div style={{ width: 54, height: 54, borderRadius: 10, flexShrink: 0, overflow: 'hidden', backgroundColor: form.imageUrl ? BORDER : '#F6E9EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {form.imageUrl
+                  ? <img src={form.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  : <Camera size={20} color={HINT} />}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: TEXT, margin: 0 }}>
+                  {form.imageUrl ? 'Photo added' : 'Add a photo'}
+                </p>
+                <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '2px 0 0', lineHeight: 1.4 }}>
+                  Shown to customers · no text or numbers
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 600, color: BURG, flexShrink: 0 }}
+              >
+                {form.imageUrl ? 'Change' : 'Upload'}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: 'none' }}
+                onChange={(e) => readImage(e.target.files?.[0], (d) => set('imageUrl', d), setError)}
+              />
+            </div>
           </div>
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShowDraft(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-            padding: '12px 20px', background: 'none', border: 'none',
-            borderTop: `0.5px solid ${BORDER}`,
-            fontFamily: sans, fontSize: 11, fontWeight: 300, color: BURG, cursor: 'pointer',
-          }}
-        >
-          <Plus size={11} /> Add service
-        </button>
-      )}
+
+        <div style={{ padding: 20, borderTop: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
+          <button
+            onClick={submit}
+            disabled={creating}
+            style={{
+              width: '100%', fontFamily: sans, fontSize: 14, fontWeight: 600,
+              padding: '15px 0', borderRadius: 12, border: 'none',
+              backgroundColor: BURG, color: '#fff',
+              cursor: creating ? 'default' : 'pointer', opacity: creating ? 0.6 : 1,
+            }}
+          >
+            {creating ? 'Adding…' : 'Add service'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MoneyField({ label, value, onChange, placeholder }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <label style={LABEL}>{label}</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', color: MUTED, flexShrink: 0 }}>ZMW</span>
+        <input
+          type="number"
+          min="0"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={FIELD}
+        />
+      </div>
     </div>
   )
 }
@@ -403,127 +406,130 @@ export default function Services() {
   const { data, loading, error } = useQuery(SERVICES, { variables: { activeOnly: false } })
   const { data: settingsData } = useQuery(SALON_SETTINGS)
   const businessType = settingsData?.salonSettings?.businessType ?? 'other'
-  const chips = CATEGORY_CHIPS[businessType] ?? CATEGORY_CHIPS.other
-
-  const serverCategories = useMemo(() =>
-    [...new Set((data?.services ?? []).map(s => s.category).filter(Boolean))].sort(),
-    [data],
-  )
-  const [addedCategories, setAddedCategories] = useState([])
-  const categories = useMemo(() => {
-    const extra = addedCategories.filter(c => !serverCategories.includes(c))
-    return [...serverCategories, ...extra]
-  }, [serverCategories, addedCategories])
-
-  const [showCustom, setShowCustom] = useState(false)
-  const [customInput, setCustomInput] = useState('')
-
-  function addCategory(name) {
-    const trimmed = name.trim()
-    if (!trimmed || categories.includes(trimmed)) return
-    setAddedCategories(p => [...p, trimmed])
-    setShowCustom(false)
-    setCustomInput('')
-  }
-
-  const refetchOpts = [{ query: SERVICES, variables: { activeOnly: false } }]
-
-  const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, { refetchQueries: refetchOpts })
-  const [updateService] = useMutation(UPDATE_SERVICE, { refetchQueries: refetchOpts })
-  const [toggleService, { loading: toggling }] = useMutation(TOGGLE_SERVICE, { refetchQueries: refetchOpts })
-
-  function handleSave(vars) { updateService({ variables: vars }) }
-  function handleToggle(id) { toggleService({ variables: { id } }) }
-  function handleCreate(vars, onDone) { createService({ variables: vars, onCompleted: onDone }) }
+  const suggested = CATEGORY_CHIPS[businessType] ?? CATEGORY_CHIPS.other
 
   const allServices = data?.services ?? []
-  const uncategorised = allServices.filter(s => !s.category)
+
+  // Categories in use, plus the suggestions for this business type so a brand
+  // new salon still has something to file services under.
+  const categories = useMemo(() => {
+    const used = [...new Set(allServices.map((s) => s.category).filter(Boolean))].sort()
+    const extra = (suggested ?? []).filter((c) => !used.includes(c))
+    return [...used, ...extra]
+  }, [allServices, suggested])
+
+  const [selected, setSelected] = useState(null)
+  const [showSheet, setShowSheet] = useState(false)
+
+  // Default to the first category, and recover if the selected one disappears.
+  const active = selected && categories.includes(selected) ? selected : (categories[0] ?? null)
+
+  const refetchOpts = [{ query: SERVICES, variables: { activeOnly: false } }]
+  const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, { refetchQueries: refetchOpts })
+  const [updateService] = useMutation(UPDATE_SERVICE, { refetchQueries: refetchOpts })
+  const [toggleService] = useMutation(TOGGLE_SERVICE, { refetchQueries: refetchOpts })
+
+  const uncategorised = allServices.filter((s) => !s.category)
+  const shown = active === '__none' ? uncategorised : allServices.filter((s) => s.category === active)
+
+  function handleCreate(vars) {
+    createService({
+      variables: vars,
+      onCompleted: () => { setShowSheet(false); setSelected(vars.category) },
+    })
+  }
 
   return (
     <PageWrapper>
-      <PageHeader title="Services" subtitle="Manage your service menu" />
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 26 }}>
+        <div>
+          <h1 style={{ fontFamily: sans, fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 500, color: TEXT, margin: 0, lineHeight: 1.15 }}>
+            Services
+          </h1>
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, margin: '4px 0 0' }}>
+            Manage your service menu
+          </p>
+        </div>
+        <button
+          onClick={() => setShowSheet(true)}
+          style={{ flexShrink: 0, fontFamily: sans, fontSize: 14, fontWeight: 600, padding: '13px 24px', borderRadius: 14, border: 'none', backgroundColor: BURG, color: '#fff', cursor: 'pointer' }}
+        >
+          + Add
+        </button>
+      </div>
 
       {loading && <PageSpinner />}
       {error && <ErrorMessage message={error.message} />}
 
-      {/* Category chip row */}
-      <div style={{ marginBottom: 24 }}>
-        <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, marginBottom: 10 }}>
-          Add a category to get started
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {chips.map(chip => (
-            <button key={chip} type="button" onClick={() => addCategory(chip)} style={chipStyle(categories.includes(chip))}>
-              {chip}
-            </button>
+      {!loading && (
+        <>
+          {/* Category filter */}
+          {(categories.length > 0 || uncategorised.length > 0) && (
+            <div style={{ marginBottom: 26 }}>
+              <p style={{ ...LABEL, marginBottom: 10 }}>Categories</p>
+              <div
+                className="cat-pill-row"
+                style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 2 }}
+              >
+                {categories.map((c) => (
+                  <button key={c} type="button" onClick={() => setSelected(c)} style={pillStyle(active === c)}>
+                    {c}
+                  </button>
+                ))}
+                {uncategorised.length > 0 && (
+                  <button type="button" onClick={() => setSelected('__none')} style={pillStyle(active === '__none')}>
+                    Uncategorised
+                  </button>
+                )}
+              </div>
+              <style>{`.cat-pill-row::-webkit-scrollbar { display: none; }`}</style>
+            </div>
+          )}
+
+          {/* Selected category */}
+          {active && (
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+              <h2 style={{ fontFamily: sans, fontSize: 22, fontWeight: 500, color: TEXT, margin: 0 }}>
+                {active === '__none' ? 'Uncategorised' : active}
+              </h2>
+              <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED }}>
+                {shown.length} service{shown.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+
+          {shown.map((svc) => (
+            <ServiceCard
+              key={svc.id}
+              service={svc}
+              onSave={(vars) => updateService({ variables: vars })}
+              onToggle={(id) => toggleService({ variables: { id } })}
+            />
           ))}
 
-          {showCustom ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input
-                autoFocus
-                type="text"
-                value={customInput}
-                onChange={e => setCustomInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') addCategory(customInput)
-                  if (e.key === 'Escape') { setShowCustom(false); setCustomInput('') }
-                }}
-                placeholder="Category name…"
-                style={{ border: `0.5px solid ${BORDER}`, padding: '7px 12px', fontFamily: sans, fontSize: 11, fontWeight: 300, outline: 'none', width: 140 }}
-              />
-              <button onClick={() => addCategory(customInput)} type="button" style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: BURG, background: 'none', border: 'none', cursor: 'pointer' }}>
-                Add
-              </button>
-              <button onClick={() => { setShowCustom(false); setCustomInput('') }} type="button" style={{ fontFamily: sans, fontSize: 12, color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}>
-                ×
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowCustom(true)}
-              style={{ ...chipStyle(false), border: `0.5px dashed ${BURG}` }}
-            >
-              + Add your own
-            </button>
+          {active && shown.length === 0 && (
+            <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, padding: '36px 0' }}>
+              Nothing in {active === '__none' ? 'Uncategorised' : active} yet — tap “+ Add” to create one.
+            </p>
           )}
-        </div>
-      </div>
 
-      {/* Category sections */}
-      <div>
-        {categories.map(cat => (
-          <CategorySection
-            key={cat}
-            category={cat}
-            services={allServices.filter(s => s.category === cat)}
-            onSave={handleSave}
-            onToggle={handleToggle}
-            toggling={toggling}
-            onCreate={handleCreate}
-            creating={creating}
-          />
-        ))}
+          {categories.length === 0 && uncategorised.length === 0 && (
+            <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, padding: '40px 0' }}>
+              No services yet — tap “+ Add” to create your first one.
+            </p>
+          )}
+        </>
+      )}
 
-        {uncategorised.length > 0 && (
-          <CategorySection
-            key="__uncategorised"
-            category=""
-            services={uncategorised}
-            onSave={handleSave}
-            onToggle={handleToggle}
-            toggling={toggling}
-            onCreate={handleCreate}
-            creating={creating}
-          />
-        )}
-      </div>
-
-      {!loading && categories.length === 0 && uncategorised.length === 0 && (
-        <p style={{ textAlign: 'center', fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, padding: '40px 0' }}>
-          Select a category above to start adding services.
-        </p>
+      {showSheet && (
+        <NewServiceSheet
+          categories={categories}
+          initialCategory={active === '__none' ? null : active}
+          onClose={() => setShowSheet(false)}
+          onCreate={handleCreate}
+          creating={creating}
+        />
       )}
     </PageWrapper>
   )
