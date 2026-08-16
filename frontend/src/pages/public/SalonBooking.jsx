@@ -228,6 +228,7 @@ function Step3Details() {
 
 // ── Booking confirmation with past bookings ──────────────────────────────────
 function BookingConfirmation({ phone, onReset }) {
+  const { state } = useBooking()
   const { data, loading } = useQuery(CUSTOMER_APPOINTMENTS, {
     variables: { phone },
     skip: !phone,
@@ -235,15 +236,28 @@ function BookingConfirmation({ phone, onReset }) {
 
   const bookings = data?.customerAppointments ?? []
   const STATUS_COLOR = { confirmed: 'blue', completed: 'green', cancelled: 'red', pending: 'gray', in_progress: 'purple' }
+  const awaitingPayment = state.requiresPayment && state.amountCharged > 0
 
   return (
     <div className="py-8">
       <div className="text-center mb-8">
-        <p className="text-5xl mb-4">🎉</p>
-        <h2 className="font-display text-2xl font-bold text-primary mb-2">You're booked!</h2>
-        <p className="text-on-surface-variant mb-6">
-          We look forward to seeing you!
-        </p>
+        <p className="text-5xl mb-4">{awaitingPayment ? '📱' : '🎉'}</p>
+        <h2 className="font-display text-2xl font-bold text-primary mb-2">
+          {awaitingPayment ? 'Check your phone' : "You're booked!"}
+        </h2>
+        {awaitingPayment ? (
+          <p className="text-on-surface-variant mb-6">
+            A mobile money prompt for <span className="font-semibold text-on-surface">{formatZMW(state.amountCharged)}</span> was
+            sent to your phone — enter your PIN to confirm your booking.
+            {state.serviceFee > 0 && (
+              <> This includes a {formatZMW(state.serviceFee)} service fee on top of the {formatZMW(state.depositRequired)} deposit.</>
+            )}
+          </p>
+        ) : (
+          <p className="text-on-surface-variant mb-6">
+            We look forward to seeing you!
+          </p>
+        )}
         <Button onClick={onReset}>Book another</Button>
       </div>
 

@@ -139,74 +139,105 @@ class BookingsMutation:
             return CreateBookingResult(
                 appointment=appointment_to_type(appt),
                 deposit_required=0.0,
+                service_fee=0.0,
+                amount_charged=0.0,
                 requires_payment=False,
                 payment_url=None,
             )
 
-        # ── Path B: deposit required → Redis hold + mobile money push ──────────
-        conflict = (
-            Appointment.objects
-            .filter(
-                staff=staff,
-                status__in=("confirmed", "in_progress"),
-                starts_at__lt=ends_at,
-                ends_at__gt=starts_at,
-            )
-            .exists()
-        )
-        if conflict:
-            raise ValueError("This time slot is no longer available.")
-
+        # ── Path B: deposit required → create pending booking + mobile money push ──
         import uuid
-        from bookings.holds import save_hold
+        from payments.models import Payment
+        from payments.pricing import calculate_customer_total
         from payments.provider_factory import get_provider
 
-        transaction_ref = f"HOLD-{uuid.uuid4().hex[:12].upper()}"
+        with transaction.atomic():
+            conflict = (
+                Appointment.objects.select_for_update()
+                .filter(
+                    staff=staff,
+                    status__in=("confirmed", "in_progress"),
+                    starts_at__lt=ends_at,
+                    ends_at__gt=starts_at,
+                )
+                .exists()
+            )
+            if conflict:
+                raise ValueError("This time slot is no longer available.")
+
+            appt = Appointment.objects.create(
+                customer=customer,
+                staff=staff,
+                service=service,
+                starts_at=starts_at,
+                ends_at=ends_at,
+                status=Appointment.STATUS_PENDING,
+                booked_by=booked_by.value,
+                customer_notes=customer_notes,
+            )
+
+        actual_total = calculate_customer_total(deposit_required)
+        transaction_ref = f"KIMAWA-{uuid.uuid4().hex[:12].upper()}"
         narration = f"{service.name} with {staff.full_name} on {starts_at:%Y-%m-%d %H:%M}"
+
+        payment = Payment.objects.create(
+            appointment=appt,
+            amount_zmw=actual_total,
+            payment_type="deposit",
+            method=payment_method.lower(),
+            status=Payment.STATUS_PENDING,
+            transaction_ref=transaction_ref,
+        )
 
         provider = get_provider()
         result = provider.initiate_collection(
             phone=customer_phone,
-            amount=deposit_required,
+            amount=actual_total,
             reference=transaction_ref,
             narration=narration,
         )
 
         if not result.success:
+            payment.status = Payment.STATUS_FAILED
+            payment.save(update_fields=["status", "updated_at"])
+            appt.status = Appointment.STATUS_CANCELLED
+            appt.save(update_fields=["status", "updated_at"])
             raise ValueError(f"Payment provider error: {result.message}")
 
-        save_hold(transaction_ref, {
-            "service_id": service_id,
-            "staff_id": staff_id,
-            "starts_at": starts_at.isoformat(),
-            "ends_at": ends_at.isoformat(),
-            "customer_phone": customer_phone,
-            "customer_name": customer_name,
-            "customer_notes": customer_notes,
-            "booked_by": booked_by.value,
-            "deposit_required": deposit_required,
-            "payment_method": payment_method.lower(),
-        })
+        if result.provider_ref:
+            payment.provider_ref = result.provider_ref
+            payment.save(update_fields=["provider_ref", "updated_at"])
 
         AgentLog.objects.create(
             agent_type="payment",
             action=(
-                f"Payment initiated: {deposit_required} ZMW for "
+                f"Payment initiated: {actual_total} ZMW for "
                 f"{service.name} with {staff.full_name} "
                 f"at {starts_at:%Y-%m-%d %H:%M}"
             ),
+            related_appointment=appt,
             outcome="success",
             metadata={
                 "transaction_ref": transaction_ref,
                 "deposit_required": deposit_required,
+                "amount_charged": actual_total,
                 "customer_phone": customer_phone,
             },
         )
 
+        appt = (
+            Appointment.objects
+            .select_related("customer", "staff", "service")
+            .prefetch_related("payments")
+            .get(pk=appt.pk)
+        )
+
         # payment_url is empty — customer pays via PIN prompt on their phone
         return CreateBookingResult(
-            appointment=None,
-            deposit_required=deposit_required,
+            appointment=appointment_to_type(appt),
+            deposit_required=float(deposit_required),
+            service_fee=float(actual_total - deposit_required),
+            amount_charged=float(actual_total),
             requires_payment=True,
             payment_url=None,
         )

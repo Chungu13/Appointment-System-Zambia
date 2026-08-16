@@ -101,6 +101,8 @@ class DashboardStatsType:
 class CreateBookingResult:
     appointment: Optional[AppointmentType]
     deposit_required: float
+    service_fee: float
+    amount_charged: float
     requires_payment: bool
     payment_url: Optional[str]
 

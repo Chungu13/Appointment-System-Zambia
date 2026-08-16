@@ -31,6 +31,8 @@ export const CREATE_BOOKING = gql`
         customer { id fullName phone }
       }
       depositRequired
+      serviceFee
+      amountCharged
       requiresPayment
       paymentUrl
     }

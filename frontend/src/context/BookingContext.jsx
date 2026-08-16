@@ -15,6 +15,9 @@ const initialState = {
   },
   appointment: null, // set for zero-deposit bookings after confirmation
   depositRequired: 0,
+  serviceFee: 0,
+  amountCharged: 0,
+  requiresPayment: false,
 }
 
 function reducer(state, action) {
@@ -35,6 +38,9 @@ function reducer(state, action) {
         step: 4,
         appointment: action.payload.appointment,
         depositRequired: action.payload.depositRequired,
+        serviceFee: action.payload.serviceFee,
+        amountCharged: action.payload.amountCharged,
+        requiresPayment: action.payload.requiresPayment,
       }
     case 'PREV_STEP':
       return { ...state, step: Math.max(1, state.step - 1) }
