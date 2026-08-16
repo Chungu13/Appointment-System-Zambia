@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
-import { MapPin, X, Sparkles } from "lucide-react";
+import { MapPin, X, Sparkles, ArrowLeft, Clock } from "lucide-react";
 import ChatWindow from "../../../components/chat/ChatWindow";
 import { useSalonPaths } from "./useSalonPaths";
 import {
   PRIMARY,
-  PRIMARY_RGB,
   DARK,
   BORDER,
   CREAM,
@@ -16,40 +15,25 @@ import {
   LAYOUT_CSS,
 } from "./theme";
 
-// ── Pill navigation — overlaid on the banner photo, no hamburger. Each pill
-// is a real route (Services/Gallery/Stylists/Policies each have their own
-// page); Discover sits apart from the row since it leaves this business
-// entirely. ──────────────────────────────────────────────────────────────────
+// ── Pill navigation — sits on the white info sheet directly above the business
+// name, not over the photo. Each pill is a real route (Services/Gallery/
+// Stylists/Policies each have their own page); Discover sits apart from the
+// row since it leaves this business entirely. ────────────────────────────────
 function pillStyle(solid) {
-  if (solid) {
-    return {
-      fontFamily: sans,
-      fontSize: 12,
-      fontWeight: 600,
-      color: DARK,
-      textDecoration: "none",
-      padding: "8px 16px",
-      borderRadius: 10,
-      whiteSpace: "nowrap",
-      backgroundColor: "#F5EFE6",
-      border: "none",
-      flexShrink: 0,
-    };
-  }
-  return {
+  const base = {
     fontFamily: sans,
     fontSize: 12,
-    fontWeight: 500,
-    color: "#fff",
     textDecoration: "none",
     padding: "8px 16px",
-    borderRadius: 10,
+    borderRadius: 999,
     whiteSpace: "nowrap",
-    backgroundColor: "rgba(255,255,255,0.14)",
-    backdropFilter: "blur(6px)",
-    border: "0.5px solid rgba(255,255,255,0.22)",
     flexShrink: 0,
   };
+  // Styled for a light surface — these used to be white-on-photo, which would
+  // be invisible now that the row lives on the white sheet.
+  return solid
+    ? { ...base, fontWeight: 600, color: "#fff", backgroundColor: PRIMARY, border: "none" }
+    : { ...base, fontWeight: 500, color: DARK, backgroundColor: CREAM, border: `0.5px solid ${BORDER}` };
 }
 
 // Single horizontally-scrollable row: business name pill (solid, acts as
@@ -66,7 +50,7 @@ function SalonPillNav({ businessName }) {
   ];
 
   return (
-    <div className="nav-pill-row" style={{ position: "relative", zIndex: 20, paddingTop: 18, display: "flex", alignItems: "center", gap: 8, overflowX: "auto" }}>
+    <div className="nav-pill-row" style={{ display: "flex", alignItems: "center", gap: 8, overflowX: "auto", marginBottom: 18 }}>
       <Link to={paths.home} style={{ ...pillStyle(true), maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis" }}>
         {businessName}
       </Link>
@@ -87,69 +71,69 @@ function SalonPillNav({ businessName }) {
 // either way. ─────────────────────────────────────────────────────────────
 export function PageBanner({ profile, tall, eyebrow, title, subtitle, children }) {
   const bannerUrl = bannerFor(profile);
+  const paths = useSalonPaths();
 
   return (
-    <header
-      className={tall ? "salon-hero" : "salon-page-banner"}
-      style={{ position: "relative", overflow: "hidden" }}
-    >
-      <img
-        src={bannerUrl}
-        alt=""
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-      />
-      <div style={{ position: "absolute", inset: 0, backgroundColor: DARK, opacity: 0.62 }} />
+    <header style={{ backgroundColor: "#fff" }}>
+      {/* Photo — shown clean now that all the text sits on the sheet below it. */}
+      <div className={tall ? "salon-hero" : "salon-page-banner"} style={{ position: "relative", overflow: "hidden" }}>
+        <img
+          src={bannerUrl}
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        {/* Soft top scrim so the back button stays legible on pale photos. */}
+        <div
+          style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 96,
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.28), transparent)",
+            pointerEvents: "none",
+          }}
+        />
+        {/* Home is one tap away from every sub-page; on Home itself there is
+            nowhere to go back to, so it is omitted there. */}
+        {!tall && (
+          <Link
+            to={paths.home}
+            aria-label="Back to home"
+            style={{
+              position: "absolute", top: 18, left: 20, zIndex: 10,
+              width: 38, height: 38, borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.92)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              textDecoration: "none", boxShadow: "0 1px 6px rgba(0,0,0,0.18)",
+            }}
+          >
+            <ArrowLeft size={18} color={DARK} />
+          </Link>
+        )}
+      </div>
+
+      {/* Info sheet — lifted over the photo's bottom edge. */}
       <div
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 120,
-          background: `linear-gradient(to top, rgba(${PRIMARY_RGB},0.95), transparent)`,
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        className="salon-container"
-        style={{
-          position: "relative",
-          zIndex: 10,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
+          position: "relative", zIndex: 5, marginTop: -26,
+          backgroundColor: "#fff", borderRadius: "22px 22px 0 0",
         }}
       >
-        <SalonPillNav businessName={profile.businessName} />
+        <div className="salon-container" style={{ paddingTop: 22, paddingBottom: tall ? 26 : 20 }}>
+          <SalonPillNav businessName={profile.businessName} />
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingTop: 28, paddingBottom: tall ? 40 : 28 }}>
-          {eyebrow && (
-            <span
-              style={{
-                display: "inline-block",
-                alignSelf: "flex-start",
-                fontFamily: sans,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.8)",
-                marginBottom: 12,
-              }}
-            >
-              {eyebrow}
-            </span>
-          )}
           <h1
             className={tall ? "salon-hero-name" : "salon-page-title"}
-            style={{ fontFamily: serif, fontWeight: 300, letterSpacing: "-1px", color: "#fff", margin: "0 0 10px", lineHeight: 1.05 }}
+            style={{ fontFamily: serif, fontWeight: 700, letterSpacing: "-1px", color: DARK, margin: 0, lineHeight: 1.1 }}
           >
             {title}
           </h1>
+          {eyebrow && (
+            <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 400, color: "#7a6a5a", margin: "6px 0 0" }}>
+              {eyebrow}
+            </p>
+          )}
           {subtitle && (
             <p
               className="salon-hero-subtitle"
-              style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: "rgba(255,255,255,0.8)", margin: "0 0 22px", maxWidth: 480, lineHeight: 1.6 }}
+              style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: "#7a6a5a", margin: "8px 0 0", maxWidth: 520, lineHeight: 1.6 }}
             >
               {subtitle}
             </p>
@@ -161,28 +145,45 @@ export function PageBanner({ profile, tall, eyebrow, title, subtitle, children }
   );
 }
 
-// ── Home-only hero content (location/phone/open meta row) ────────────────────
+// ── Home-only hero content (open status + location) ──────────────────────────
 export function HeroExtras({ profile }) {
   const isOpen = checkOpenNow(profile.openingHours);
   const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
   const todayRow = profile.openingHours.find((h) => h.dayOfWeek === todayIdx);
+  const location = [profile.area, profile.city].filter(Boolean).join(", ");
+
+  // Closed today entirely vs. closed right now but opening later — different
+  // messages, since "opens 09:00" is misleading on a day they never open.
+  let status = null;
+  if (todayRow?.isClosed) {
+    status = { text: "Closed today", color: "#b45309" };
+  } else if (todayRow) {
+    status = isOpen
+      ? { text: `Open now · closes ${formatTime(todayRow.closesAt)}`, color: "#15803d" }
+      : { text: `Closed · opens ${formatTime(todayRow.opensAt)}`, color: "#b45309" };
+  }
 
   return (
     <>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center" }}>
-        {profile.city && (
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.75)" }}>
-            <MapPin size={13} />
-            {[profile.city, profile.area, profile.address].filter(Boolean).join(", ")}
-          </span>
-        )}
-        {todayRow && !todayRow.isClosed && (
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.75)" }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: isOpen ? "#4ade80" : "#f87171", display: "inline-block" }} />
-            {isOpen ? `Open now · closes ${formatTime(todayRow.closesAt)}` : `Closed · opens ${formatTime(todayRow.opensAt)}`}
-          </span>
-        )}
-      </div>
+      {status && (
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12 }}>
+          <Clock size={15} color={status.color} />
+          <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 500, color: status.color }}>{status.text}</span>
+        </div>
+      )}
+
+      {location && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 9, marginTop: 16,
+            backgroundColor: CREAM, border: `0.5px solid ${BORDER}`,
+            borderRadius: 12, padding: "13px 15px",
+          }}
+        >
+          <MapPin size={16} color={DARK} style={{ flexShrink: 0 }} />
+          <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: DARK }}>{location}</span>
+        </div>
+      )}
     </>
   );
 }
@@ -395,10 +396,10 @@ export function ChatFab({ chat, salonName }) {
 export const CHROME_STYLE = `
   ${LAYOUT_CSS}
   html { scroll-behavior: smooth; }
-  .salon-hero { height: 460px; }
-  .salon-page-banner { height: 260px; }
-  .salon-hero-name { font-size: 52px; }
-  .salon-page-title { font-size: 34px; }
+  .salon-hero { height: 400px; }
+  .salon-page-banner { height: 240px; }
+  .salon-hero-name { font-size: 42px; }
+  .salon-page-title { font-size: 30px; }
   .salon-hero-subtitle { font-size: 15px; }
   .salon-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .salon-footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding-top: 8px; }
@@ -408,9 +409,9 @@ export const CHROME_STYLE = `
   .visual-service-card:hover img { transform: scale(1.05); }
   .nav-pill-row::-webkit-scrollbar, .pill-row::-webkit-scrollbar { display: none; }
   @media (max-width: 640px) {
-    .salon-hero { height: 340px !important; }
-    .salon-page-banner { height: 220px !important; }
-    .salon-hero-name { font-size: 30px !important; }
+    .salon-hero { height: 300px !important; }
+    .salon-page-banner { height: 200px !important; }
+    .salon-hero-name { font-size: 32px !important; }
     .salon-page-title { font-size: 24px !important; }
     .salon-hero-subtitle { font-size: 13px !important; }
     .salon-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
