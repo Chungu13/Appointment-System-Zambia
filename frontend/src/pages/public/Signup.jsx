@@ -43,7 +43,7 @@ function Input({ style: override = {}, ...props }) {
     <input
       style={{
         width: '100%', boxSizing: 'border-box',
-        border: `0.5px solid ${BORDER}`, borderRadius: 5,
+        border: `0.5px solid ${BORDER}`, borderRadius: 10,
         padding: '11px 14px', fontSize: 13, color: TEXT,
         outline: 'none', backgroundColor: '#fff', fontFamily: sans,
         ...override,
@@ -60,7 +60,7 @@ function Select({ children, ...props }) {
     <select
       style={{
         width: '100%', boxSizing: 'border-box',
-        border: `0.5px solid ${BORDER}`, borderRadius: 5,
+        border: `0.5px solid ${BORDER}`, borderRadius: 10,
         padding: '11px 14px', fontSize: 13, color: TEXT,
         outline: 'none', backgroundColor: '#fff', fontFamily: sans,
       }}
@@ -302,7 +302,7 @@ export default function Signup() {
             </div>
 
             {serverError && (
-              <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 5, padding: '10px 14px', fontSize: 13, color: '#dc2626' }}>
+              <div style={{ border: '0.5px solid #fca5a5', backgroundColor: '#fef2f2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dc2626' }}>
                 {serverError}
               </div>
             )}
@@ -310,7 +310,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              style={{ width: '100%', padding: 13, backgroundColor: PRIMARY, color: '#fff', border: 'none', borderRadius: 5, fontSize: 13, fontWeight: 500, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: sans, marginTop: 8 }}
+              style={{ width: '100%', padding: 13, backgroundColor: PRIMARY, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: sans, marginTop: 8 }}
             >
               {loading ? 'Creating your account…' : 'Create my account'}
             </button>

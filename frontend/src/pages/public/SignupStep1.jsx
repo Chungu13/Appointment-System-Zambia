@@ -63,7 +63,7 @@ function Input({ onBlur: outerBlur, style: override = {}, ...props }) {
     <input
       style={{
         width: '100%', boxSizing: 'border-box',
-        border: `0.5px solid ${BORDER}`, borderRadius: 0,
+        border: `0.5px solid ${BORDER}`, borderRadius: 10,
         padding: '10px 14px', fontSize: 12, color: TEXT,
         outline: 'none', backgroundColor: '#fff',
         fontFamily: sans, fontWeight: 300,
@@ -224,7 +224,7 @@ export default function SignupStep1() {
             disabled={googleLoading}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              border: `0.5px solid ${BORDER}`, borderRadius: 0,
+              border: `0.5px solid ${BORDER}`, borderRadius: 10,
               padding: '10px 14px', background: '#fff', cursor: 'pointer',
               fontSize: 12, fontWeight: 300, color: TEXT, fontFamily: sans,
               opacity: googleLoading ? 0.6 : 1,
@@ -328,7 +328,7 @@ export default function SignupStep1() {
 
             <button
               type="submit"
-              style={{ width: '100%', padding: '11px 0', background: BURG, color: '#fff', border: 'none', borderRadius: 0, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', marginTop: 4 }}
+              style={{ width: '100%', padding: '11px 0', background: BURG, color: '#fff', border: 'none', borderRadius: 10, fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', marginTop: 4 }}
             >
               Continue
             </button>

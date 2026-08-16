@@ -102,7 +102,7 @@ export default function SignupVerifyEmail() {
                   padding: '10px 0',
                   background: 'transparent',
                   border: `0.5px solid ${BORDER}`,
-                  borderRadius: 0,
+                  borderRadius: 10,
                   fontSize: 11, fontWeight: 500, letterSpacing: '0.12em',
                   textTransform: 'uppercase', cursor: sending ? 'default' : 'pointer',
                   color: TEXT, fontFamily: sans,

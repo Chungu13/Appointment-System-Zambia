@@ -34,7 +34,7 @@ export default function Badge({ color, status, className = '', children }) {
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
         padding: '3px 8px',
-        borderRadius: 0,
+        borderRadius: 999,
         ...style,
       }}
     >

@@ -41,7 +41,7 @@ function Hero() {
         <div className="km-center-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
           <Link
             to="/signup"
-            style={{ padding: '14px 32px', fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}
+            style={{ padding: '14px 32px', fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, borderRadius: 10, textDecoration: 'none', whiteSpace: 'nowrap' }}
           >
             List Your Business Free
           </Link>
@@ -140,7 +140,7 @@ function BottomCTA() {
         </p>
         <Link
           to="/signup"
-          style={{ display: 'inline-block', fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 32px', borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}
+          style={{ display: 'inline-block', fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', color: '#fff', backgroundColor: PRIMARY, padding: '14px 32px', borderRadius: 10, textDecoration: 'none', whiteSpace: 'nowrap' }}
         >
           List Your Business Free
         </Link>

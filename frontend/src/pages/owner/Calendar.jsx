@@ -137,7 +137,7 @@ function DayCol({ day, appointments, colorMap, isToday, onSelect }) {
                 position: 'absolute', left: 2, right: 2, top: t + 1, height: h - 2,
                 backgroundColor: palette.bg,
                 borderLeft: `3px solid ${palette.border}`,
-                borderRadius: 0, padding: '3px 6px',
+                borderRadius: 6, padding: '3px 6px',
                 textAlign: 'left', cursor: 'pointer', overflow: 'hidden',
                 zIndex: 10, border: 'none', transition: 'opacity 0.1s',
               }}

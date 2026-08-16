@@ -166,7 +166,7 @@ export default function HowItWorks() {
           </p>
           <a
             href="/signup"
-            style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', backgroundColor: PRIMARY, padding: '16px 40px', textDecoration: 'none', display: 'inline-block' }}
+            style={{ fontFamily: sans, fontSize: 11, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', backgroundColor: PRIMARY, padding: '16px 40px', textDecoration: 'none', display: 'inline-block', borderRadius: 10 }}
           >
             List Your Business Free
           </a>
