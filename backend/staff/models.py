@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import F, Q
 
 
 class User(AbstractUser):
@@ -39,9 +38,9 @@ class WorkingHours(models.Model):
         related_name="working_hours",
     )
     day_of_week = models.PositiveSmallIntegerField(choices=DAY_CHOICES)
-    start_time = models.TimeField(null=True, blank=True)
-    end_time = models.TimeField(null=True, blank=True)
     is_day_off = models.BooleanField(default=False)
+    # The exact start times this staff member offers on this weekday,
+    # as sorted 24h "HH:MM" strings. Empty means nothing bookable.
     available_times = models.JSONField(default=list, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -51,10 +50,6 @@ class WorkingHours(models.Model):
             models.UniqueConstraint(
                 fields=["staff", "day_of_week"],
                 name="workinghours_staff_day_uniq",
-            ),
-            models.CheckConstraint(
-                condition=Q(is_day_off=True) | Q(start_time__isnull=True, end_time__isnull=True) | Q(end_time__gt=F("start_time")),
-                name="workinghours_end_after_start",
             ),
         ]
 

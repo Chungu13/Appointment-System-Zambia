@@ -67,7 +67,6 @@ class SalonSettingsType:
     whatsapp_number: str
     staff_access_key: str
     cover_image_url: str
-    slot_interval_minutes: int
     business_policies: BusinessPoliciesType
     onboarding_completed: bool
 

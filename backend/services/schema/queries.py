@@ -140,35 +140,31 @@ class ServicesQuery:
             services = [service_to_type(s) for s in _public_active_services()]
             set_cached_services(schema_name, services)
 
-        # Opening hours — expensive 7-query loop; cache for 1 hour
+        # Opening hours — the span of times any staff member offers that day,
+        # i.e. earliest offered start through latest offered start. Cached 1 hour.
         opening_hours = get_cached_hours(schema_name)
         if opening_hours is None:
+            times_by_day: dict[int, list[datetime.time]] = {}
+            for day, times in WorkingHours.objects.filter(is_day_off=False).values_list(
+                "day_of_week", "available_times"
+            ):
+                for time_str in times or []:
+                    try:
+                        h, m = (int(part) for part in time_str.split(":")[:2])
+                    except (ValueError, AttributeError):
+                        continue  # Ignore malformed entries rather than break the storefront
+                    times_by_day.setdefault(day, []).append(datetime.time(h, m))
+
             opening_hours = []
             for day in range(7):
-                timed_rows = WorkingHours.objects.filter(
+                offered = times_by_day.get(day)
+                opening_hours.append(OpeningHoursType(
                     day_of_week=day,
-                    is_day_off=False,
-                    start_time__isnull=False,
-                    end_time__isnull=False,
-                )
-                if timed_rows.exists():
-                    opens = min(wh.start_time for wh in timed_rows)
-                    closes = max(wh.end_time for wh in timed_rows)
-                    opening_hours.append(OpeningHoursType(
-                        day_of_week=day,
-                        day_name=_DAY_NAMES[day],
-                        opens_at=opens,
-                        closes_at=closes,
-                        is_closed=False,
-                    ))
-                else:
-                    opening_hours.append(OpeningHoursType(
-                        day_of_week=day,
-                        day_name=_DAY_NAMES[day],
-                        opens_at=None,
-                        closes_at=None,
-                        is_closed=True,
-                    ))
+                    day_name=_DAY_NAMES[day],
+                    opens_at=min(offered) if offered else None,
+                    closes_at=max(offered) if offered else None,
+                    is_closed=not offered,
+                ))
             set_cached_hours(schema_name, opening_hours)
 
         # Bookable staff = users who have at least one service assigned

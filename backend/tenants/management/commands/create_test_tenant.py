@@ -1,9 +1,15 @@
-import datetime
-
 from django.core.management.base import BaseCommand
 from django_tenants.utils import tenant_context
 
 from tenants.models import Domain, Tenant
+
+
+def _times(start_hour: int, end_hour: int) -> list[str]:
+    """Every 30 minutes from start_hour up to and including end_hour, as "HH:MM"."""
+    out = []
+    for minutes in range(start_hour * 60, end_hour * 60 + 1, 30):
+        out.append(f"{minutes // 60:02d}:{minutes % 60:02d}")
+    return out
 
 
 class Command(BaseCommand):
@@ -107,8 +113,7 @@ class Command(BaseCommand):
                 day_of_week=day,
                 defaults={
                     "is_day_off": is_off,
-                    "start_time": None if is_off else datetime.time(9, 0),
-                    "end_time": None if is_off else (datetime.time(14, 0) if day == 5 else datetime.time(17, 0)),
+                    "available_times": [] if is_off else _times(9, 14 if day == 5 else 17),
                 },
             )
 
@@ -201,8 +206,7 @@ class Command(BaseCommand):
                     day_of_week=day,
                     defaults={
                         "is_day_off": is_off,
-                        "start_time": None if is_off else datetime.time(8, 0),
-                        "end_time": None if is_off else datetime.time(18, 0),
+                        "available_times": [] if is_off else _times(8, 18),
                     },
                 )
 

@@ -1,10 +1,9 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin, Clock } from 'lucide-react'
+import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES } from '../../graphql/mutations/tenant'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
-import { SLOT_INTERVALS } from '../../lib/services'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
 
@@ -310,58 +309,6 @@ function LocationCard({ currentCity, currentArea, currentAddress }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <SaveBtn onClick={save} loading={loading}>Save location</SaveBtn>
-        {saved && <span style={savedSpan}>Saved ✓</span>}
-      </div>
-    </div>
-  )
-}
-
-// ── Scheduling ─────────────────────────────────────────────────────────────────
-
-function SchedulingCard({ currentInterval }) {
-  const [slotInterval, setSlotInterval] = useState(currentInterval ?? 30)
-  const [saved, setSaved]       = useState(false)
-
-  const [updateProfile, { loading, error }] = useMutation(UPDATE_TENANT_PROFILE, {
-    refetchQueries: [SALON_SETTINGS],
-    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
-  })
-
-  function save() {
-    updateProfile({ variables: { slotIntervalMinutes: Number(slotInterval) } })
-  }
-
-  return (
-    <div style={cardStyle}>
-      <div>
-        <h2 style={headingStyle}>
-          <Clock size={18} color={BURG} />
-          Scheduling
-        </h2>
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
-          How often available appointment times are offered to customers.
-        </p>
-      </div>
-
-      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
-
-      <div>
-        <label style={labelStyle}>Time slot interval</label>
-        <select
-          value={slotInterval}
-          onChange={(e) => setSlotInterval(e.target.value)}
-          style={fieldStyle}
-          onFocus={(e) => (e.target.style.borderColor = BURG)}
-          onBlur={(e) => (e.target.style.borderColor = BORDER)}
-        >
-          {SLOT_INTERVALS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <SaveBtn onClick={save} loading={loading}>Save scheduling</SaveBtn>
         {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
     </div>
@@ -881,7 +828,6 @@ export default function Settings() {
             currentArea={data.salonSettings.area}
             currentAddress={data.salonSettings.address}
           />
-          <SchedulingCard currentInterval={data.salonSettings.slotIntervalMinutes} />
           <StaffKeyCard currentKey={data.salonSettings.staffAccessKey} />
           <BusinessPoliciesCard current={data.salonSettings.businessPolicies} />
         </div>

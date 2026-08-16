@@ -42,7 +42,6 @@ class TenantMutation:
         payout_phone: Optional[str] = None,
         payout_network: Optional[str] = None,
         whatsapp_number: Optional[str] = None,
-        slot_interval_minutes: Optional[int] = None,
     ) -> bool:
         from beautybook.permissions import require_owner
         require_owner(info)
@@ -66,14 +65,10 @@ class TenantMutation:
             tenant.payout_network = payout_network.strip()
         if whatsapp_number is not None:
             tenant.whatsapp_number = whatsapp_number.strip()
-        if slot_interval_minutes is not None:
-            if slot_interval_minutes < 5:
-                raise ValueError("Slot interval must be at least 5 minutes.")
-            tenant.slot_interval_minutes = slot_interval_minutes
         tenant.save(update_fields=[
             "cover_image_url", "address", "phone", "city", "area",
             "payout_phone", "payout_network", "whatsapp_number",
-            "slot_interval_minutes", "updated_at",
+            "updated_at",
         ])
         return True
 

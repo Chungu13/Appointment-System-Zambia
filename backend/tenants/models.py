@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import Q
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django_tenants.models import TenantMixin, DomainMixin
@@ -34,10 +33,6 @@ class Tenant(TenantMixin):
     whatsapp_number = models.CharField(max_length=20, blank=True, default='')
     cover_image_url = models.TextField(blank=True)
     portfolio_preview_url = models.TextField(blank=True)
-    slot_interval_minutes = models.PositiveIntegerField(
-        default=30,
-        help_text="Granularity of appointment start times shown to customers (e.g. every 15/30/60 min).",
-    )
     business_policies = models.JSONField(default=dict, blank=True)
     onboarding_completed = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
@@ -51,12 +46,6 @@ class Tenant(TenantMixin):
 
     class Meta:
         ordering = ["business_name"]
-        constraints = [
-            models.CheckConstraint(
-                condition=Q(slot_interval_minutes__gte=5),
-                name="tenant_slot_interval_min_5",
-            ),
-        ]
 
     def __str__(self):
         return self.business_name

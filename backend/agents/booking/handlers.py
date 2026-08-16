@@ -192,11 +192,13 @@ def handle_check_availability(inputs: dict) -> tuple:
             StaffService.objects.filter(service_id=inputs["service_id"])
             .values_list("staff_id", flat=True)
         )
+        # "Open" now means someone actually offers times that day — a weekday
+        # with no times picked is closed, not fully booked.
         open_today = WorkingHours.objects.filter(
             staff_id__in=qualified_ids,
             day_of_week=day_of_week,
             is_day_off=False,
-        ).exists()
+        ).exclude(available_times=[]).exists()
 
         if not open_today:
             reason = "closed"

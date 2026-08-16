@@ -7,7 +7,7 @@ from .models import User, WorkingHours
 class WorkingHoursInline(admin.TabularInline):
     model = WorkingHours
     extra = 0
-    fields = ("day_of_week", "is_day_off", "start_time", "end_time")
+    fields = ("day_of_week", "is_day_off", "available_times")
     ordering = ("day_of_week",)
 
 
@@ -28,7 +28,7 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(WorkingHours)
 class WorkingHoursAdmin(admin.ModelAdmin):
-    list_display = ("staff", "day_of_week", "is_day_off", "start_time", "end_time")
+    list_display = ("staff", "day_of_week", "is_day_off", "available_times")
     list_filter = ("day_of_week", "is_day_off")
     search_fields = ("staff__full_name", "staff__username")
     raw_id_fields = ("staff",)

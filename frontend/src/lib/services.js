@@ -21,14 +21,6 @@ export function formatDuration(minutes) {
   return m === 0 ? `${h} hr${h !== 1 ? 's' : ''}` : `${h}h ${m}m`
 }
 
-export const SLOT_INTERVALS = [
-  { label: '15 min', value: 15 },
-  { label: '20 min', value: 20 },
-  { label: '30 min', value: 30 },
-  { label: '45 min', value: 45 },
-  { label: '1 hour', value: 60 },
-]
-
 export const CATEGORY_CHIPS = {
   nail_tech:   ['Gel Nails', 'Acrylic', 'Manicure', 'Pedicure', 'Nail Art'],
   salon:       ['Box Braids', 'Relaxer', 'Weave', 'Natural Hair', 'Cuts & Styling'],
