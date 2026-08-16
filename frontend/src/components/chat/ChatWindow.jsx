@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Send, Sparkles, ShieldCheck, Paperclip, Check } from "lucide-react";
+import { X, Send, Sparkles, ShieldCheck } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useAgentChat, generateSessionId } from "../../hooks/useAgentChat";
@@ -623,66 +623,15 @@ function MessageBubble({ message, onSend, salonName, customerName }) {
   );
 }
 
-function ChatInputBar({ onSend, loading, disabled = false, sessionId, sessionToken }) {
+function ChatInputBar({ onSend, loading, disabled = false }) {
   const [value, setValue] = useState("");
-  const [attaching, setAttaching] = useState(false);
-  const [attachError, setAttachError] = useState("");
-  const uploadUrl = useRef(getUploadReferenceUrl()).current;
   const isDisabled = loading || disabled;
 
   function submit(e) { e.preventDefault(); if (!value.trim() || isDisabled) return; onSend(value.trim()); setValue(""); }
 
-  function handleFile(file) {
-    if (!file) return;
-    setAttachError("");
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      setAttachError("Only JPG and PNG files are accepted.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setAttachError("File must be under 5 MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      setAttaching(true);
-      try {
-        const res = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_id: sessionId,
-            session_token: sessionToken || "",
-            image: e.target.result,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          setAttachError(data.error || "Upload failed. Please try again.");
-          return;
-        }
-        onSend("I've attached a reference photo.");
-      } catch {
-        setAttachError("Upload failed. Please try again.");
-      } finally {
-        setAttaching(false);
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
   return (
     <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
-      {attachError && (
-        <p style={{ fontFamily: sans, fontSize: 11, color: "#f87171", margin: "8px 12px 0" }}>{attachError}</p>
-      )}
       <form onSubmit={submit} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px" }}>
-        <label style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: isDisabled || attaching ? "default" : "pointer", opacity: isDisabled || attaching ? 0.4 : 1 }}>
-          <input type="file" accept="image/jpeg,image/png" disabled={isDisabled || attaching} onChange={(e) => handleFile(e.target.files?.[0])} style={{ display: "none" }} />
-          {attaching
-            ? <span style={{ width: 13, height: 13, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />
-            : <Paperclip size={15} color="rgba(255,255,255,0.7)" />}
-        </label>
         <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder={disabled ? "Just a moment…" : "Type a message…"} disabled={isDisabled} className="chat-dark-input" style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 14px", fontFamily: sans, fontSize: 16, fontWeight: 300, color: "#fff", outline: "none" }} />
         <button type="submit" disabled={!value.trim() || isDisabled} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: PRIMARY, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !value.trim() || isDisabled ? 0.4 : 1 }}>
           {loading ? <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> : <Send size={15} color="#fff" />}
@@ -787,119 +736,6 @@ function getChatVerifyUrl() {
   }
   const base = (import.meta.env.VITE_PUBLIC_API_URL || "http://localhost:8000/graphql/").replace(/\/graphql\/?$/, "");
   return `${base}/chat/verify/`;
-}
-
-function getUploadReferenceUrl() {
-  const RESERVED = new Set(["www", "api", "app", "admin", "mail", "smtp", "ftp", "cdn"]);
-  const parts = window.location.hostname.split(".");
-  const sub =
-    parts.length >= 3 ? parts[0] :
-    parts.length === 2 && parts[1] === "localhost" ? parts[0] :
-    null;
-  const slug = sub && !RESERVED.has(sub) ? sub : null;
-  const apiDomain = import.meta.env.VITE_TENANT_API_DOMAIN;
-  if (slug) {
-    return apiDomain
-      ? `https://${slug}.${apiDomain}/chat/upload-reference/`
-      : `http://${slug}.localhost:8000/chat/upload-reference/`;
-  }
-  const base = (import.meta.env.VITE_PUBLIC_API_URL || "http://localhost:8000/graphql/").replace(/\/graphql\/?$/, "");
-  return `${base}/chat/upload-reference/`;
-}
-
-// ── Reference-photo gate — a full blocking screen shown BEFORE the chat ever
-// opens, when the selected service requires a reference photo. The AI is
-// never involved in enforcing this: the customer physically cannot reach the
-// chat input until the upload succeeds. The photo is stashed server-side
-// against sessionId and picked up automatically when the booking is
-// eventually created. ─────────────────────────────────────────────────────
-
-function ReferencePhotoGate({ salonName, service, sessionId, onClose, onDone }) {
-  const [status, setStatus] = useState("idle"); // idle | uploading | done | error
-  const [errorMsg, setErrorMsg] = useState("");
-  const uploadUrl = useRef(getUploadReferenceUrl()).current;
-
-  function handleFile(file) {
-    if (!file) return;
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      setStatus("error");
-      setErrorMsg("Only JPG and PNG files are accepted.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setStatus("error");
-      setErrorMsg("File must be under 5 MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      setStatus("uploading");
-      setErrorMsg("");
-      try {
-        const res = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_id: sessionId,
-            session_token: "",
-            image: e.target.result,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          setStatus("error");
-          setErrorMsg(data.error || "Upload failed. Please try again.");
-          return;
-        }
-        setStatus("done");
-        setTimeout(onDone, 500);
-      } catch {
-        setStatus("error");
-        setErrorMsg("Upload failed. Please try again.");
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
-  return (
-    <div className="animate-chat-slide-up fixed bottom-4 z-50 flex flex-col overflow-hidden"
-      style={{ width: "min(380px, calc(100vw - 16px))", right: 8, maxHeight: 600, borderRadius: 20, backgroundColor: DARK, boxShadow: "0 8px 40px rgba(0,0,0,0.5)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-      <ChatHeader salonName={salonName} onClose={onClose} />
-
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "28px 20px" }}>
-        <p style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.3px" }}>
-          One more thing
-        </p>
-        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.5)", margin: "0 0 24px", lineHeight: 1.6 }}>
-          {service?.name} needs a reference photo of the style you want before we can book this. Attach one to continue.
-        </p>
-
-        {status === "done" ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#4ade80" }}>
-            <Check size={18} />
-            <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 400 }}>Photo attached, opening chat…</span>
-          </div>
-        ) : (
-          <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "12px 0", backgroundColor: PRIMARY, borderRadius: 10, cursor: status === "uploading" ? "default" : "pointer", opacity: status === "uploading" ? 0.6 : 1 }}>
-            <input
-              type="file"
-              accept="image/jpeg,image/png"
-              disabled={status === "uploading"}
-              onChange={(e) => handleFile(e.target.files?.[0])}
-              style={{ display: "none" }}
-            />
-            <Paperclip size={16} color="#fff" />
-            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: "#fff" }}>
-              {status === "uploading" ? "Uploading…" : "Attach a photo"}
-            </span>
-          </label>
-        )}
-        {status === "error" && (
-          <p style={{ fontFamily: sans, fontSize: 12, color: "#f87171", margin: "10px 0 0" }}>{errorMsg}</p>
-        )}
-      </div>
-    </div>
-  );
 }
 
 // ── Chat body (rendered after intake) ────────────────────────────────────────
@@ -1075,25 +911,23 @@ function ChatBody({ customer, onClose, salonName, initialMessage, confirmedBooki
         <div ref={bottomRef} />
       </div>
 
-      <ChatInputBar onSend={sendMessage} loading={loading} disabled={limitReached || sessionEnded} sessionId={sessionId} sessionToken={sessionToken} />
+      <ChatInputBar onSend={sendMessage} loading={loading} disabled={limitReached || sessionEnded} />
     </div>
   );
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export default function ChatWindow({ customerPhone, customerName, onClose, salonName, initialMessage, confirmedBooking, skipIntake, referenceService }) {
+export default function ChatWindow({ customerPhone, customerName, onClose, salonName, initialMessage, confirmedBooking, skipIntake }) {
   const [sessionId] = useState(generateSessionId);
   const [customer, setCustomer] = useState(
     (customerPhone && customerPhone !== "+260000000000") || skipIntake
       ? { name: customerName || "", phone: customerPhone || "" }
       : null,
   );
-  const needsPhoto = !!referenceService?.requiresReferencePicture;
-  const [photoAttached, setPhotoAttached] = useState(false);
 
-  // Fires once, the moment the widget actually opens — before intake, the
-  // photo gate, or the chat body ever mount.
+  // Fires once, the moment the widget actually opens — before intake or the
+  // chat body ever mount.
   useEffect(() => { trackEvent("chat_opened", { salon_name: salonName }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // If returning from payment with a receipt, skip intake form and photo gate —
@@ -1113,20 +947,6 @@ export default function ChatWindow({ customerPhone, customerName, onClose, salon
 
   if (!customer) {
     return <IntakeForm salonName={salonName} onSubmit={setCustomer} onClose={onClose} />;
-  }
-
-  // Hard gate — no chat input exists until the required photo is uploaded,
-  // so this can never depend on the AI remembering to ask for it.
-  if (needsPhoto && !photoAttached) {
-    return (
-      <ReferencePhotoGate
-        salonName={salonName}
-        service={referenceService}
-        sessionId={sessionId}
-        onClose={onClose}
-        onDone={() => setPhotoAttached(true)}
-      />
-    );
   }
 
   return (

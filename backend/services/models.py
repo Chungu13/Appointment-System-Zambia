@@ -17,6 +17,7 @@ class Service(models.Model):
                    "price_zmw is treated as the starting/minimum price.",
     )
     deposit_zmw = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    image_url = models.TextField(blank=True, default="", help_text="Photo shown on the service card / storefront listing.")
     buffer_minutes = models.PositiveIntegerField(
         default=0,
         help_text="Clean-up / prep time appended after the appointment slot.",

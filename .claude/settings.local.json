@@ -12,7 +12,8 @@
       "Bash(git commit *)",
       "Bash(python -c \"from services.schema import ServicesQuery, ServicesMutation; print\\('OK'\\)\")",
       "Bash(python -c \"import django; import os; os.environ.setdefault\\('DJANGO_SETTINGS_MODULE', 'beautybook.settings'\\); django.setup\\(\\); from beautybook.schema_tenant import schema; print\\('schema OK'\\)\")",
-      "Bash(git revert *)"
+      "Bash(git revert *)",
+      "Bash(node \"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-User-beautybook-zm\\\\ab83d5c4-0e46-49d6-aaf5-bece40a276ba\\\\scratchpad\\\\inspect4.js\")"
     ]
   }
 }
