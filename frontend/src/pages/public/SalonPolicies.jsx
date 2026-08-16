@@ -134,7 +134,7 @@ export default function SalonPolicies() {
       </div>
 
       <SalonFooter profile={profile} />
-      <ChatFab chat={chat} salonName={profile.businessName} />
+      <ChatFab chat={chat} profile={profile} />
     </div>
   );
 }

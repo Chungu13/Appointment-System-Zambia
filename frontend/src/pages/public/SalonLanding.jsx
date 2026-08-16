@@ -107,8 +107,8 @@ export default function SalonLanding() {
   const chat = useChatFab();
   const { hash } = useLocation();
 
-  // Detect return from payment page and auto-open chat with confirmation.
-  // Payment redirects always land back on the tenant's home page.
+  // Detect return from the payment page and reopen the booking panel on its
+  // confirmation. Payment redirects always land back on the tenant's home page.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const successRef = params.get("payment_success");
@@ -123,10 +123,7 @@ export default function SalonLanding() {
       staff: params.get("appt_staff") ? decodeURIComponent(params.get("appt_staff")) : "",
       customer: params.get("appt_customer") ? decodeURIComponent(params.get("appt_customer")) : "",
     };
-    setTimeout(() => {
-      chat.setChatConfirmedBooking(booking);
-      chat.openChat("");
-    }, 400);
+    setTimeout(() => chat.showConfirmedBooking(booking), 400);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Services" is a nav pill pointing at "/#services" rather than its own
@@ -219,7 +216,7 @@ export default function SalonLanding() {
       </div>
 
       <SalonFooter profile={profile} />
-      <ChatFab chat={chat} salonName={profile.businessName} />
+      <ChatFab chat={chat} profile={profile} />
     </div>
   );
 }

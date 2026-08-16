@@ -88,7 +88,7 @@ export default function SalonStylists() {
       </div>
 
       <SalonFooter profile={profile} />
-      <ChatFab chat={chat} salonName={profile.businessName} />
+      <ChatFab chat={chat} profile={profile} />
     </div>
   );
 }

@@ -138,7 +138,7 @@ export default function SalonGallery() {
       {lightboxIdx !== null && <Lightbox images={visible} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />}
 
       <SalonFooter profile={profile} />
-      <ChatFab chat={chat} salonName={profile.businessName} />
+      <ChatFab chat={chat} profile={profile} />
     </div>
   );
 }

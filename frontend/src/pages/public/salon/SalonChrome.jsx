@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { MapPin, X, Sparkles, ArrowLeft, Clock } from "lucide-react";
-import ChatWindow from "../../../components/chat/ChatWindow";
+import { MapPin, X, ArrowLeft, Clock, CalendarCheck } from "lucide-react";
+import BookingWizard from "../../../components/booking/BookingWizard";
 import { useSalonPaths } from "./useSalonPaths";
 import {
   PRIMARY,
@@ -348,44 +348,43 @@ export function SalonFooter({ profile }) {
   );
 }
 
-// ── Chat FAB + window ─────────────────────────────────────────────────────────
-export function ChatFab({ chat, salonName }) {
+// ── Booking FAB + wizard panel ────────────────────────────────────────────────
+// The panel runs the step-by-step wizard. No AI takes part in booking.
+export function ChatFab({ chat, profile }) {
   return (
     <>
       <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 40 }}>
         <button
-          onClick={() => (chat.chatOpen ? chat.setChatOpen(false) : chat.openChat(""))}
+          onClick={() => (chat.bookingOpen ? chat.closeBooking() : chat.openChat(""))}
           style={{
             display: "flex", alignItems: "center", gap: 8,
-            padding: chat.chatOpen ? "11px 18px" : "11px 22px",
+            padding: chat.bookingOpen ? "11px 18px" : "11px 22px",
             backgroundColor: DARK, border: "0.5px solid rgba(255,255,255,0.14)",
             borderRadius: 14, color: "#fff", cursor: "pointer",
             boxShadow: "0 4px 24px rgba(0,0,0,0.35)", fontFamily: sans,
             fontSize: 13, fontWeight: 500, letterSpacing: "0.02em", transition: "padding 0.15s",
           }}
         >
-          {chat.chatOpen ? (
+          {chat.bookingOpen ? (
             <>
               <X size={15} style={{ opacity: 0.7 }} />
               <span>Close</span>
             </>
           ) : (
             <>
-              <Sparkles size={14} style={{ color: "#B4895A" }} />
-              <span>Ask or Book</span>
+              <CalendarCheck size={15} style={{ color: "#B4895A" }} />
+              <span>Book now</span>
             </>
           )}
         </button>
       </div>
-      {chat.chatOpen && (
-        <ChatWindow
-          key={chat.chatKey}
-          salonName={salonName}
-          initialMessage={chat.chatInitMsg}
-          confirmedBooking={chat.chatConfirmedBooking}
-          skipIntake={chat.chatSkipIntake}
-          referenceService={chat.chatReferenceService}
-          onClose={() => chat.setChatOpen(false)}
+      {chat.bookingOpen && (
+        <BookingWizard
+          key={chat.bookingKey}
+          service={chat.bookingService}
+          confirmedBooking={chat.confirmedBooking}
+          profile={profile}
+          onClose={chat.closeBooking}
         />
       )}
     </>
