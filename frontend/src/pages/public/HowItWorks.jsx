@@ -24,7 +24,7 @@ const CUSTOMER_STEPS = [
   {
     n: '02',
     title: 'Book',
-    body: 'Pick your service and time, or simply chat with our AI assistant. Just type what you want, like "I want braids Saturday", and it handles everything for you.',
+    body: 'Pick a service, choose your stylist and time, and confirm with a deposit. The whole flow takes under a minute.',
   },
   {
     n: '03',
@@ -46,8 +46,8 @@ const OWNER_STEPS = [
   },
   {
     n: '03',
-    title: 'Let AI work',
-    body: 'Our AI handles bookings, cancellations and insights automatically while you focus on your craft.',
+    title: 'Let it run',
+    body: 'Kimawa handles bookings, cancellations and insights automatically while you focus on your craft.',
   },
 ]
 

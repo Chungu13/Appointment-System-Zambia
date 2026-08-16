@@ -21,7 +21,7 @@ const PAIN_POINTS = [
 ]
 
 const SOLUTIONS = [
-  { title: 'AI takes bookings 24/7',    body: 'Your booking page never sleeps. Clients book anytime: midnight, weekends, holidays, without calling you.' },
+  { title: 'Bookings run themselves 24/7', body: 'Your booking page never sleeps. Clients book anytime: midnight, weekends, holidays, without calling you.' },
   { title: 'Deposits reduce no-shows',  body: 'Require a deposit at booking via Airtel Money or MTN MoMo. No-shows drop dramatically once a client has paid upfront.' },
   { title: 'Admin runs itself',         body: 'Confirmations, rescheduling, and cancellations are handled automatically so you stay focused on your work.' },
 ]
@@ -43,9 +43,9 @@ export default function ForBusinesses() {
     <div style={{ fontFamily: sans }}>
       <Helmet>
         <title>List Your Salon on Kimawa | Free Beauty Booking Software Zambia</title>
-        <meta name="description" content="Get your salon on Kimawa for free. AI booking agent, WhatsApp notifications, deposit collection, and a full calendar, built for Zambian beauty businesses." />
+        <meta name="description" content="Get your salon on Kimawa for free. 24/7 online booking, WhatsApp notifications, deposit collection, and a full calendar, built for Zambian beauty businesses." />
         <meta property="og:title" content="List Your Salon on Kimawa" />
-        <meta property="og:description" content="Free salon booking software for Zambia. AI-powered, WhatsApp-ready, zero setup fee." />
+        <meta property="og:description" content="Free salon booking software for Zambia. 24/7 online booking, WhatsApp-ready, zero setup fee." />
         <link rel="canonical" href="https://kimawa.pro/for-businesses" />
       </Helmet>
       <LandingNav />
@@ -57,7 +57,7 @@ export default function ForBusinesses() {
             For Business Owners
           </p>
           <h1 style={{ fontFamily: sans, fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, margin: '0 0 24px', letterSpacing: '-0.5px' }}>
-            Grow Your Beauty Business with AI.
+            Grow Your Beauty Business Online.
           </h1>
           <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 300, color: 'rgba(255,255,255,0.62)', lineHeight: 1.85, maxWidth: 520, margin: '0 auto 52px' }}>
             Kimawa automates your bookings, collects payments, and gives you insights so you can focus on what you do best.

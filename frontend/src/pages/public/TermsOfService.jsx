@@ -13,7 +13,7 @@ const sections = [
   {
     heading: '1. About Kimawa',
     body: [
-      { type: 'p', text: 'Kimawa is an AI-powered beauty and wellness booking platform operated by Kimawa Innovations, a registered business in Zambia (PACRA BN No.: 320261071866).' },
+      { type: 'p', text: 'Kimawa is a beauty and wellness booking platform operated by Kimawa Innovations, a registered business in Zambia (PACRA BN No.: 320261071866).' },
       { type: 'p', text: 'Kimawa connects customers with beauty and wellness businesses ("Salons") in Zambia. We provide the technology that allows you to discover salons, book appointments, and pay deposits online.' },
     ],
   },
@@ -44,7 +44,7 @@ const sections = [
     heading: '4. Bookings and Deposits',
     body: [
       { type: 'subheading', text: 'How bookings work' },
-      { type: 'p', text: "Kimawa's AI assistant helps you find available times and book appointments at salons listed on our platform. A booking is confirmed once your deposit payment is successfully processed." },
+      { type: 'p', text: "Kimawa's booking page lets you find available times and book appointments at salons listed on our platform. A booking is confirmed once your deposit payment is successfully processed." },
       { type: 'subheading', text: 'Deposits' },
       { type: 'p', text: 'Some services require a deposit to secure your booking. The deposit amount is shown clearly before you confirm. The deposit is collected by Kimawa on behalf of the salon using Lipila, our payment processor.' },
       { type: 'p', text: 'The deposit is part of your total service price. It is deducted from the amount you pay at the salon on the day of your appointment.' },
@@ -75,7 +75,7 @@ const sections = [
           'Booking slots lost due to payment processing failures outside our control',
         ],
       },
-      { type: 'p', text: "If your payment fails, Kimawa's AI assistant will offer you the option to retry. If you experience persistent issues, contact us at hello@kimawa.pro." },
+      { type: 'p', text: "If your payment fails, you'll be given the option to retry. If you experience persistent issues, contact us at hello@kimawa.pro." },
     ],
   },
   {

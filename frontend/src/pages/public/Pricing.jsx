@@ -13,7 +13,7 @@ const BORDER    = '#EDE3D6'
 
 const INCLUDED = [
   'Your own booking page',
-  'AI booking assistant',
+  '24/7 online booking',
   'Unlimited bookings',
   'Business dashboard',
   'Staff portal',

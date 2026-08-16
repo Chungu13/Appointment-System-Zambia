@@ -25,7 +25,7 @@ function Hero() {
         </h1>
 
         <p style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: '#333', lineHeight: 1.7, maxWidth: 480, margin: '0 0 24px' }}>
-          AI powered bookings, payments, and notifications, all in one place.
+          Instant bookings, payments, and notifications, all in one place.
         </p>
 
         {/* Category tags */}
@@ -71,7 +71,7 @@ function SalonsSection() {
               Businesses already on Kimawa
             </h2>
             <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: '#333', margin: 0 }}>
-              Join beauty professionals across Zambia growing their business with AI.
+              Join beauty professionals across Zambia growing their business online.
             </p>
           </div>
           <Link to="/discover" style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: PRIMARY, textDecoration: 'none' }}>
@@ -155,7 +155,7 @@ export default function SalonDirectory() {
     <div style={{ backgroundColor: '#fff' }}>
       <Helmet>
         <title>Kimawa | Book Beauty Salons in Zambia</title>
-        <meta name="description" content="Find and book hair salons, nail technicians, spas and beauty services in Lusaka and across Zambia. Instant online booking, AI-powered." />
+        <meta name="description" content="Find and book hair salons, nail technicians, spas and beauty services in Lusaka and across Zambia. Instant online booking, 24/7." />
         <meta property="og:title" content="Kimawa | Book Beauty Salons in Zambia" />
         <meta property="og:description" content="Lusaka's beauty booking platform. Hair, nails, lashes, spas, book online instantly." />
         <meta property="og:type" content="website" />

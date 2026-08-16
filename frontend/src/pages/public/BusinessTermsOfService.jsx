@@ -26,7 +26,7 @@ const sections = [
         type: 'ul',
         items: [
           'A public listing on the Kimawa marketplace (kimawa.pro)',
-          'An AI-powered booking assistant that handles customer bookings 24/7',
+          'A self-serve online booking page that takes customer bookings 24/7',
           'Deposit collection from customers via Lipila (mobile money and card)',
           'Automatic disbursement of collected deposits to your mobile money account',
           'A dashboard to manage your appointments, staff, services, and portfolio',
