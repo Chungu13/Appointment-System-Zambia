@@ -1,9 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { TrendingUp } from 'lucide-react'
 import { DASHBOARD_STATS, MY_STAFF_APPOINTMENTS } from '../../graphql/queries/bookings'
-import AgentFeed from '../../components/dashboard/AgentFeed'
 import { UPDATE_APPOINTMENT_STATUS } from '../../graphql/mutations/bookings'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { useAuth } from '../../context/AuthContext'
@@ -147,21 +145,6 @@ function WeeklySchedule({ isAlsoStaff }) {
   )
 }
 
-function AIInsightCard({ bookedByAgent }) {
-  return (
-    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: 20 }}>
-      <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>
-        AI Insight
-      </p>
-      <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, lineHeight: 1.7, color: TEXT, margin: 0 }}>
-        Your AI agent booked{' '}
-        <span style={{ fontWeight: 600, color: BURG }}>{bookedByAgent ?? 'N/A'}</span>{' '}
-        appointments this week.
-      </p>
-    </div>
-  )
-}
-
 export default function OwnerDashboard() {
   const { setProfile, isAlsoStaff } = useAuth()
 
@@ -205,7 +188,6 @@ export default function OwnerDashboard() {
             Based on completed appointments
           </p>
         </div>
-        <TrendingUp size={18} style={{ color: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
       </div>
 
       {error && <ErrorMessage message={error.message} />}
@@ -217,7 +199,7 @@ export default function OwnerDashboard() {
             {stats.pendingCompletion} appointment{stats.pendingCompletion !== 1 ? 's' : ''} today still need to be marked as done.
           </p>
           <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: BURG }}>
-            Go to Calendar →
+            Go to Calendar
           </span>
         </div>
       )}
@@ -247,14 +229,7 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Main grid */}
-      <div className="grid sm:grid-cols-[1fr_320px] gap-5 items-start">
-        <WeeklySchedule isAlsoStaff={isAlsoStaff} />
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <AIInsightCard bookedByAgent={stats?.bookedByAgent} />
-          <AgentFeed limit={8} />
-        </div>
-      </div>
+      <WeeklySchedule isAlsoStaff={isAlsoStaff} />
 
     </div>
   )
