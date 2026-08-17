@@ -51,7 +51,7 @@ function CustomerAvatar({ name }) {
   return (
     <div style={{
       width: 36, height: 36, flexShrink: 0,
-      backgroundColor: BURG,
+      backgroundColor: BURG, borderRadius: '50%',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: '#fff' }}>{initials(name)}</span>
@@ -65,7 +65,7 @@ function SkeletonRow() {
   )
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
-      <div style={{ width: 36, height: 36, backgroundColor: '#f3f4f6', flexShrink: 0 }} />
+      <div style={{ width: 36, height: 36, backgroundColor: '#f3f4f6', borderRadius: '50%', flexShrink: 0 }} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {bar('42%')}
         {bar('26%')}
@@ -165,7 +165,7 @@ export default function Customers() {
           style={{
             width: '100%', boxSizing: 'border-box',
             padding: '11px 14px 11px 38px',
-            border: `0.5px solid ${BORDER}`,
+            border: `0.5px solid ${BORDER}`, borderRadius: 10,
             fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
             outline: 'none', backgroundColor: '#fff',
           }}
@@ -175,7 +175,7 @@ export default function Customers() {
       </div>
 
       {/* Table */}
-      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
         {/* Column headers */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', backgroundColor: '#FBF7F1', borderBottom: `0.5px solid ${BORDER}` }}>
           <div style={{ width: 36, flexShrink: 0 }} />

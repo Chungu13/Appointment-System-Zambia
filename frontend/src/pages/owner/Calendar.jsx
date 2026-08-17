@@ -244,7 +244,7 @@ function ListView({ days, appointments, today, onSelect, onAction }) {
                           fontFamily: sans, fontSize: 10, fontWeight: 400,
                           letterSpacing: '0.08em', textTransform: 'uppercase',
                           color: '#fff', backgroundColor: BURG,
-                          border: 'none', padding: '5px 12px',
+                          border: 'none', borderRadius: 8, padding: '5px 12px',
                           cursor: 'pointer', flexShrink: 0,
                         }}
                       >
@@ -285,7 +285,7 @@ function RebookModal({ appt, onClose, onRebooked }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 400, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 16, width: '100%', maxWidth: 400, maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
           <div>
             <h2 style={{ fontFamily: sans, fontSize: 16, fontWeight: 400, color: TEXT, margin: 0 }}>Rebook appointment</h2>
@@ -303,7 +303,7 @@ function RebookModal({ appt, onClose, onRebooked }) {
             value={date}
             min={toDateInputValue(new Date())}
             onChange={(e) => { setDate(e.target.value); setRebookErr('') }}
-            style={{ border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+            style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box' }}
             onFocus={(e) => (e.target.style.borderColor = BURG)}
             onBlur={(e) => (e.target.style.borderColor = BORDER)}
           />
@@ -323,7 +323,7 @@ function RebookModal({ appt, onClose, onRebooked }) {
                   onClick={() => rebook({ variables: { appointmentId: appt.id, newStartsAt: slot.startsAt } })}
                   style={{
                     fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT,
-                    border: `0.5px solid ${BORDER}`, background: '#fff',
+                    border: `0.5px solid ${BORDER}`, borderRadius: 10, background: '#fff',
                     padding: '10px 0', cursor: rebooking ? 'default' : 'pointer',
                     transition: 'all 0.1s',
                   }}
@@ -352,7 +352,7 @@ function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 380 }}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 16, width: '100%', maxWidth: 380, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}` }}>
           <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: TEXT, margin: 0 }}>Appointment</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
@@ -390,7 +390,7 @@ function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
           )}
 
           {appt.customerNotes && (
-            <div style={{ backgroundColor: '#FBF7F1', border: `0.5px solid ${BORDER}`, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
+            <div style={{ backgroundColor: '#FBF7F1', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT }}>
               {appt.customerNotes}
             </div>
           )}
@@ -400,7 +400,7 @@ function ApptModal({ appt, onClose, onAction, loading, onRebook }) {
               <img
                 src={appt.referenceImageUrl}
                 alt="Reference photo"
-                style={{ maxWidth: 160, maxHeight: 160, border: `0.5px solid ${BORDER}`, display: 'block' }}
+                style={{ maxWidth: 160, maxHeight: 160, border: `0.5px solid ${BORDER}`, borderRadius: 10, display: 'block' }}
               />
             </a>
           )}
@@ -513,7 +513,7 @@ export default function Calendar() {
         action={
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
             {/* Week / Day / List toggle */}
-            <div style={{ display: 'flex', border: `0.5px solid ${BORDER}` }}>
+            <div style={{ display: 'flex', border: `0.5px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
               {VIEW_OPTIONS.map(({ key, icon: Icon, label }) => (
                 <button
                   key={key}
@@ -541,7 +541,7 @@ export default function Calendar() {
                 onClick={() => setWkStart((d) => addDays(d, -7))}
                 style={{
                   width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: `0.5px solid ${BORDER}`, background: '#fff', cursor: 'pointer', color: MUTED,
+                  border: `0.5px solid ${BORDER}`, borderRadius: 8, background: '#fff', cursor: 'pointer', color: MUTED,
                   transition: 'background-color 0.1s',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FBF7F1')}
@@ -553,7 +553,7 @@ export default function Calendar() {
                 onClick={() => setWkStart((d) => addDays(d, 7))}
                 style={{
                   width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: `0.5px solid ${BORDER}`, background: '#fff', cursor: 'pointer', color: MUTED,
+                  border: `0.5px solid ${BORDER}`, borderRadius: 8, background: '#fff', cursor: 'pointer', color: MUTED,
                   transition: 'background-color 0.1s',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FBF7F1')}
@@ -573,7 +573,7 @@ export default function Calendar() {
                 setSelDay(d)
               }}
               style={{
-                border: `0.5px solid ${BORDER}`, padding: '6px 10px',
+                border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px',
                 fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
                 backgroundColor: '#fff', outline: 'none',
               }}
@@ -587,7 +587,7 @@ export default function Calendar() {
       {/* ── Pending completion reminder ── */}
       {!loading && pendingToday > 0 && (
         <div style={{
-          backgroundColor: '#fff8f8', border: `0.5px solid #e0b0b8`,
+          backgroundColor: '#fff8f8', border: `0.5px solid #e0b0b8`, borderRadius: 12,
           padding: '10px 16px', marginBottom: 16,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
@@ -600,7 +600,7 @@ export default function Calendar() {
               style={{
                 fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.08em',
                 textTransform: 'uppercase', color: BURG, background: 'none',
-                border: `0.5px solid #e0b0b8`, padding: '4px 12px', cursor: 'pointer', flexShrink: 0,
+                border: `0.5px solid #e0b0b8`, borderRadius: 8, padding: '4px 12px', cursor: 'pointer', flexShrink: 0,
               }}
             >
               View list
@@ -642,7 +642,7 @@ export default function Calendar() {
 
       {/* ── List view ── */}
       {view === 'list' && !loading && (
-        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
+        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
           <ListView
             days={listDays}
             appointments={appointments}
@@ -655,7 +655,7 @@ export default function Calendar() {
 
       {/* ── Grid (week / day) ── */}
       {view !== 'list' && (
-        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, overflow: 'auto' }}>
+        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, overflow: 'auto' }}>
           <div style={{ display: 'flex', minWidth: view === 'week' ? 620 : 0 }}>
             <TimeRuler />
             <div style={{ display: 'flex', flex: 1, gap: 1, padding: '0 2px 16px' }}>

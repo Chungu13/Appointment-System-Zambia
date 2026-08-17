@@ -64,14 +64,14 @@ function UploadModal({ services, onClose, onSave }) {
 
   const fieldStyle = {
     width: '100%', boxSizing: 'border-box',
-    padding: '9px 12px', border: `0.5px solid ${BORDER}`,
+    padding: '9px 12px', border: `0.5px solid ${BORDER}`, borderRadius: 10,
     fontFamily: sans, fontSize: 12, fontWeight: 300,
     color: TEXT, backgroundColor: '#fff', outline: 'none',
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, width: '100%', maxWidth: 420, maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 16, width: '100%', maxWidth: 420, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
           <h2 style={{ fontFamily: serif, fontSize: 18, fontWeight: 300, color: TEXT, margin: 0 }}>Add portfolio photo</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
@@ -84,10 +84,10 @@ function UploadModal({ services, onClose, onSave }) {
 
           {preview ? (
             <div style={{ position: 'relative' }}>
-              <img src={preview} alt="Preview" style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }} />
+              <img src={preview} alt="Preview" style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}`, borderRadius: 12 }} />
               <button
                 onClick={() => { setPreview(null); setDataUrl(null) }}
-                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: 8, color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
                 <X size={14} />
               </button>
@@ -99,7 +99,7 @@ function UploadModal({ services, onClose, onSave }) {
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
               style={{
-                height: 160, border: `0.5px solid ${dragOver ? BURG : BORDER}`,
+                height: 160, border: `0.5px solid ${dragOver ? BURG : BORDER}`, borderRadius: 12,
                 backgroundColor: dragOver ? BLUSH : '#fff',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center', gap: 8, cursor: 'pointer',
@@ -165,7 +165,7 @@ function PhotoCard({ image, isFirst, isLast, onDelete, onMoveUp, onMoveDown }) {
 
   return (
     <div
-      style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden' }}
+      style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', borderRadius: 12 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setConfirm(false) }}
     >
@@ -295,7 +295,7 @@ export default function Portfolio() {
                 background: BURG, color: '#fff', padding: '10px 20px',
                 fontFamily: sans, fontSize: 10, fontWeight: 300,
                 letterSpacing: '0.1em', textTransform: 'uppercase',
-                border: 'none', cursor: adding ? 'not-allowed' : 'pointer',
+                border: 'none', borderRadius: 10, cursor: adding ? 'not-allowed' : 'pointer',
                 opacity: adding ? 0.7 : 1,
               }}
             >
@@ -309,8 +309,8 @@ export default function Portfolio() {
       {error && <ErrorMessage message={error.message} />}
 
       {!loading && images.length === 0 && (
-        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: '60px 40px', textAlign: 'center' }}>
-          <div style={{ width: 48, height: 48, backgroundColor: BLUSH, border: `0.5px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+        <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '60px 40px', textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, backgroundColor: BLUSH, border: `0.5px solid ${BORDER}`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
             <Images size={20} color="#d4a8b0" />
           </div>
           <h3 style={{ fontFamily: serif, fontSize: 22, fontWeight: 300, color: TEXT, margin: '0 0 10px' }}>No photos yet</h3>
@@ -319,7 +319,7 @@ export default function Portfolio() {
           </p>
           <button
             onClick={() => setShowModal(true)}
-            style={{ background: BURG, color: '#fff', padding: '10px 20px', fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', border: 'none', cursor: 'pointer' }}
+            style={{ background: BURG, color: '#fff', padding: '10px 20px', fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', border: 'none', borderRadius: 10, cursor: 'pointer' }}
           >
             Add your first photo
           </button>
@@ -344,7 +344,7 @@ export default function Portfolio() {
             <button
               onClick={() => setShowModal(true)}
               style={{
-                aspectRatio: '1', border: `0.5px solid ${BORDER}`, background: '#fff',
+                aspectRatio: '1', border: `0.5px solid ${BORDER}`, borderRadius: 12, background: '#fff',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center', gap: 8, cursor: 'pointer',
                 transition: 'background-color 0.1s',

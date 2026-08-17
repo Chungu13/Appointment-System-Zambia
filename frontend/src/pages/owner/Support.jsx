@@ -11,8 +11,8 @@ const sans   = "'Inter', sans-serif"
 
 const FAQS = [
   {
-    q: 'How do customers book through the AI agent?',
-    a: 'Customers click the chat button on your public salon page. The AI asks them which service they want, shows available times, and takes them through payment. No manual involvement needed from you.',
+    q: 'How do customers book an appointment?',
+    a: 'Customers use the step-by-step booking page: they pick a service, choose a stylist and time, and pay the deposit. A chat option is also available on your page if they have questions. No manual involvement needed from you.',
   },
   {
     q: 'What is the deposit and who receives it?',
@@ -32,11 +32,11 @@ const FAQS = [
   },
   {
     q: 'Can I add staff members and assign them to services?',
-    a: 'Yes. Go to the Staff page to add staff, then edit each service to assign the staff members who can perform it. The AI will only assign staff who are qualified and available.',
+    a: 'Yes. Go to the Staff page to add staff, then edit each service to assign the staff members who can perform it. Only staff qualified and available for a service can be booked for it.',
   },
   {
     q: 'How do I update my business information or opening hours?',
-    a: 'Go to Settings to update your business name, hours, policies, and AI assistant behaviour.',
+    a: 'Go to Settings to update your business name, hours, and booking policies.',
   },
   {
     q: 'My question isn\'t answered here. How do I get help?',
@@ -80,8 +80,8 @@ export default function Support() {
       />
 
       {/* Contact card */}
-      <div style={{ backgroundColor: BLUSH, border: `0.5px solid ${BORDER}`, padding: '24px 28px', marginBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-        <div style={{ width: 36, height: 36, backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ backgroundColor: BLUSH, border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '24px 28px', marginBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+        <div style={{ width: 36, height: 36, backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Mail size={16} color={BURG} />
         </div>
         <div>
@@ -101,7 +101,7 @@ export default function Support() {
       </div>
 
       {/* FAQs */}
-      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: '4px 24px 0' }}>
+      <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '4px 24px 0' }}>
         <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: BURG, margin: '20px 0 4px' }}>
           Frequently asked questions
         </p>

@@ -17,6 +17,7 @@ export default function Analytics() {
         style={{
           backgroundColor: '#fff',
           border: `0.5px solid ${BORDER}`,
+          borderRadius: 14,
           padding: '60px 40px',
           textAlign: 'center',
         }}
@@ -27,6 +28,7 @@ export default function Analytics() {
             height: 48,
             backgroundColor: '#FBF7F1',
             border: `0.5px solid ${BORDER}`,
+            borderRadius: 12,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -20,33 +20,35 @@ def build_system_prompt(tenant, customer_name: str = "") -> str:
     business_type_label = tenant.get_business_type_display()
     location_str = ", ".join(p for p in [tenant.address, tenant.area, tenant.city] if p)
 
+    def _joined(value) -> str:
+        """Policy fields are stored as lists since the multi-select migration;
+        older tenants may still have a bare string saved — handle both."""
+        return ", ".join(value) if isinstance(value, list) else (value or "")
+
     policies = tenant.business_policies or {}
     policies_lines = []
     if policies.get("cancellationPolicy"):
-        policies_lines.append(f"- Cancellation policy: {policies['cancellationPolicy']}")
+        policies_lines.append(f"- Cancellation policy: {_joined(policies['cancellationPolicy'])}")
     if policies.get("lateArrivalPolicy"):
-        policies_lines.append(f"- Late arrivals: {policies['lateArrivalPolicy']}")
+        policies_lines.append(f"- Late arrivals: {_joined(policies['lateArrivalPolicy'])}")
     if policies.get("lateFee"):
-        policies_lines.append(f"- Late fee: {policies['lateFee']}")
+        policies_lines.append(f"- Late fee: {_joined(policies['lateFee'])}")
     if policies.get("waitingTime"):
-        policies_lines.append(f"- Waiting time: {policies['waitingTime']}")
+        policies_lines.append(f"- Waiting time: {_joined(policies['waitingTime'])}")
     if policies.get("whatToBring"):
-        bring = policies["whatToBring"]
-        if isinstance(bring, list):
-            bring = ", ".join(bring)
-        policies_lines.append(f"- Customers should bring: {bring}")
+        policies_lines.append(f"- Customers should bring: {_joined(policies['whatToBring'])}")
     if policies.get("walkIns"):
-        policies_lines.append(f"- Walk-ins: {policies['walkIns']}")
+        policies_lines.append(f"- Walk-ins: {_joined(policies['walkIns'])}")
     if policies.get("depositPolicy"):
-        policies_lines.append(f"- Deposit policy: {policies['depositPolicy']}")
+        policies_lines.append(f"- Deposit policy: {_joined(policies['depositPolicy'])}")
     if policies.get("refundPolicy"):
-        policies_lines.append(f"- Refunds: {policies['refundPolicy']}")
+        policies_lines.append(f"- Refunds: {_joined(policies['refundPolicy'])}")
     if policies.get("balancePaymentMethod"):
-        policies_lines.append(f"- Balance payment at the salon: {policies['balancePaymentMethod']}")
+        policies_lines.append(f"- Balance payment at the salon: {_joined(policies['balancePaymentMethod'])}")
     if policies.get("howToFindUs"):
         policies_lines.append(f"- How to find us: {policies['howToFindUs']}")
     if policies.get("contactPreference"):
-        policies_lines.append(f"- Preferred contact: {policies['contactPreference']}")
+        policies_lines.append(f"- Preferred contact: {_joined(policies['contactPreference'])}")
     if policies.get("additionalInfo"):
         policies_lines.append(f"- Additional info: {policies['additionalInfo']}")
 

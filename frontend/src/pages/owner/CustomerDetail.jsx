@@ -56,7 +56,7 @@ function initials(name) {
 
 function StatCard({ icon: Icon, label, value, sub, valueColor }) {
   return (
-    <div style={{ flex: 1, minWidth: 100, border: `0.5px solid ${BORDER}`, padding: '16px 18px', backgroundColor: '#fff' }}>
+    <div style={{ flex: 1, minWidth: 100, border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '16px 18px', backgroundColor: '#fff' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <Icon size={13} color={MUTED} />
         <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, margin: 0 }}>{label}</p>
@@ -73,7 +73,7 @@ function StatusBadge({ status }) {
     <span style={{
       fontFamily: sans, fontSize: 10, fontWeight: 400,
       color: s.color, backgroundColor: s.bg,
-      border: `0.5px solid ${s.border}`,
+      border: `0.5px solid ${s.border}`, borderRadius: 999,
       padding: '2px 8px', letterSpacing: '0.06em',
     }}>
       {s.label}
@@ -171,20 +171,20 @@ export default function CustomerDetail() {
       </button>
 
       {loading ? (
-        <div style={{ border: `0.5px solid ${BORDER}`, padding: '48px 24px', textAlign: 'center', backgroundColor: '#fff' }}>
+        <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '48px 24px', textAlign: 'center', backgroundColor: '#fff' }}>
           <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0 }}>Loading…</p>
         </div>
       ) : !customer ? (
-        <div style={{ border: `0.5px solid ${BORDER}`, padding: '48px 24px', textAlign: 'center', backgroundColor: '#fff' }}>
+        <div style={{ border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '48px 24px', textAlign: 'center', backgroundColor: '#fff' }}>
           <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: MUTED, margin: 0 }}>Customer not found.</p>
         </div>
       ) : (
         <>
           {/* Header card */}
-          <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: '24px 24px 20px', marginBottom: 16 }}>
+          <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: '24px 24px 20px', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{
-                width: 52, height: 52, backgroundColor: BURG, flexShrink: 0,
+                width: 52, height: 52, backgroundColor: BURG, borderRadius: '50%', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <span style={{ fontFamily: sans, fontSize: 18, fontWeight: 400, color: '#fff' }}>
@@ -221,7 +221,7 @@ export default function CustomerDetail() {
           </div>
 
           {/* Booking history */}
-          <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
+          <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '12px 20px', borderBottom: `0.5px solid ${BORDER}`, backgroundColor: BLUSH }}>
               <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED, margin: 0 }}>
                 Booking history · {appointments.length} appointment{appointments.length !== 1 ? 's' : ''}

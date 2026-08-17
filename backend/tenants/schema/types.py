@@ -7,49 +7,57 @@ from strawberry.types import Info
 
 @strawberry.type
 class BusinessPoliciesType:
-    cancellation_policy: str
-    late_arrival_policy: str
-    late_fee: str
-    waiting_time: str
+    cancellation_policy: List[str]
+    late_arrival_policy: List[str]
+    late_fee: List[str]
+    waiting_time: List[str]
     what_to_bring: List[str]
-    walk_ins: str
-    deposit_policy: str
-    refund_policy: str
-    balance_payment_method: str
+    walk_ins: List[str]
+    deposit_policy: List[str]
+    refund_policy: List[str]
+    balance_payment_method: List[str]
     how_to_find_us: str
-    contact_preference: str
+    contact_preference: List[str]
     additional_info: str
 
 
 @strawberry.input
 class BusinessPoliciesInput:
-    cancellation_policy: str = ""
-    late_arrival_policy: str = ""
-    late_fee: str = ""
-    waiting_time: str = ""
+    cancellation_policy: List[str] = strawberry.field(default_factory=list)
+    late_arrival_policy: List[str] = strawberry.field(default_factory=list)
+    late_fee: List[str] = strawberry.field(default_factory=list)
+    waiting_time: List[str] = strawberry.field(default_factory=list)
     what_to_bring: List[str] = strawberry.field(default_factory=list)
-    walk_ins: str = ""
-    deposit_policy: str = ""
-    refund_policy: str = ""
-    balance_payment_method: str = ""
+    walk_ins: List[str] = strawberry.field(default_factory=list)
+    deposit_policy: List[str] = strawberry.field(default_factory=list)
+    refund_policy: List[str] = strawberry.field(default_factory=list)
+    balance_payment_method: List[str] = strawberry.field(default_factory=list)
     how_to_find_us: str = ""
-    contact_preference: str = ""
+    contact_preference: List[str] = strawberry.field(default_factory=list)
     additional_info: str = ""
+
+
+def _as_list(value) -> List[str]:
+    """Legacy saved policies were a single string; wrap those as a one-item
+    list so tenants who saved before the multi-select migration still load."""
+    if isinstance(value, list):
+        return value
+    return [value] if value else []
 
 
 def _policies_from_db(data: dict) -> BusinessPoliciesType:
     return BusinessPoliciesType(
-        cancellation_policy=data.get("cancellationPolicy", ""),
-        late_arrival_policy=data.get("lateArrivalPolicy", ""),
-        late_fee=data.get("lateFee", ""),
-        waiting_time=data.get("waitingTime", ""),
+        cancellation_policy=_as_list(data.get("cancellationPolicy")),
+        late_arrival_policy=_as_list(data.get("lateArrivalPolicy")),
+        late_fee=_as_list(data.get("lateFee")),
+        waiting_time=_as_list(data.get("waitingTime")),
         what_to_bring=data.get("whatToBring", []),
-        walk_ins=data.get("walkIns", ""),
-        deposit_policy=data.get("depositPolicy", ""),
-        refund_policy=data.get("refundPolicy", ""),
-        balance_payment_method=data.get("balancePaymentMethod", ""),
+        walk_ins=_as_list(data.get("walkIns")),
+        deposit_policy=_as_list(data.get("depositPolicy")),
+        refund_policy=_as_list(data.get("refundPolicy")),
+        balance_payment_method=_as_list(data.get("balancePaymentMethod")),
         how_to_find_us=data.get("howToFindUs", ""),
-        contact_preference=data.get("contactPreference", ""),
+        contact_preference=_as_list(data.get("contactPreference")),
         additional_info=data.get("additionalInfo", ""),
     )
 

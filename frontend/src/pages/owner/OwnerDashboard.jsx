@@ -36,7 +36,7 @@ function addDays(dateStr, n) {
 
 function StatCard({ label, value, sub }) {
   return (
-    <div className="p-3 sm:p-5" style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}` }}>
+    <div className="p-3 sm:p-5" style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14 }}>
       <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTED, margin: '0 0 6px' }}>
         {label}
       </p>
@@ -71,7 +71,7 @@ function WeeklySchedule({ isAlsoStaff }) {
     .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
 
   return (
-    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: 20 }}>
+    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: 20 }}>
       <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: BURG, margin: '0 0 16px' }}>
         Weekly Schedule
       </p>
@@ -131,7 +131,7 @@ function WeeklySchedule({ isAlsoStaff }) {
                       fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.08em',
                       textTransform: 'uppercase', padding: '6px 14px',
                       color: '#fff', backgroundColor: BURG,
-                      border: 'none', cursor: acting ? 'not-allowed' : 'pointer',
+                      border: 'none', borderRadius: 8, cursor: acting ? 'not-allowed' : 'pointer',
                       opacity: acting ? 0.5 : 1, flexShrink: 0,
                     }}
                   >
@@ -149,7 +149,7 @@ function WeeklySchedule({ isAlsoStaff }) {
 
 function AIInsightCard({ bookedByAgent }) {
   return (
-    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, padding: 20 }}>
+    <div style={{ backgroundColor: '#fff', border: `0.5px solid ${BORDER}`, borderRadius: 14, padding: 20 }}>
       <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase', color: BURG, margin: '0 0 12px' }}>
         AI Insight
       </p>
@@ -193,7 +193,7 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Revenue bar */}
-      <div style={{ backgroundColor: BURG, padding: '16px 24px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ backgroundColor: BURG, borderRadius: 14, padding: '16px 24px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <p style={{ fontFamily: sans, fontSize: 10, fontWeight: 300, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', margin: '0 0 4px' }}>
             Earned Today
@@ -212,7 +212,7 @@ export default function OwnerDashboard() {
 
       {/* Pending completion reminder */}
       {!loading && stats?.pendingCompletion > 0 && (
-        <div style={{ backgroundColor: '#fff8f8', border: '0.5px solid #e0b0b8', padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ backgroundColor: '#fff8f8', border: '0.5px solid #e0b0b8', borderRadius: 12, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: BURG, margin: 0 }}>
             {stats.pendingCompletion} appointment{stats.pendingCompletion !== 1 ? 's' : ''} today still need to be marked as done.
           </p>

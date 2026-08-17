@@ -23,6 +23,7 @@ const serif = "'Inter', sans-serif"
 const cardStyle = {
   backgroundColor: '#fff',
   border: `0.5px solid ${BORDER}`,
+  borderRadius: 14,
   padding: 28,
   display: 'flex',
   flexDirection: 'column',
@@ -47,6 +48,7 @@ const primaryBtn = (disabled) => ({
   backgroundColor: disabled ? '#d4a8b0' : BURG,
   color: '#fff',
   border: 'none',
+  borderRadius: 10,
   fontFamily: sans,
   fontSize: 10,
   fontWeight: 300,
@@ -60,6 +62,7 @@ const outlineBtn = {
   backgroundColor: 'transparent',
   color: BURG,
   border: `0.5px solid ${BORDER}`,
+  borderRadius: 10,
   fontFamily: sans,
   fontSize: 10,
   fontWeight: 300,
@@ -162,10 +165,10 @@ function PersonalDetailsCard({ profile }) {
             <img
               src={profile.avatarUrl}
               alt={profile.fullName}
-              style={{ width: 64, height: 64, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }}
+              style={{ width: 64, height: 64, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}`, borderRadius: '50%' }}
             />
           ) : (
-            <div style={{ width: 64, height: 64, backgroundColor: BURG, display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none' }}>
+            <div style={{ width: 64, height: 64, backgroundColor: BURG, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none' }}>
               <span style={{ fontFamily: sans, fontSize: 20, fontWeight: 400, color: '#fff' }}>{getInitials(profile.fullName)}</span>
             </div>
           )}
@@ -178,6 +181,7 @@ function PersonalDetailsCard({ profile }) {
               width: 20, height: 20,
               backgroundColor: '#000',
               border: 'none',
+              borderRadius: '50%',
               color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -289,7 +293,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
             <select
               value={payoutNetwork}
               onChange={(e) => setPayoutNetwork(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', border: `0.5px solid ${BORDER}`, background: '#fff', fontFamily: sans, fontSize: 13, color: TEXT, outline: 'none', appearance: 'none' }}
+              style={{ width: '100%', padding: '10px 12px', border: `0.5px solid ${BORDER}`, borderRadius: 10, background: '#fff', fontFamily: sans, fontSize: 13, color: TEXT, outline: 'none', appearance: 'none' }}
             >
               <option value="">Select network</option>
               <option value="mtn">MTN Money</option>
@@ -411,7 +415,7 @@ function DangerZoneCard() {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFF8F8', border: '0.5px solid #F0C8C8', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ backgroundColor: '#FFF8F8', border: '0.5px solid #F0C8C8', borderRadius: 14, padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <h2 style={{ ...headingStyle, color: '#8B1A1A' }}>
         <AlertTriangle size={17} />
         Danger zone
@@ -446,6 +450,7 @@ function DangerZoneCard() {
                 backgroundColor: loading || confirm !== businessName ? '#fca5a5' : '#dc2626',
                 color: '#fff',
                 border: 'none',
+                borderRadius: 10,
                 fontFamily: sans,
                 fontSize: 10,
                 fontWeight: 300,

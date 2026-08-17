@@ -42,26 +42,27 @@ export default function SalonPolicies() {
   if (screen) return screen;
 
   const p = profile.businessPolicies || {};
+  const joined = (v) => (Array.isArray(v) ? v.join(", ") : v || "");
 
   const cancelItems = [
-    p.cancellationPolicy && `Cancellations: ${p.cancellationPolicy}`,
-    p.lateArrivalPolicy && `Late arrivals: ${p.lateArrivalPolicy}`,
-    p.lateFee && `Late fee: ${p.lateFee}`,
-    p.waitingTime && `We'll hold your slot for: ${p.waitingTime}`,
+    p.cancellationPolicy?.length && `Cancellations: ${joined(p.cancellationPolicy)}`,
+    p.lateArrivalPolicy?.length && `Late arrivals: ${joined(p.lateArrivalPolicy)}`,
+    p.lateFee?.length && `Late fee: ${joined(p.lateFee)}`,
+    p.waitingTime?.length && `We'll hold your slot for: ${joined(p.waitingTime)}`,
   ].filter(Boolean);
 
   const bookingItems = [
-    p.depositPolicy && `Deposit: ${p.depositPolicy}`,
-    p.balancePaymentMethod && `Balance payment: ${p.balancePaymentMethod}`,
-    p.walkIns && `Walk-ins: ${p.walkIns}`,
-    p.whatToBring?.length ? `What to bring: ${p.whatToBring.join(", ")}` : null,
+    p.depositPolicy?.length && `Deposit: ${joined(p.depositPolicy)}`,
+    p.balancePaymentMethod?.length && `Balance payment: ${joined(p.balancePaymentMethod)}`,
+    p.walkIns?.length && `Walk-ins: ${joined(p.walkIns)}`,
+    p.whatToBring?.length ? `What to bring: ${joined(p.whatToBring)}` : null,
   ].filter(Boolean);
 
-  const refundItems = [p.refundPolicy].filter(Boolean);
+  const refundItems = p.refundPolicy?.length ? [joined(p.refundPolicy)] : [];
 
   const contactItems = [
     p.howToFindUs && `Getting here: ${p.howToFindUs}`,
-    p.contactPreference && `Preferred contact: ${p.contactPreference}`,
+    p.contactPreference?.length && `Preferred contact: ${joined(p.contactPreference)}`,
     p.additionalInfo,
   ].filter(Boolean);
 
