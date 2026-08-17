@@ -29,6 +29,7 @@ export const SALON_PROFILE = gql`
         priceZmw
         priceMaxZmw
         depositZmw
+        imageUrl
         requiresReferencePicture
         isActive
       }

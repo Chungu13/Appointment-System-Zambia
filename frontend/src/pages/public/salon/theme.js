@@ -56,9 +56,11 @@ export function bannerFor(profile) {
   return DEFAULT_BANNERS[profile.businessType] ?? DEFAULT_BANNERS._fallback;
 }
 
-// A service's own uploaded photo wins; otherwise fall back to the same
-// business-type stock photo already used for the banner.
+// A service's own uploaded photo wins; then a portfolio photo tagged to
+// this service; otherwise fall back to the same business-type stock photo
+// already used for the banner.
 export function imageForService(svc, portfolioImages, businessType) {
+  if (svc.imageUrl) return svc.imageUrl;
   const match = portfolioImages.find(
     (img) => img.serviceName && img.serviceName.toLowerCase() === svc.name.toLowerCase(),
   );
