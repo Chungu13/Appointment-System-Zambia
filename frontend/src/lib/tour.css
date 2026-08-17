@@ -5,15 +5,15 @@
   --driver-popover-title-color: #3B2A1E;
   --driver-popover-description-color: #5C4C3D;
   --driver-popover-arrow-color: #ffffff;
-  --driver-popover-border-radius: 0px;
+  --driver-popover-border-radius: 16px;
 }
 
 .driver-popover {
-  box-shadow: none !important;
+  box-shadow: 0 8px 32px rgba(59,42,30,0.16) !important;
   border: 0.5px solid #EDE3D6 !important;
   padding: 24px !important;
   max-width: 300px !important;
-  border-radius: 0 !important;
+  border-radius: 16px !important;
 }
 
 .driver-popover-title {
@@ -46,7 +46,7 @@
   background-color: #3B2A1E !important;
   color: #ffffff !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 10px !important;
   font-weight: 300 !important;
@@ -61,7 +61,7 @@
 }
 
 .driver-popover-prev-btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 10px !important;
   font-weight: 300 !important;
@@ -81,7 +81,7 @@
 .driver-popover-close-btn {
   color: #8A7A6A !important;
   font-size: 1.1rem !important;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
 }
 
 .driver-popover-close-btn:hover {

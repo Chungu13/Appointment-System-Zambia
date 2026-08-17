@@ -53,7 +53,7 @@ export default function WalkInForm({ onSuccess }) {
 
   const selectStyle = {
     width: '100%', boxSizing: 'border-box', padding: '10px 12px',
-    border: '1px solid #EDE3D6', borderRadius: 10, fontSize: 13,
+    border: '1.5px solid #C9B49C', borderRadius: 10, fontSize: 13,
     color: '#241812', backgroundColor: '#fff', outline: 'none',
   }
 

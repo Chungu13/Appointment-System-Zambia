@@ -93,7 +93,7 @@ function KeyEntry({ onVerified }) {
                 width: '100%',
                 boxSizing: 'border-box',
                 padding: '10px 14px',
-                border: `0.5px solid ${BORDER}`,
+                border: '1.5px solid #C9B49C',
                 borderRadius: 10,
                 fontSize: 12,
                 fontFamily: sans,
@@ -108,7 +108,7 @@ function KeyEntry({ onVerified }) {
               }}
               onFocus={(e) => (e.target.style.borderColor = BURG)}
               onBlur={(e) => {
-                e.target.style.borderColor = BORDER
+                e.target.style.borderColor = '#C9B49C'
                 if (!key.trim()) setError('Please enter your salon access key.')
               }}
             />
@@ -283,13 +283,13 @@ function DaySchedule({ staffKey, onSignOut }) {
               width: '100%', boxSizing: 'border-box',
               paddingLeft: 34, paddingRight: nameFilter ? 34 : 14,
               paddingTop: 10, paddingBottom: 10,
-              border: `0.5px solid ${BORDER}`, borderRadius: 10,
+              border: '1.5px solid #C9B49C', borderRadius: 10,
               backgroundColor: '#fff',
               fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
               outline: 'none', transition: 'border-color 0.15s',
             }}
             onFocus={(e) => (e.target.style.borderColor = BURG)}
-            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+            onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
           />
           {nameFilter && (
             <button

@@ -4,7 +4,7 @@ const inputStyle = (error) => ({
   width: '100%',
   boxSizing: 'border-box',
   padding: '10px 12px',
-  border: `1px solid ${error ? '#F87171' : '#EDE3D6'}`,
+  border: `1.5px solid ${error ? '#F87171' : '#C9B49C'}`,
   borderRadius: 10,
   fontSize: 13,
   color: '#241812',
@@ -24,7 +24,7 @@ export default function Input({ label, error, hint, className = '', inputClassNa
         style={inputStyle(error)}
         className={inputClassName}
         onFocus={(e) => (e.target.style.borderColor = '#3B2A1E')}
-        onBlur={(e) => (e.target.style.borderColor = error ? '#F87171' : '#EDE3D6')}
+        onBlur={(e) => (e.target.style.borderColor = error ? '#F87171' : '#C9B49C')}
         {...props}
       />
       {error && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>}
@@ -43,7 +43,7 @@ export function Textarea({ label, error, hint, className = '', ...props }) {
         rows={3}
         style={{ ...inputStyle(error), resize: 'none' }}
         onFocus={(e) => (e.target.style.borderColor = '#3B2A1E')}
-        onBlur={(e) => (e.target.style.borderColor = error ? '#F87171' : '#EDE3D6')}
+        onBlur={(e) => (e.target.style.borderColor = error ? '#F87171' : '#C9B49C')}
         {...props}
       />
       {error && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>}

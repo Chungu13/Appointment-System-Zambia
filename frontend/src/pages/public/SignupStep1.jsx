@@ -63,14 +63,14 @@ function Input({ onBlur: outerBlur, style: override = {}, ...props }) {
     <input
       style={{
         width: '100%', boxSizing: 'border-box',
-        border: `0.5px solid ${BORDER}`, borderRadius: 10,
+        border: '1.5px solid #C9B49C', borderRadius: 10,
         padding: '10px 14px', fontSize: 12, color: TEXT,
         outline: 'none', backgroundColor: '#fff',
         fontFamily: sans, fontWeight: 300,
         ...override,
       }}
       onFocus={(e) => (e.target.style.borderColor = BURG)}
-      onBlur={(e) => { e.target.style.borderColor = BORDER; outerBlur?.() }}
+      onBlur={(e) => { e.target.style.borderColor = '#C9B49C'; outerBlur?.() }}
       {...props}
     />
   )
@@ -224,7 +224,7 @@ export default function SignupStep1() {
             disabled={googleLoading}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              border: `0.5px solid ${BORDER}`, borderRadius: 10,
+              border: '1.5px solid #C9B49C', borderRadius: 10,
               padding: '10px 14px', background: '#fff', cursor: 'pointer',
               fontSize: 12, fontWeight: 300, color: TEXT, fontFamily: sans,
               opacity: googleLoading ? 0.6 : 1,

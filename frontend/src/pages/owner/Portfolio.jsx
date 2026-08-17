@@ -64,7 +64,7 @@ function UploadModal({ services, onClose, onSave }) {
 
   const fieldStyle = {
     width: '100%', boxSizing: 'border-box',
-    padding: '9px 12px', border: `0.5px solid ${BORDER}`, borderRadius: 10,
+    padding: '9px 12px', border: '1.5px solid #C9B49C', borderRadius: 10,
     fontFamily: sans, fontSize: 12, fontWeight: 300,
     color: TEXT, backgroundColor: '#fff', outline: 'none',
   }
@@ -125,7 +125,7 @@ function UploadModal({ services, onClose, onSave }) {
               placeholder="e.g. Knotless box braids"
               style={fieldStyle}
               onFocus={(e) => (e.target.style.borderColor = BURG)}
-              onBlur={(e) => (e.target.style.borderColor = BORDER)}
+              onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
             />
           </div>
 

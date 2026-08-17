@@ -303,9 +303,9 @@ function RebookModal({ appt, onClose, onRebooked }) {
             value={date}
             min={toDateInputValue(new Date())}
             onChange={(e) => { setDate(e.target.value); setRebookErr('') }}
-            style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+            style={{ border: '1.5px solid #C9B49C', borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box' }}
             onFocus={(e) => (e.target.style.borderColor = BURG)}
-            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+            onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
           />
         </div>
 
@@ -573,12 +573,12 @@ export default function Calendar() {
                 setSelDay(d)
               }}
               style={{
-                border: `0.5px solid ${BORDER}`, borderRadius: 8, padding: '6px 10px',
+                border: '1.5px solid #C9B49C', borderRadius: 8, padding: '6px 10px',
                 fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
                 backgroundColor: '#fff', outline: 'none',
               }}
               onFocus={(e) => (e.target.style.borderColor = BURG)}
-              onBlur={(e) => (e.target.style.borderColor = BORDER)}
+              onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
             />
           </div>
         }

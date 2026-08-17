@@ -14,7 +14,7 @@ const DESKTOP_STEPS = [
     element: '#tour-dashboard',
     popover: {
       title: 'Your dashboard',
-      description: "This is your business home: today's revenue, bookings, and a live feed of everything your AI agents are doing.",
+      description: "This is your business home: today's revenue, bookings, and what needs your attention.",
       side: 'right', align: 'start',
     },
   },
@@ -70,7 +70,7 @@ const DESKTOP_STEPS = [
     element: '#tour-customers',
     popover: {
       title: 'Your customers',
-      description: "Everyone who has booked with you. The system automatically tracks visit history and no-shows so your AI can serve them better.",
+      description: "Everyone who has booked with you. The system automatically tracks visit history and no-shows so you can serve them better.",
       side: 'right', align: 'start',
     },
   },
@@ -78,7 +78,7 @@ const DESKTOP_STEPS = [
     element: '#tour-settings',
     popover: {
       title: 'Settings',
-      description: 'Update your location, cover photo, staff access key, and business policies. Your policies are loaded into your AI agent so it gives accurate answers.',
+      description: 'Update your location, cover photo, and business policies. Your policies show on your booking page so customers know what to expect.',
       side: 'right', align: 'start',
     },
   },
@@ -89,7 +89,7 @@ const MOBILE_STEPS = [
     element: '#tour-dashboard-m',
     popover: {
       title: 'Your dashboard',
-      description: "Your business home: today's revenue, bookings, and a live feed of everything your AI agents are doing.",
+      description: "Your business home: today's revenue, bookings, and what needs your attention.",
       side: 'top', align: 'center',
     },
   },
@@ -139,14 +139,14 @@ const MOBILE_STEPS = [
     element: '#tour-customers-m',
     popover: {
       title: 'Your customers',
-      description: "Everyone who has booked with you. The system automatically tracks visit history and no-shows so your AI can serve them better.",
+      description: "Everyone who has booked with you. The system automatically tracks visit history and no-shows so you can serve them better.",
       side: 'top', align: 'center',
     },
   },
   {
     popover: {
       title: 'Settings',
-      description: "Tap More → Settings to update your location, cover photo, staff access key, and business policies.",
+      description: "Tap More → Settings to update your location, cover photo, and business policies.",
     },
   },
 ]

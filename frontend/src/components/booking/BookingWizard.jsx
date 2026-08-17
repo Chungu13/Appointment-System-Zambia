@@ -84,7 +84,7 @@ function Bubble({ children }) {
 
 const FIELD = {
   width: "100%", boxSizing: "border-box", backgroundColor: "#fff",
-  border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: "13px 14px",
+  border: "1.5px solid #C9B49C", borderRadius: 12, padding: "13px 14px",
   fontFamily: sans, fontSize: 16, fontWeight: 400, color: DARK, outline: "none",
 };
 

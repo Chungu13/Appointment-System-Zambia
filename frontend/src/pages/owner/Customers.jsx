@@ -165,12 +165,12 @@ export default function Customers() {
           style={{
             width: '100%', boxSizing: 'border-box',
             padding: '11px 14px 11px 38px',
-            border: `0.5px solid ${BORDER}`, borderRadius: 10,
+            border: '1.5px solid #C9B49C', borderRadius: 10,
             fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT,
             outline: 'none', backgroundColor: '#fff',
           }}
           onFocus={(e) => (e.target.style.borderColor = BURG)}
-          onBlur={(e) => (e.target.style.borderColor = BORDER)}
+          onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
         />
       </div>
 

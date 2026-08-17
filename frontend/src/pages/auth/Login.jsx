@@ -16,7 +16,7 @@ const BORDER = '#EDE3D6'
 const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
-  border: `0.5px solid ${BORDER}`,
+  border: '1.5px solid #C9B49C',
   borderRadius: 10,
   padding: '10px 14px',
   fontSize: 12,
@@ -261,7 +261,7 @@ export default function Login() {
                 placeholder="your@email.com"
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = BURG)}
-                onBlur={(e) => { e.target.style.borderColor = BORDER; blurEmail() }}
+                onBlur={(e) => { e.target.style.borderColor = '#C9B49C'; blurEmail() }}
               />
               {fieldErrors.email && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', margin: '4px 0 0', fontWeight: 300 }}>{fieldErrors.email}</p>}
             </div>
@@ -277,7 +277,7 @@ export default function Login() {
                 autoComplete="current-password"
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = BURG)}
-                onBlur={(e) => { e.target.style.borderColor = BORDER; blurPassword() }}
+                onBlur={(e) => { e.target.style.borderColor = '#C9B49C'; blurPassword() }}
               />
               {fieldErrors.password && <p style={{ fontFamily: sans, fontSize: 11, color: '#dc2626', margin: '4px 0 0', fontWeight: 300 }}>{fieldErrors.password}</p>}
             </div>
