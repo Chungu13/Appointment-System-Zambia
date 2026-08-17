@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw, Camera, X, Bot, MapPin, Clock } from 'lucide-react'
+import { KeyRound, Copy, Check, RefreshCw, Camera, X, FileText, MapPin, Clock } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES, UPDATE_OPENING_HOURS } from '../../graphql/mutations/tenant'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
@@ -21,6 +21,7 @@ const serif = "'Inter', sans-serif"
 const cardStyle = {
   backgroundColor: '#fff',
   border: `0.5px solid ${BORDER}`,
+  borderRadius: 14,
   padding: 28,
   display: 'flex',
   flexDirection: 'column',
@@ -54,6 +55,7 @@ const fieldStyle = {
   boxSizing: 'border-box',
   padding: '9px 12px',
   border: `0.5px solid ${BORDER}`,
+  borderRadius: 10,
   fontFamily: sans,
   fontSize: 13,
   fontWeight: 300,
@@ -84,6 +86,7 @@ function SaveBtn({ onClick, disabled, loading, children }) {
         backgroundColor: disabled || loading ? '#d4a8b0' : BURG,
         color: '#fff',
         border: 'none',
+        borderRadius: 10,
         fontFamily: sans,
         fontSize: 10,
         fontWeight: 300,
@@ -166,11 +169,11 @@ function BusinessProfileCard({ currentImageUrl }) {
           <img
             src={preview}
             alt="Business cover"
-            style={{ width: '100%', height: 192, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}` }}
+            style={{ width: '100%', height: 192, objectFit: 'cover', display: 'block', border: `0.5px solid ${BORDER}`, borderRadius: 12 }}
           />
           <button
             onClick={removePhoto}
-            style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: 8, color: '#fff', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <X size={14} />
           </button>
@@ -189,6 +192,7 @@ function BusinessProfileCard({ currentImageUrl }) {
           style={{
             maxWidth: 360, height: 160,
             border: `0.5px solid ${dragging ? BURG : BORDER}`,
+            borderRadius: 12,
             backgroundColor: dragging ? BLUSH : '#fff',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', gap: 8, cursor: 'pointer',
@@ -475,7 +479,7 @@ function CopyableUrl({ url }) {
   }
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, verticalAlign: 'middle' }}>
-      <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, backgroundColor: OFF_WHITE, padding: '1px 6px', border: `0.5px solid ${BORDER}` }}>
+      <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, backgroundColor: OFF_WHITE, padding: '1px 6px', border: `0.5px solid ${BORDER}`, borderRadius: 6 }}>
         {url}
       </span>
       <button
@@ -516,6 +520,7 @@ function StaffKeyCard({ currentKey, onDirty }) {
   const iconBtn = {
     padding: '0 12px',
     border: `0.5px solid ${BORDER}`,
+    borderRadius: 10,
     backgroundColor: '#fff',
     color: MUTED,
     cursor: 'pointer',
@@ -581,7 +586,7 @@ function StaffKeyCard({ currentKey, onDirty }) {
         {saved && <span style={savedSpan}>Saved ✓</span>}
       </div>
 
-      <div style={{ backgroundColor: OFF_WHITE, border: `0.5px solid ${BORDER}`, padding: '14px 18px' }}>
+      <div style={{ backgroundColor: OFF_WHITE, border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '14px 18px' }}>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>How to share with staff</p>
         <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2.2 }}>
           <li>Send staff the <span style={{ fontWeight: 400, color: TEXT }}>Staff page</span> link above</li>
@@ -595,32 +600,6 @@ function StaffKeyCard({ currentKey, onDirty }) {
 
 // ── Policy helpers ────────────────────────────────────────────────────────────
 
-function PolicyRadio({ label, value, current, onChange, children }) {
-  const selected = current === value
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => onChange(value)}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-      >
-        <div style={{
-          width: 14, height: 14,
-          border: `1.5px solid ${selected ? BURG : BORDER}`,
-          backgroundColor: selected ? BURG : 'transparent',
-          flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'border-color 0.1s, background-color 0.1s',
-        }}>
-          {selected && <div style={{ width: 4, height: 4, backgroundColor: '#fff' }} />}
-        </div>
-        <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 400, color: TEXT }}>{label}</span>
-      </button>
-      {selected && children}
-    </div>
-  )
-}
-
 function CheckItem({ label, checked, onChange }) {
   return (
     <button
@@ -630,6 +609,7 @@ function CheckItem({ label, checked, onChange }) {
     >
       <div style={{
         width: 14, height: 14,
+        borderRadius: 4,
         border: `1.5px solid ${checked ? BURG : BORDER}`,
         backgroundColor: checked ? BURG : 'transparent',
         flexShrink: 0,
@@ -666,54 +646,63 @@ function PolicyGroup({ title, children }) {
   )
 }
 
-// ── AI assistant policies ─────────────────────────────────────────────────────
+// ── Booking policies ───────────────────────────────────────────────────────────
+
+// Legacy saved policies were a single string per section; wrap those as a
+// one-item list so older tenants load cleanly into the new multi-select form.
+function toList(v) {
+  if (Array.isArray(v)) return v
+  return v ? [v] : []
+}
+
+function classifyLateFee(text) {
+  if (text.startsWith('Late fee applies')) return 'fee_applies'
+  if (text === 'No charge, we accommodate late arrivals') return 'no_charge'
+  if (text === 'Appointment cancelled and deposit forfeited') return 'deposit_forfeited'
+  return 'other'
+}
 
 function BusinessPoliciesCard({ current, onDirty }) {
   const [saved, setSaved] = useState(false)
 
-  const init = (p) => ({
-    cancellationPolicy: p?.cancellationPolicy || '',
-    cancellationOther: '',
-    lateArrivalPolicy: p?.lateArrivalPolicy || '',
-    lateArrivalOther: '',
-    lateFee: p?.lateFee?.startsWith('Late fee applies') ? 'fee_applies'
-           : p?.lateFee === 'No charge, we accommodate late arrivals' ? 'no_charge'
-           : p?.lateFee === 'Appointment cancelled and deposit forfeited' ? 'deposit_forfeited'
-           : p?.lateFee ? 'other' : '',
-    lateFeeAmount: p?.lateFee?.match(/ZMW (\d+)/)?.[1] || '',
-    lateFeeOther: (!['no_charge','fee_applies','deposit_forfeited',''].includes(
-      p?.lateFee?.startsWith('Late fee applies') ? 'fee_applies'
-      : p?.lateFee === 'No charge, we accommodate late arrivals' ? 'no_charge'
-      : p?.lateFee === 'Appointment cancelled and deposit forfeited' ? 'deposit_forfeited'
-      : p?.lateFee ? 'other' : ''
-    )) ? (p?.lateFee || '') : '',
-    waitingTime: p?.waitingTime || '',
-    waitingOther: '',
-    whatToBring: p?.whatToBring || [],
-    whatToBringOther: '',
-    walkIns: p?.walkIns || '',
-    walkInsOther: '',
-    depositPolicy: p?.depositPolicy || '',
-    depositPolicyOther: '',
-    refundPolicy: p?.refundPolicy || '',
-    refundPolicyOther: '',
-    balancePaymentMethod: p?.balancePaymentMethod || '',
-    balancePaymentMethodOther: '',
-    howToFindUs: p?.howToFindUs || '',
-    contactPreference: p?.contactPreference || '',
-    contactOther: '',
-    additionalInfo: p?.additionalInfo || '',
-  })
+  const init = (p) => {
+    const lateFeeRaw = toList(p?.lateFee)
+    const lateFeeKeys = lateFeeRaw.map(classifyLateFee)
+    const feeAppliesText = lateFeeRaw.find((t) => t.startsWith('Late fee applies')) || ''
+    return {
+      cancellationPolicy: toList(p?.cancellationPolicy),
+      cancellationOther: '',
+      lateArrivalPolicy: toList(p?.lateArrivalPolicy),
+      lateArrivalOther: '',
+      lateFee: lateFeeKeys,
+      lateFeeAmount: feeAppliesText.match(/ZMW (\d+)/)?.[1] || '',
+      lateFeeOther: lateFeeRaw.find((t, i) => lateFeeKeys[i] === 'other') || '',
+      waitingTime: toList(p?.waitingTime),
+      waitingOther: '',
+      whatToBring: p?.whatToBring || [],
+      whatToBringOther: '',
+      walkIns: toList(p?.walkIns),
+      walkInsOther: '',
+      depositPolicy: toList(p?.depositPolicy),
+      depositPolicyOther: '',
+      refundPolicy: toList(p?.refundPolicy),
+      refundPolicyOther: '',
+      balancePaymentMethod: toList(p?.balancePaymentMethod),
+      balancePaymentMethodOther: '',
+      howToFindUs: p?.howToFindUs || '',
+      contactPreference: toList(p?.contactPreference),
+      contactOther: '',
+      additionalInfo: p?.additionalInfo || '',
+    }
+  }
 
   const [form, setForm] = useState(() => init(current))
   useReportDirty(onDirty, JSON.stringify(form) !== JSON.stringify(init(current)))
   function set(key, val) { setForm((f) => ({ ...f, [key]: val })) }
-  function toggleBring(item) {
+  function toggle(key, item) {
     setForm((f) => ({
       ...f,
-      whatToBring: f.whatToBring.includes(item)
-        ? f.whatToBring.filter((i) => i !== item)
-        : [...f.whatToBring, item],
+      [key]: f[key].includes(item) ? f[key].filter((i) => i !== item) : [...f[key], item],
     }))
   }
 
@@ -722,50 +711,55 @@ function BusinessPoliciesCard({ current, onDirty }) {
     onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
   })
 
-  function save() {
-    const lateFeeText =
-      form.lateFee === 'fee_applies' && form.lateFeeAmount
-        ? `Late fee applies: ZMW ${form.lateFeeAmount}`
-        : form.lateFee === 'other' ? form.lateFeeOther
-        : form.lateFee === 'no_charge' ? 'No charge, we accommodate late arrivals'
-        : form.lateFee === 'deposit_forfeited' ? 'Appointment cancelled and deposit forfeited'
-        : form.lateFee
-
-    const whatToBring = [
-      ...form.whatToBring.filter((i) => i !== 'other'),
-      ...(form.whatToBring.includes('other') && form.whatToBringOther ? [form.whatToBringOther] : []),
+  // Selected checkbox values are stored verbatim except "other", which is
+  // swapped for the salon's own typed-in text (or dropped if left blank).
+  function resolveOther(list, otherText) {
+    return [
+      ...list.filter((i) => i !== 'other'),
+      ...(list.includes('other') && otherText ? [otherText] : []),
     ]
+  }
+
+  function save() {
+    const lateFeeTexts = form.lateFee.map((key) => {
+      if (key === 'fee_applies') return form.lateFeeAmount ? `Late fee applies: ZMW ${form.lateFeeAmount}` : 'Late fee applies'
+      if (key === 'no_charge') return 'No charge, we accommodate late arrivals'
+      if (key === 'deposit_forfeited') return 'Appointment cancelled and deposit forfeited'
+      if (key === 'other') return form.lateFeeOther
+      return null
+    }).filter(Boolean)
 
     updatePolicies({
       variables: {
         policies: {
-          cancellationPolicy: form.cancellationPolicy === 'other' ? form.cancellationOther : form.cancellationPolicy,
-          lateArrivalPolicy: form.lateArrivalPolicy === 'other' ? form.lateArrivalOther : form.lateArrivalPolicy,
-          lateFee: lateFeeText || '',
-          waitingTime: form.waitingTime === 'other' ? form.waitingOther : form.waitingTime,
-          whatToBring,
-          walkIns: form.walkIns === 'other' ? form.walkInsOther : form.walkIns,
-          depositPolicy: form.depositPolicy === 'other' ? form.depositPolicyOther : form.depositPolicy,
-          refundPolicy: form.refundPolicy === 'other' ? form.refundPolicyOther : form.refundPolicy,
-          balancePaymentMethod: form.balancePaymentMethod === 'other' ? form.balancePaymentMethodOther : form.balancePaymentMethod,
+          cancellationPolicy: resolveOther(form.cancellationPolicy, form.cancellationOther),
+          lateArrivalPolicy: resolveOther(form.lateArrivalPolicy, form.lateArrivalOther),
+          lateFee: lateFeeTexts,
+          waitingTime: resolveOther(form.waitingTime, form.waitingOther),
+          whatToBring: resolveOther(form.whatToBring, form.whatToBringOther),
+          walkIns: resolveOther(form.walkIns, form.walkInsOther),
+          depositPolicy: resolveOther(form.depositPolicy, form.depositPolicyOther),
+          refundPolicy: resolveOther(form.refundPolicy, form.refundPolicyOther),
+          balancePaymentMethod: resolveOther(form.balancePaymentMethod, form.balancePaymentMethodOther),
           howToFindUs: form.howToFindUs,
-          contactPreference: form.contactPreference === 'other' ? form.contactOther : form.contactPreference,
+          contactPreference: resolveOther(form.contactPreference, form.contactOther),
           additionalInfo: form.additionalInfo,
         },
       },
     })
   }
 
-  const isCancOther    = form.cancellationPolicy === 'other'
-  const isLateOther    = form.lateArrivalPolicy === 'other'
-  const isFeeOther     = form.lateFee === 'other'
-  const isWaitOther    = form.waitingTime === 'other'
+  const isCancOther    = form.cancellationPolicy.includes('other')
+  const isLateOther    = form.lateArrivalPolicy.includes('other')
+  const isFeeOther     = form.lateFee.includes('other')
+  const isFeeApplies   = form.lateFee.includes('fee_applies')
+  const isWaitOther    = form.waitingTime.includes('other')
   const isBringOther   = form.whatToBring.includes('other')
-  const isWalkOther    = form.walkIns === 'other'
-  const isDepositOther = form.depositPolicy === 'other'
-  const isRefundOther  = form.refundPolicy === 'other'
-  const isBalanceOther = form.balancePaymentMethod === 'other'
-  const isContOther    = form.contactPreference === 'other'
+  const isWalkOther    = form.walkIns.includes('other')
+  const isDepositOther = form.depositPolicy.includes('other')
+  const isRefundOther  = form.refundPolicy.includes('other')
+  const isBalanceOther = form.balancePaymentMethod.includes('other')
+  const isContOther    = form.contactPreference.includes('other')
 
   const divider = { borderTop: `0.5px solid ${BORDER}`, paddingTop: 20 }
 
@@ -773,136 +767,147 @@ function BusinessPoliciesCard({ current, onDirty }) {
     <div style={{ ...cardStyle, gap: 24 }}>
       <div>
         <h2 style={headingStyle}>
-          <Bot size={18} color={BURG} />
-          AI assistant policies
+          <FileText size={18} color={BURG} />
+          Booking policies
         </h2>
         <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
-          These policies help your AI booking assistant answer common customer questions accurately.
+          Select all that apply for each section - these show on your booking page so customers know what to expect.
         </p>
       </div>
 
       {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <PolicyGroup title="Cancellation policy">
+        <PolicyGroup title="Cancellation policy (select all that apply)">
           {['Free cancellation anytime', 'Free cancellation up to 24hrs before', 'Deposit non-refundable on cancellation'].map((opt) => (
-            <PolicyRadio key={opt} label={opt} value={opt} current={form.cancellationPolicy} onChange={(v) => set('cancellationPolicy', v)} />
+            <CheckItem key={opt} label={opt} checked={form.cancellationPolicy.includes(opt)} onChange={() => toggle('cancellationPolicy', opt)} />
           ))}
-          <PolicyRadio label="Other" value="other" current={form.cancellationPolicy} onChange={(v) => set('cancellationPolicy', v)}>
+          <div>
+            <CheckItem label="Other" checked={isCancOther} onChange={() => toggle('cancellationPolicy', 'other')} />
             {isCancOther && <OtherTextInput value={form.cancellationOther} onChange={(v) => set('cancellationOther', v)} />}
-          </PolicyRadio>
+          </div>
         </PolicyGroup>
 
         <div style={divider}>
-          <PolicyGroup title="Late arrival policy">
+          <PolicyGroup title="Late arrival policy (select all that apply)">
             {['We allow up to 15 minutes late', 'We allow up to 30 minutes late', 'No late arrivals, appointment cancelled if late'].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)} />
+              <CheckItem key={opt} label={opt} checked={form.lateArrivalPolicy.includes(opt)} onChange={() => toggle('lateArrivalPolicy', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.lateArrivalPolicy} onChange={(v) => set('lateArrivalPolicy', v)}>
+            <div>
+              <CheckItem label="Other" checked={isLateOther} onChange={() => toggle('lateArrivalPolicy', 'other')} />
               {isLateOther && <OtherTextInput value={form.lateArrivalOther} onChange={(v) => set('lateArrivalOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Late fee">
-            <PolicyRadio label="No charge, we accommodate late arrivals" value="no_charge" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
-            <PolicyRadio label="Yes, a late fee applies" value="fee_applies" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
-              <div style={{ marginTop: 8, marginLeft: 26, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>ZMW</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.lateFeeAmount}
-                  onChange={(e) => set('lateFeeAmount', e.target.value)}
-                  placeholder="Amount"
-                  style={{ width: 100, padding: '7px 10px', border: `0.5px solid ${BORDER}`, fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
-                  onFocus={(e) => (e.target.style.borderColor = BURG)}
-                  onBlur={(e) => (e.target.style.borderColor = BORDER)}
-                />
-              </div>
-            </PolicyRadio>
-            <PolicyRadio label="Appointment cancelled and deposit forfeited" value="deposit_forfeited" current={form.lateFee} onChange={(v) => set('lateFee', v)} />
-            <PolicyRadio label="Other" value="other" current={form.lateFee} onChange={(v) => set('lateFee', v)}>
+          <PolicyGroup title="Late fee (select all that apply)">
+            <CheckItem label="No charge, we accommodate late arrivals" checked={form.lateFee.includes('no_charge')} onChange={() => toggle('lateFee', 'no_charge')} />
+            <div>
+              <CheckItem label="Yes, a late fee applies" checked={isFeeApplies} onChange={() => toggle('lateFee', 'fee_applies')} />
+              {isFeeApplies && (
+                <div style={{ marginTop: 8, marginLeft: 26, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED }}>ZMW</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.lateFeeAmount}
+                    onChange={(e) => set('lateFeeAmount', e.target.value)}
+                    placeholder="Amount"
+                    style={{ width: 100, padding: '7px 10px', border: `0.5px solid ${BORDER}`, borderRadius: 8, fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+                    onFocus={(e) => (e.target.style.borderColor = BURG)}
+                    onBlur={(e) => (e.target.style.borderColor = BORDER)}
+                  />
+                </div>
+              )}
+            </div>
+            <CheckItem label="Appointment cancelled and deposit forfeited" checked={form.lateFee.includes('deposit_forfeited')} onChange={() => toggle('lateFee', 'deposit_forfeited')} />
+            <div>
+              <CheckItem label="Other" checked={isFeeOther} onChange={() => toggle('lateFee', 'other')} />
               {isFeeOther && <OtherTextInput value={form.lateFeeOther} onChange={(v) => set('lateFeeOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="How long should customers expect to wait if running behind?">
+          <PolicyGroup title="How long should customers expect to wait if running behind? (select all that apply)">
             {['We run on time, no waiting', 'Allow up to 15 minutes waiting time', 'Allow up to 30 minutes waiting time'].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.waitingTime} onChange={(v) => set('waitingTime', v)} />
+              <CheckItem key={opt} label={opt} checked={form.waitingTime.includes(opt)} onChange={() => toggle('waitingTime', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.waitingTime} onChange={(v) => set('waitingTime', v)}>
+            <div>
+              <CheckItem label="Other" checked={isWaitOther} onChange={() => toggle('waitingTime', 'other')} />
               {isWaitOther && <OtherTextInput value={form.waitingOther} onChange={(v) => set('waitingOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
           <PolicyGroup title="What should customers bring? (select all that apply)">
             {['Reference photos', 'Their own hair extensions', 'Their own nail polish colour', 'Nothing, we provide everything'].map((opt) => (
-              <CheckItem key={opt} label={opt} checked={form.whatToBring.includes(opt)} onChange={() => toggleBring(opt)} />
+              <CheckItem key={opt} label={opt} checked={form.whatToBring.includes(opt)} onChange={() => toggle('whatToBring', opt)} />
             ))}
             <div>
-              <CheckItem label="Other" checked={isBringOther} onChange={() => toggleBring('other')} />
+              <CheckItem label="Other" checked={isBringOther} onChange={() => toggle('whatToBring', 'other')} />
               {isBringOther && <OtherTextInput value={form.whatToBringOther} onChange={(v) => set('whatToBringOther', v)} />}
             </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Walk-ins">
+          <PolicyGroup title="Walk-ins (select all that apply)">
             {['We accept walk-ins', 'Appointment only, no walk-ins', 'Walk-ins accepted if a slot is open'].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.walkIns} onChange={(v) => set('walkIns', v)} />
+              <CheckItem key={opt} label={opt} checked={form.walkIns.includes(opt)} onChange={() => toggle('walkIns', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.walkIns} onChange={(v) => set('walkIns', v)}>
+            <div>
+              <CheckItem label="Other" checked={isWalkOther} onChange={() => toggle('walkIns', 'other')} />
               {isWalkOther && <OtherTextInput value={form.walkInsOther} onChange={(v) => set('walkInsOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Deposit policy">
+          <PolicyGroup title="Deposit policy (select all that apply)">
             {[
               'Deposit refunded if cancelled with notice, forfeited on no-show',
               'Deposit always forfeited once paid, no exceptions',
               'Deposit transferable to a new date if rescheduled in time',
               'Deposit fully refundable anytime before the appointment',
             ].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.depositPolicy} onChange={(v) => set('depositPolicy', v)} />
+              <CheckItem key={opt} label={opt} checked={form.depositPolicy.includes(opt)} onChange={() => toggle('depositPolicy', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.depositPolicy} onChange={(v) => set('depositPolicy', v)}>
+            <div>
+              <CheckItem label="Other" checked={isDepositOther} onChange={() => toggle('depositPolicy', 'other')} />
               {isDepositOther && <OtherTextInput value={form.depositPolicyOther} onChange={(v) => set('depositPolicyOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Refund / redo policy">
+          <PolicyGroup title="Refund / redo policy (select all that apply)">
             {[
               "We offer a free redo if you're not satisfied",
               'Redo available within 3 days',
               "No refunds, but we'll address concerns",
               'Refunds considered case by case',
             ].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.refundPolicy} onChange={(v) => set('refundPolicy', v)} />
+              <CheckItem key={opt} label={opt} checked={form.refundPolicy.includes(opt)} onChange={() => toggle('refundPolicy', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.refundPolicy} onChange={(v) => set('refundPolicy', v)}>
+            <div>
+              <CheckItem label="Other" checked={isRefundOther} onChange={() => toggle('refundPolicy', 'other')} />
               {isRefundOther && <OtherTextInput value={form.refundPolicyOther} onChange={(v) => set('refundPolicyOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Balance payment method at the salon">
+          <PolicyGroup title="Balance payment method at the salon (select all that apply)">
             {['Cash only', 'Mobile money accepted', 'Cash or mobile money'].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.balancePaymentMethod} onChange={(v) => set('balancePaymentMethod', v)} />
+              <CheckItem key={opt} label={opt} checked={form.balancePaymentMethod.includes(opt)} onChange={() => toggle('balancePaymentMethod', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.balancePaymentMethod} onChange={(v) => set('balancePaymentMethod', v)}>
+            <div>
+              <CheckItem label="Other" checked={isBalanceOther} onChange={() => toggle('balancePaymentMethod', 'other')} />
               {isBalanceOther && <OtherTextInput value={form.balancePaymentMethodOther} onChange={(v) => set('balancePaymentMethodOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
@@ -920,13 +925,14 @@ function BusinessPoliciesCard({ current, onDirty }) {
         </div>
 
         <div style={divider}>
-          <PolicyGroup title="Customer contact preference">
+          <PolicyGroup title="Customer contact preference (select all that apply)">
             {['Kimawa only', 'WhatsApp also welcome', 'Call us anytime'].map((opt) => (
-              <PolicyRadio key={opt} label={opt} value={opt} current={form.contactPreference} onChange={(v) => set('contactPreference', v)} />
+              <CheckItem key={opt} label={opt} checked={form.contactPreference.includes(opt)} onChange={() => toggle('contactPreference', opt)} />
             ))}
-            <PolicyRadio label="Other" value="other" current={form.contactPreference} onChange={(v) => set('contactPreference', v)}>
+            <div>
+              <CheckItem label="Other" checked={isContOther} onChange={() => toggle('contactPreference', 'other')} />
               {isContOther && <OtherTextInput value={form.contactOther} onChange={(v) => set('contactOther', v)} />}
-            </PolicyRadio>
+            </div>
           </PolicyGroup>
         </div>
 
