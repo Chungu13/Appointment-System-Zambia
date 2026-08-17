@@ -25,7 +25,7 @@ const LABEL = {
 
 const FIELD = {
   width: '100%', boxSizing: 'border-box', backgroundColor: '#fff',
-  border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '13px 14px',
+  border: '1.5px solid #C9B49C', borderRadius: 12, padding: '13px 14px',
   fontFamily: sans, fontSize: 14, fontWeight: 400, color: TEXT, outline: 'none',
 }
 
@@ -224,6 +224,7 @@ function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creat
   }
   const [form, setForm] = useState(blank)
   const [error, setError] = useState('')
+  const [customCategory, setCustomCategory] = useState(!categories.includes(blank.category) && !!blank.category)
   const fileRef = useRef(null)
   function set(k, v) { setForm((f) => ({ ...f, [k]: v })) }
 
@@ -298,11 +299,32 @@ function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creat
             <label style={LABEL}>Category</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {categories.map((c) => (
-                <button key={c} type="button" onClick={() => set('category', c)} style={pillStyle(form.category === c)}>
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => { setCustomCategory(false); set('category', c) }}
+                  style={pillStyle(!customCategory && form.category === c)}
+                >
                   {c}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => { setCustomCategory(true); set('category', '') }}
+                style={pillStyle(customCategory)}
+              >
+                + Add your own
+              </button>
             </div>
+            {customCategory && (
+              <input
+                autoFocus
+                value={form.category}
+                onChange={(e) => set('category', e.target.value)}
+                placeholder="e.g. Bridal Packages"
+                style={{ ...FIELD, marginTop: 10 }}
+              />
+            )}
           </div>
 
           <div>

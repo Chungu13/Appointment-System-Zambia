@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { KeyRound, Copy, Check, RefreshCw, Camera, X, FileText, MapPin, Clock } from 'lucide-react'
+import { Check, Camera, X, FileText, MapPin, Clock } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
-import { SET_STAFF_ACCESS_KEY, UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES, UPDATE_OPENING_HOURS } from '../../graphql/mutations/tenant'
+import { UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES, UPDATE_OPENING_HOURS } from '../../graphql/mutations/tenant'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import { ErrorMessage, PageSpinner } from '../../components/ui/Spinner'
@@ -13,7 +13,6 @@ const MUTED     = '#5C4C3D'
 const HINT      = '#8A7A6A'
 const BORDER    = '#EDE3D6'
 const BLUSH     = '#FBF7F1'
-const OFF_WHITE = '#FBF7F1'
 
 const sans  = "'Inter', sans-serif"
 const serif = "'Inter', sans-serif"
@@ -54,7 +53,7 @@ const fieldStyle = {
   width: '100%',
   boxSizing: 'border-box',
   padding: '9px 12px',
-  border: `0.5px solid ${BORDER}`,
+  border: '1.5px solid #C9B49C',
   borderRadius: 10,
   fontFamily: sans,
   fontSize: 13,
@@ -246,7 +245,7 @@ function LocationCard({ currentCity, currentArea, currentAddress, onDirty }) {
   }
 
   const onFocus = (e) => (e.target.style.borderColor = BURG)
-  const onBlur  = (e) => (e.target.style.borderColor = BORDER)
+  const onBlur  = (e) => (e.target.style.borderColor = '#C9B49C')
 
   return (
     <div style={cardStyle}>
@@ -460,144 +459,6 @@ function OpeningHoursCard({ current, onDirty }) {
   )
 }
 
-// ── Staff access key ──────────────────────────────────────────────────────────
-
-function generateKey() {
-  const words = ['GLOW', 'SALON', 'BEAUTY', 'SHINE', 'STYLE', 'GRACE']
-  const word = words[Math.floor(Math.random() * words.length)]
-  const num = Math.floor(1000 + Math.random() * 9000)
-  return `${word}${num}`
-}
-
-function CopyableUrl({ url }) {
-  const [copied, setCopied] = useState(false)
-  function copy() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, verticalAlign: 'middle' }}>
-      <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, backgroundColor: OFF_WHITE, padding: '1px 6px', border: `0.5px solid ${BORDER}`, borderRadius: 6 }}>
-        {url}
-      </span>
-      <button
-        onClick={copy}
-        title="Copy URL"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1px 3px', display: 'flex', alignItems: 'center', color: copied ? '#2d6a4f' : MUTED }}
-      >
-        {copied ? <Check size={13} /> : <Copy size={13} />}
-      </button>
-    </span>
-  )
-}
-
-function StaffKeyCard({ currentKey, onDirty }) {
-  const [key, setKey]       = useState(currentKey || '')
-  const [copied, setCopied] = useState(false)
-  const [saved, setSaved]   = useState(false)
-
-  useReportDirty(onDirty, key.trim() !== (currentKey || ''))
-
-  const [setStaffKey, { loading, error }] = useMutation(SET_STAFF_ACCESS_KEY, {
-    refetchQueries: [SALON_SETTINGS],
-    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
-  })
-
-  function copy() {
-    navigator.clipboard.writeText(key).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  function save() {
-    if (!key.trim()) return
-    setStaffKey({ variables: { key: key.trim() } })
-  }
-
-  const iconBtn = {
-    padding: '0 12px',
-    border: `0.5px solid ${BORDER}`,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    color: MUTED,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }
-
-  return (
-    <div style={cardStyle}>
-      <div>
-        <h2 style={headingStyle}>
-          <KeyRound size={18} color={BURG} />
-          Staff access key
-        </h2>
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
-          Share these links and the key below with your team.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, width: 96, flexShrink: 0 }}>Booking page</span>
-            <CopyableUrl url={window.location.origin} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, width: 96, flexShrink: 0 }}>Staff page</span>
-            <CopyableUrl url={`${window.location.origin}/staff`} />
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10, paddingLeft: 2 }}>
-          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0, lineHeight: 1.7 }}>
-            <span style={{ fontWeight: 400, color: MUTED }}>Booking page:</span> customers use this to browse services and book appointments.
-          </p>
-          <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 300, color: HINT, margin: 0, lineHeight: 1.7 }}>
-            <span style={{ fontWeight: 400, color: MUTED }}>Staff page:</span> staff enter the key below to view today's appointments.
-          </p>
-        </div>
-      </div>
-
-      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
-
-      <div style={{ display: 'flex', gap: 8 }}>
-        <input
-          type="text"
-          value={key}
-          onChange={(e) => setKey(e.target.value.toUpperCase())}
-          placeholder="e.g. GLOW2024"
-          style={{ flex: 1, ...fieldStyle, fontSize: 16, fontWeight: 400, letterSpacing: '0.2em', textTransform: 'uppercase' }}
-          onFocus={(e) => (e.target.style.borderColor = BURG)}
-          onBlur={(e) => (e.target.style.borderColor = BORDER)}
-        />
-        <button onClick={copy} title="Copy key" style={iconBtn}>
-          {copied ? <Check size={16} color="#2d6a4f" /> : <Copy size={16} />}
-        </button>
-        <button onClick={() => setKey(generateKey())} title="Generate new key" style={iconBtn}>
-          <RefreshCw size={16} />
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <SaveBtn onClick={save} loading={loading} disabled={!key.trim() || key.trim() === currentKey}>
-          Save key
-        </SaveBtn>
-        {saved && <span style={savedSpan}>Saved ✓</span>}
-      </div>
-
-      <div style={{ backgroundColor: OFF_WHITE, border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '14px 18px' }}>
-        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>How to share with staff</p>
-        <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2.2 }}>
-          <li>Send staff the <span style={{ fontWeight: 400, color: TEXT }}>Staff page</span> link above</li>
-          <li>They enter the key: <span style={{ fontFamily: "'Courier New', monospace", color: BURG, fontWeight: 400 }}>{key || '-'}</span></li>
-          <li>Type their name to filter to just their appointments</li>
-        </ol>
-      </div>
-    </div>
-  )
-}
-
 // ── Policy helpers ────────────────────────────────────────────────────────────
 
 function CheckItem({ label, checked, onChange }) {
@@ -632,7 +493,7 @@ function OtherTextInput({ value, onChange }) {
       placeholder="Describe your policy…"
       style={{ ...fieldStyle, marginTop: 8, marginLeft: 26, width: 'calc(100% - 26px)', boxSizing: 'border-box' }}
       onFocus={(e) => (e.target.style.borderColor = BURG)}
-      onBlur={(e) => (e.target.style.borderColor = BORDER)}
+      onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
     />
   )
 }
@@ -814,9 +675,9 @@ function BusinessPoliciesCard({ current, onDirty }) {
                     value={form.lateFeeAmount}
                     onChange={(e) => set('lateFeeAmount', e.target.value)}
                     placeholder="Amount"
-                    style={{ width: 100, padding: '7px 10px', border: `0.5px solid ${BORDER}`, borderRadius: 8, fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+                    style={{ width: 100, padding: '7px 10px', border: '1.5px solid #C9B49C', borderRadius: 8, fontFamily: sans, fontSize: 13, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
                     onFocus={(e) => (e.target.style.borderColor = BURG)}
-                    onBlur={(e) => (e.target.style.borderColor = BORDER)}
+                    onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
                   />
                 </div>
               )}
@@ -920,7 +781,7 @@ function BusinessPoliciesCard({ current, onDirty }) {
             rows={2}
             style={{ ...fieldStyle, resize: 'none' }}
             onFocus={(e) => (e.target.style.borderColor = BURG)}
-            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+            onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
           />
         </div>
 
@@ -945,7 +806,7 @@ function BusinessPoliciesCard({ current, onDirty }) {
             rows={3}
             style={{ ...fieldStyle, resize: 'none' }}
             onFocus={(e) => (e.target.style.borderColor = BURG)}
-            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+            onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
           />
         </div>
       </div>
@@ -964,7 +825,6 @@ const SECTIONS = [
   { key: 'profile',  label: 'Profile' },
   { key: 'location', label: 'Location' },
   { key: 'hours',    label: 'Hours' },
-  { key: 'access',   label: 'Staff access' },
   { key: 'policies', label: 'Policies' },
 ]
 
@@ -1027,7 +887,6 @@ export default function Settings() {
             />
           )}
           {section === 'hours'    && <OpeningHoursCard current={s.openingHours} onDirty={setDirty} />}
-          {section === 'access'   && <StaffKeyCard currentKey={s.staffAccessKey} onDirty={setDirty} />}
           {section === 'policies' && <BusinessPoliciesCard current={s.businessPolicies} onDirty={setDirty} />}
         </div>
       )}

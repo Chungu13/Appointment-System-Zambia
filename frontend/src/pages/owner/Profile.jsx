@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { User, Lock, Camera, Pencil, AlertTriangle, Smartphone } from 'lucide-react'
+import { User, Lock, Camera, Pencil, AlertTriangle, Smartphone, KeyRound, Copy, RefreshCw, Check, ExternalLink } from 'lucide-react'
 import { MY_PROFILE } from '../../graphql/queries/staff'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { UPDATE_MY_PROFILE, CHANGE_PASSWORD } from '../../graphql/mutations/staff'
-import { UPDATE_TENANT_PROFILE, DELETE_TENANT } from '../../graphql/mutations/tenant'
+import { UPDATE_TENANT_PROFILE, DELETE_TENANT, SET_STAFF_ACCESS_KEY } from '../../graphql/mutations/tenant'
 import { useAuth } from '../../context/AuthContext'
 import PageWrapper, { PageHeader } from '../../components/layout/PageWrapper'
 import Input from '../../components/ui/Input'
@@ -293,7 +293,7 @@ function ContactPaymentsCard({ settings, refetchSettings }) {
             <select
               value={payoutNetwork}
               onChange={(e) => setPayoutNetwork(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', border: `0.5px solid ${BORDER}`, borderRadius: 10, background: '#fff', fontFamily: sans, fontSize: 13, color: TEXT, outline: 'none', appearance: 'none' }}
+              style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #C9B49C', borderRadius: 10, background: '#fff', fontFamily: sans, fontSize: 13, color: TEXT, outline: 'none', appearance: 'none' }}
             >
               <option value="">Select network</option>
               <option value="mtn">MTN Money</option>
@@ -475,11 +475,156 @@ function DangerZoneCard() {
   )
 }
 
+// ── Staff access ──────────────────────────────────────────────────────────────
+
+function generateKey() {
+  const words = ['GLOW', 'SALON', 'BEAUTY', 'SHINE', 'STYLE', 'GRACE']
+  const word = words[Math.floor(Math.random() * words.length)]
+  const num = Math.floor(1000 + Math.random() * 9000)
+  return `${word}${num}`
+}
+
+function StaffAccessCard({ currentKey }) {
+  const [key, setKey]       = useState(currentKey || '')
+  const [copied, setCopied] = useState(false)
+  const [saved, setSaved]   = useState(false)
+
+  const [setStaffKey, { loading, error }] = useMutation(SET_STAFF_ACCESS_KEY, {
+    refetchQueries: [SALON_SETTINGS],
+    onCompleted: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
+  })
+
+  function copy() {
+    navigator.clipboard.writeText(key).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  function save() {
+    if (!key.trim()) return
+    setStaffKey({ variables: { key: key.trim() } })
+  }
+
+  const iconBtn = {
+    padding: '0 12px',
+    border: `0.5px solid ${BORDER}`,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    color: MUTED,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+
+  const staffUrl = `${window.location.origin}/staff`
+
+  return (
+    <div style={cardStyle}>
+      <div>
+        <h2 style={headingStyle}>
+          <KeyRound size={17} color={BURG} />
+          Staff access
+        </h2>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
+          Give your team a key to view today&apos;s appointments, and share your storefront link with customers.
+        </p>
+      </div>
+
+      <a
+        href={window.location.origin}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 500, color: BURG, textDecoration: 'none', width: 'fit-content' }}
+      >
+        View your storefront
+        <ExternalLink size={13} />
+      </a>
+
+      {error && <ErrorMessage message={error.graphQLErrors?.[0]?.message ?? 'Could not save.'} />}
+
+      <div>
+        <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, color: TEXT, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Team access key
+        </p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            value={key}
+            onChange={(e) => setKey(e.target.value.toUpperCase())}
+            placeholder="e.g. GLOW2024"
+            style={{ flex: 1, ...fieldStyleInput, fontSize: 16, fontWeight: 400, letterSpacing: '0.2em', textTransform: 'uppercase' }}
+            onFocus={(e) => (e.target.style.borderColor = BURG)}
+            onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
+          />
+          <button onClick={copy} title="Copy key" style={iconBtn}>
+            {copied ? <Check size={16} color="#2d6a4f" /> : <Copy size={16} />}
+          </button>
+          <button onClick={() => setKey(generateKey())} title="Generate new key" style={iconBtn}>
+            <RefreshCw size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button onClick={save} disabled={loading || !key.trim() || key.trim() === currentKey} style={primaryBtn(loading || !key.trim() || key.trim() === currentKey)}>
+          {loading ? 'Saving…' : 'Save key'}
+        </button>
+        {saved && <span style={savedSpan}>Saved ✓</span>}
+      </div>
+
+      <div style={{ backgroundColor: '#FBF7F1', border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '14px 18px' }}>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 400, color: TEXT, margin: '0 0 8px' }}>How your team uses it</p>
+        <ol style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: 0, paddingLeft: 18, lineHeight: 2.2 }}>
+          <li>Send them <span style={{ fontWeight: 400, color: TEXT }}>{staffUrl}</span></li>
+          <li>They enter the key: <span style={{ fontWeight: 500, color: BURG }}>{key || '-'}</span></li>
+          <li>Typing their name filters to just their appointments</li>
+        </ol>
+      </div>
+    </div>
+  )
+}
+
+const fieldStyleInput = {
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '9px 12px',
+  border: '1.5px solid #C9B49C',
+  borderRadius: 10,
+  fontFamily: sans,
+  fontSize: 13,
+  fontWeight: 300,
+  color: TEXT,
+  backgroundColor: '#fff',
+  outline: 'none',
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
+
+const PROFILE_SECTIONS = [
+  { key: 'personal', label: 'Personal' },
+  { key: 'contact',  label: 'Contact & Payments' },
+  { key: 'access',   label: 'Staff Access' },
+  { key: 'security', label: 'Security' },
+  { key: 'danger',   label: 'Danger Zone' },
+]
+
+function profilePill(active) {
+  return {
+    fontFamily: sans, fontSize: 13, fontWeight: 500,
+    padding: '10px 18px', borderRadius: 999, cursor: 'pointer',
+    whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.1s',
+    backgroundColor: active ? BURG : '#fff',
+    color: active ? '#fff' : TEXT,
+    border: active ? 'none' : `0.5px solid ${BORDER}`,
+  }
+}
 
 export default function Profile() {
   const { data, loading, error } = useQuery(MY_PROFILE)
   const { data: settingsData, refetch: refetchSettings } = useQuery(SALON_SETTINGS)
+  const [section, setSection] = useState('personal')
 
   return (
     <PageWrapper>
@@ -489,16 +634,31 @@ export default function Profile() {
       {error && <ErrorMessage message={error.message} />}
 
       {data?.myProfile && (
-        <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <PersonalDetailsCard profile={data.myProfile} />
-          {settingsData?.salonSettings && (
+        <div style={{ maxWidth: 560 }}>
+          <div
+            className="profile-pill-row"
+            style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2, marginBottom: 24 }}
+          >
+            {PROFILE_SECTIONS.map((t) => (
+              <button key={t.key} type="button" onClick={() => setSection(t.key)} style={profilePill(section === t.key)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <style>{`.profile-pill-row::-webkit-scrollbar { display: none; }`}</style>
+
+          {section === 'personal' && <PersonalDetailsCard profile={data.myProfile} />}
+          {section === 'contact' && settingsData?.salonSettings && (
             <ContactPaymentsCard
               settings={settingsData.salonSettings}
               refetchSettings={refetchSettings}
             />
           )}
-          <ChangePasswordCard />
-          <DangerZoneCard />
+          {section === 'access' && settingsData?.salonSettings && (
+            <StaffAccessCard currentKey={settingsData.salonSettings.staffAccessKey} />
+          )}
+          {section === 'security' && <ChangePasswordCard />}
+          {section === 'danger' && <DangerZoneCard />}
         </div>
       )}
     </PageWrapper>
