@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, X, ArrowLeft, Clock, CalendarCheck } from "lucide-react";
+import { MapPin, X, ArrowLeft, Clock, CalendarCheck, Phone } from "lucide-react";
 import BookingWizard from "../../../components/booking/BookingWizard";
 import { useSalonPaths } from "./useSalonPaths";
 import {
@@ -184,6 +184,20 @@ export function HeroExtras({ profile }) {
           <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: DARK }}>{location}</span>
         </div>
       )}
+
+      {profile.phone && (
+        <a
+          href={`tel:${profile.phone}`}
+          style={{
+            display: "flex", alignItems: "center", gap: 9, marginTop: 10,
+            backgroundColor: CREAM, border: `0.5px solid ${BORDER}`,
+            borderRadius: 12, padding: "13px 15px", textDecoration: "none",
+          }}
+        >
+          <Phone size={16} color={DARK} style={{ flexShrink: 0 }} />
+          <span style={{ fontFamily: sans, fontSize: 14, fontWeight: 400, color: DARK }}>{profile.phone}</span>
+        </a>
+      )}
     </>
   );
 }
@@ -264,8 +278,14 @@ export function LocationCard({ profile }) {
             {part}
           </p>
         ))}
+        {profile.phone && (
+          <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.6)", margin: "8px 0 0", lineHeight: 1.6, display: "flex", alignItems: "center", gap: 6 }}>
+            <Phone size={12} color="rgba(255,255,255,0.6)" />
+            {profile.phone}
+          </p>
+        )}
       </div>
-      <div style={{ padding: "0 20px 20px" }}>
+      <div style={{ padding: "0 20px 20px", display: "flex", gap: 8, flexWrap: "wrap" }}>
         <a
           href={mapsUrl}
           target="_blank"
@@ -274,6 +294,14 @@ export function LocationCard({ profile }) {
         >
           <MapPin size={12} /> Get directions
         </a>
+        {profile.phone && (
+          <a
+            href={`tel:${profile.phone}`}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: sans, fontSize: 12, fontWeight: 500, letterSpacing: "0.05em", color: "#fff", border: "0.5px solid rgba(255,255,255,0.32)", padding: "9px 18px", borderRadius: 10, textDecoration: "none" }}
+          >
+            <Phone size={12} /> Call
+          </a>
+        )}
       </div>
     </div>
   );
@@ -306,6 +334,15 @@ export function SalonFooter({ profile }) {
           <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, letterSpacing: "0.06em", textTransform: "uppercase", color: "#fff", margin: 0 }}>
             {profile.businessName}
           </p>
+          {profile.phone && (
+            <a
+              href={`tel:${profile.phone}`}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: sans, fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.7)", textDecoration: "none", marginTop: 10 }}
+            >
+              <Phone size={13} />
+              {profile.phone}
+            </a>
+          )}
         </div>
         <div>
           <p style={{ fontFamily: sans, fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#B4895A", margin: "0 0 12px" }}>Explore</p>

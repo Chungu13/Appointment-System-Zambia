@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { PRIMARY, DARK, sans } from "./theme";
 import { formatZMW } from "../../../lib/utils";
@@ -34,6 +34,42 @@ function ServicePrice({ min, max }) {
   );
 }
 
+function ServiceDescription({ text }) {
+  const [expanded, setExpanded] = useState(false);
+  const [truncated, setTruncated] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el && !expanded) setTruncated(el.scrollHeight > el.clientHeight + 1);
+  }, [text, expanded]);
+
+  return (
+    <div style={{ margin: "0 0 10px" }}>
+      <p
+        ref={ref}
+        style={{
+          fontFamily: sans, fontSize: 13, fontWeight: 300, color: "#888", margin: 0, lineHeight: 1.5,
+          ...(expanded
+            ? {}
+            : { display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }),
+        }}
+      >
+        {text}
+      </p>
+      {(truncated || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, color: PRIMARY, background: "none", border: "none", cursor: "pointer", padding: "2px 0 0" }}
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function StorefrontServiceCard({ svc, imageUrl, onBook }) {
   return (
     <div className="visual-service-card" style={{ display: "flex", flexDirection: "column" }}>
@@ -50,16 +86,7 @@ export default function StorefrontServiceCard({ svc, imageUrl, onBook }) {
         {svc.name}
       </p>
 
-      {svc.description && (
-        <p
-          style={{
-            fontFamily: sans, fontSize: 13, fontWeight: 300, color: "#888", margin: "0 0 10px", lineHeight: 1.5,
-            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-          }}
-        >
-          {svc.description}
-        </p>
-      )}
+      {svc.description && <ServiceDescription text={svc.description} />}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: "auto" }}>
         <div style={{ minWidth: 0 }}>
