@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Camera, X, ChevronDown, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Camera, X, ChevronDown, Trash2, Eye, EyeOff, Pencil } from 'lucide-react'
 import { SERVICES } from '../../graphql/queries/services'
 import { CREATE_SERVICE, UPDATE_SERVICE, TOGGLE_SERVICE, DELETE_SERVICE } from '../../graphql/mutations/services'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
@@ -83,7 +83,7 @@ function StatBox({ label, value, unit, onClick, caret }) {
 }
 
 // ── Service card ──────────────────────────────────────────────────────────────
-function ServiceCard({ service, onSave, onToggle, onDelete }) {
+function ServiceCard({ service, onSave, onToggle, onDelete, onEdit }) {
   const [name, setName] = useState(service.name)
   const [description, setDescription] = useState(service.description || '')
   const [imgError, setImgError] = useState('')
@@ -163,6 +163,14 @@ function ServiceCard({ service, onSave, onToggle, onDelete }) {
         <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
           <button
             type="button"
+            onClick={() => onEdit(service)}
+            title="Edit service"
+            style={{ width: 34, height: 34, borderRadius: 10, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Pencil size={14} color={TEXT} />
+          </button>
+          <button
+            type="button"
             onClick={() => fileRef.current?.click()}
             title="Change photo"
             style={{ width: 34, height: 34, borderRadius: 10, border: `0.5px solid ${BORDER}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -208,19 +216,25 @@ function ServiceCard({ service, onSave, onToggle, onDelete }) {
 
       {/* Figures */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <StatBox label="Duration" value={formatDuration(service.durationMinutes)} />
-        <StatBox label="Price" value={priceLabel(service)} unit="ZMW" />
-        <StatBox label="Deposit" value={Number(service.depositZmw ?? 0)} unit="ZMW" />
+        <StatBox label="Duration" value={formatDuration(service.durationMinutes)} onClick={() => onEdit(service)} caret />
+        <StatBox label="Price" value={priceLabel(service)} unit="ZMW" onClick={() => onEdit(service)} caret />
+        <StatBox label="Deposit" value={Number(service.depositZmw ?? 0)} unit="ZMW" onClick={() => onEdit(service)} caret />
       </div>
     </div>
   )
 }
 
-// ── New service sheet ─────────────────────────────────────────────────────────
-function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creating }) {
+// ── Service sheet (create + edit) ───────────────────────────────────────────────
+function ServiceSheet({ categories, initialCategory, editing, onClose, onSubmit, saving }) {
   const blank = {
-    name: '', category: initialCategory || categories[0] || '', description: '',
-    durationMinutes: '', priceZmw: '', priceMaxZmw: '', depositZmw: '', imageUrl: '',
+    name: editing?.name ?? '',
+    category: editing?.category ?? (initialCategory || categories[0] || ''),
+    description: editing?.description ?? '',
+    durationMinutes: editing?.durationMinutes ?? '',
+    priceZmw: editing?.priceZmw ?? '',
+    priceMaxZmw: editing?.priceMaxZmw ?? '',
+    depositZmw: editing?.depositZmw ?? '',
+    imageUrl: editing?.imageUrl ?? '',
   }
   const [form, setForm] = useState(blank)
   const [error, setError] = useState('')
@@ -243,7 +257,8 @@ function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creat
     // readable message instead of as a database error.
     if (deposit > from) return setError('Deposit cannot be more than the starting price.')
 
-    onCreate({
+    onSubmit({
+      ...(editing ? { id: editing.id } : {}),
       name: form.name.trim(),
       category: form.category,
       description: form.description.trim(),
@@ -275,7 +290,7 @@ function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creat
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 16px', borderBottom: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
-          <h2 style={{ fontFamily: sans, fontSize: 22, fontWeight: 500, color: TEXT, margin: 0 }}>New service</h2>
+          <h2 style={{ fontFamily: sans, fontSize: 22, fontWeight: 500, color: TEXT, margin: 0 }}>{editing ? 'Edit service' : 'New service'}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, lineHeight: 0 }}>
             <X size={20} color={MUTED} />
           </button>
@@ -396,15 +411,15 @@ function NewServiceSheet({ categories, initialCategory, onClose, onCreate, creat
         <div style={{ padding: 20, borderTop: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
           <button
             onClick={submit}
-            disabled={creating}
+            disabled={saving}
             style={{
               width: '100%', fontFamily: sans, fontSize: 14, fontWeight: 600,
               padding: '15px 0', borderRadius: 12, border: 'none',
               backgroundColor: BURG, color: '#fff',
-              cursor: creating ? 'default' : 'pointer', opacity: creating ? 0.6 : 1,
+              cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
             }}
           >
-            {creating ? 'Adding…' : 'Add service'}
+            {saving ? 'Saving…' : editing ? 'Save changes' : 'Add service'}
           </button>
         </div>
       </div>
@@ -450,13 +465,14 @@ export default function Services() {
 
   const [selected, setSelected] = useState(null)
   const [showSheet, setShowSheet] = useState(false)
+  const [editingService, setEditingService] = useState(null)
 
   // Default to the first category, and recover if the selected one disappears.
   const active = selected && categories.includes(selected) ? selected : (categories[0] ?? null)
 
   const refetchOpts = [{ query: SERVICES, variables: { activeOnly: false } }]
   const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, { refetchQueries: refetchOpts })
-  const [updateService] = useMutation(UPDATE_SERVICE, { refetchQueries: refetchOpts })
+  const [updateService, { loading: savingEdit }] = useMutation(UPDATE_SERVICE, { refetchQueries: refetchOpts })
   const [toggleService] = useMutation(TOGGLE_SERVICE, { refetchQueries: refetchOpts })
   const [deleteService] = useMutation(DELETE_SERVICE, { refetchQueries: refetchOpts })
   const [deleteError, setDeleteError] = useState('')
@@ -474,11 +490,18 @@ export default function Services() {
   const uncategorised = allServices.filter((s) => !s.category)
   const shown = active === '__none' ? uncategorised : allServices.filter((s) => s.category === active)
 
-  function handleCreate(vars) {
-    createService({
-      variables: vars,
-      onCompleted: () => { setShowSheet(false); setSelected(vars.category) },
-    })
+  function handleSheetSubmit(vars) {
+    if (vars.id != null) {
+      updateService({
+        variables: vars,
+        onCompleted: () => { setEditingService(null); setSelected(vars.category) },
+      })
+    } else {
+      createService({
+        variables: vars,
+        onCompleted: () => { setShowSheet(false); setSelected(vars.category) },
+      })
+    }
   }
 
   return (
@@ -550,6 +573,7 @@ export default function Services() {
               onSave={(vars) => updateService({ variables: vars })}
               onToggle={(id) => toggleService({ variables: { id } })}
               onDelete={handleDelete}
+              onEdit={setEditingService}
             />
           ))}
 
@@ -568,12 +592,22 @@ export default function Services() {
       )}
 
       {showSheet && (
-        <NewServiceSheet
+        <ServiceSheet
           categories={categories}
           initialCategory={active === '__none' ? null : active}
           onClose={() => setShowSheet(false)}
-          onCreate={handleCreate}
-          creating={creating}
+          onSubmit={handleSheetSubmit}
+          saving={creating}
+        />
+      )}
+
+      {editingService && (
+        <ServiceSheet
+          categories={categories}
+          editing={editingService}
+          onClose={() => setEditingService(null)}
+          onSubmit={handleSheetSubmit}
+          saving={savingEdit}
         />
       )}
     </PageWrapper>
