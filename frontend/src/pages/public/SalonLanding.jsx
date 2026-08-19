@@ -5,7 +5,7 @@ import { PageBanner, HeroExtras, SectionHeading, HoursCard, LocationCard, SalonF
 import StorefrontServiceCard from "./salon/StorefrontServiceCard";
 import { useSalonProfile } from "./salon/useSalonProfile";
 import { useChatFab } from "./salon/useChatFab";
-import { PRIMARY, BORDER, TYPE_LABELS, sans, imageForService } from "./salon/theme";
+import { PRIMARY, BORDER, TYPE_LABELS, sans, imageForService, hasRealImage } from "./salon/theme";
 
 function ServicesSection({ services, portfolioImages, businessType, onBook }) {
   const [active, setActive] = useState("All");
@@ -148,7 +148,7 @@ export default function SalonLanding() {
       </PageBanner>
 
       <ServicesSection
-        services={profile.services.filter((s) => s.isActive)}
+        services={profile.services.filter((s) => s.isActive && hasRealImage(s, profile.portfolioImages))}
         portfolioImages={profile.portfolioImages}
         businessType={profile.businessType}
         onBook={chat.openChat}

@@ -4,7 +4,7 @@ import { PageBanner, SalonFooter, ChatFab, CHROME_STYLE } from "./salon/SalonChr
 import StorefrontServiceCard from "./salon/StorefrontServiceCard";
 import { useSalonProfile } from "./salon/useSalonProfile";
 import { useChatFab } from "./salon/useChatFab";
-import { PRIMARY, BORDER, sans, imageForService } from "./salon/theme";
+import { PRIMARY, BORDER, sans, imageForService, hasRealImage } from "./salon/theme";
 
 export default function SalonServices() {
   const { profile, screen } = useSalonProfile();
@@ -13,7 +13,9 @@ export default function SalonServices() {
 
   if (screen) return screen;
 
-  const services = profile.services.filter((s) => s.isActive);
+  const services = profile.services.filter(
+    (s) => s.isActive && hasRealImage(s, profile.portfolioImages),
+  );
   const categories = ["All", ...Array.from(new Set(services.map((s) => s.category || "Services")))];
   const filtered = active === "All" ? services : services.filter((s) => (s.category || "Services") === active);
 

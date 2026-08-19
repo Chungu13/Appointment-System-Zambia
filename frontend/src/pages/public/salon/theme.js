@@ -56,6 +56,17 @@ export function bannerFor(profile) {
   return DEFAULT_BANNERS[profile.businessType] ?? DEFAULT_BANNERS._fallback;
 }
 
+// True once a service has its own photo, or a portfolio photo tagged to it —
+// i.e. imageForService would return something other than the stock fallback.
+// Storefront listings use this to hide services still showing a generic
+// stock photo rather than misrepresent them as photographed.
+export function hasRealImage(svc, portfolioImages) {
+  if (svc.imageUrl) return true;
+  return portfolioImages.some(
+    (img) => img.serviceName && img.serviceName.toLowerCase() === svc.name.toLowerCase(),
+  );
+}
+
 // A service's own uploaded photo wins; then a portfolio photo tagged to
 // this service; otherwise fall back to the same business-type stock photo
 // already used for the banner.

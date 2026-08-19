@@ -287,9 +287,9 @@ function ProfileTab({ member }) {
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             placeholder="e.g. 5 years experience in braiding and natural hair"
-            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: `0.5px solid ${BORDER}`, borderRadius: 8, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', resize: 'none', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: '1.5px solid #C9B49C', borderRadius: 8, fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', resize: 'none', outline: 'none' }}
             onFocus={(e) => (e.target.style.borderColor = BURG)}
-            onBlur={(e) => (e.target.style.borderColor = BORDER)}
+            onBlur={(e) => (e.target.style.borderColor = '#C9B49C')}
           />
         </div>
       </div>
@@ -536,7 +536,7 @@ function HoursTab({ member, allMembers, businessHours }) {
 }
 
 // Custom time input component
-function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, opens, closes, gridTimes, sans, TEXT, BORDER, BURG, MUTED, HINT }) {
+function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, opens, closes, gridTimes, sans, TEXT, BURG, MUTED, HINT }) {
   const [customTime, setCustomTime] = useState('')
   const [error, setError] = useState('')
   // Anything the owner added that isn't one of this day's grid pills.
@@ -569,7 +569,7 @@ function CustomTimeAdder({ dayOfWeek, existingTimes, onAdd, onRemove, opens, clo
           onChange={(e) => setCustomTime(e.target.value)}
           style={{
             flex: 1,
-            border: `0.5px solid ${BORDER}`,
+            border: '1.5px solid #C9B49C',
             borderRadius: 6,
             padding: '6px 8px',
             fontFamily: sans,
@@ -776,7 +776,7 @@ function AvailableTimesTab({ member }) {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
+          style={{ border: '1.5px solid #C9B49C', borderRadius: 10, padding: '8px 12px', fontFamily: sans, fontSize: 12, fontWeight: 300, color: TEXT, backgroundColor: '#fff', outline: 'none' }}
         />
       </div>
 
