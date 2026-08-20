@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Check, Camera, X, FileText, MapPin, Clock } from 'lucide-react'
+import { Check, Camera, X, FileText, MapPin, Clock, Link2, Copy, MessageCircle } from 'lucide-react'
 import { SALON_SETTINGS } from '../../graphql/queries/tenant'
 import { UPDATE_TENANT_PROFILE, UPDATE_BUSINESS_POLICIES, UPDATE_OPENING_HOURS } from '../../graphql/mutations/tenant'
 import { CITIES, LUSAKA_AREAS } from '../../lib/locations'
@@ -819,12 +819,84 @@ function BusinessPoliciesCard({ current, onDirty }) {
   )
 }
 
+// ── Storefront link ─────────────────────────────────────────────────────────
+
+function StorefrontLinkCard({ businessName }) {
+  const [copied, setCopied] = useState(false)
+  const url = window.location.origin
+
+  function copy() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  const shareText = `Book your appointment at ${businessName || 'us'} here: ${url}`
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`
+
+  return (
+    <div style={cardStyle}>
+      <div>
+        <h2 style={headingStyle}>
+          <Link2 size={18} color={BURG} />
+          Your storefront link
+        </h2>
+        <p style={{ fontFamily: sans, fontSize: 12, fontWeight: 300, color: MUTED, margin: '6px 0 0' }}>
+          Share this link in your bio or send it to clients so they can book you.
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div
+          style={{
+            flex: 1, minWidth: 0, ...fieldStyle,
+            display: 'flex', alignItems: 'center',
+            color: TEXT, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            backgroundColor: BLUSH,
+          }}
+        >
+          {url}
+        </div>
+        <button
+          onClick={copy}
+          style={{
+            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+            padding: '0 18px', border: 'none', borderRadius: 10,
+            backgroundColor: copied ? '#2d6a4f' : BURG, color: '#fff',
+            fontFamily: sans, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            transition: 'background-color 0.15s',
+          }}
+        >
+          {copied ? <Check size={15} /> : <Copy size={15} />}
+          {copied ? 'Copied!' : 'Copy link'}
+        </button>
+      </div>
+
+      <a
+        href={whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          padding: '11px 0', borderRadius: 10, backgroundColor: '#25D366', color: '#fff',
+          fontFamily: sans, fontSize: 13, fontWeight: 500, textDecoration: 'none', width: 'fit-content', minWidth: 220,
+        }}
+      >
+        <MessageCircle size={16} />
+        Share on WhatsApp
+      </a>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const SECTIONS = [
   { key: 'profile',  label: 'Profile' },
   { key: 'location', label: 'Location' },
   { key: 'hours',    label: 'Hours' },
+  { key: 'link',     label: 'Storefront Link' },
   { key: 'policies', label: 'Policies' },
 ]
 
@@ -887,6 +959,7 @@ export default function Settings() {
             />
           )}
           {section === 'hours'    && <OpeningHoursCard current={s.openingHours} onDirty={setDirty} />}
+          {section === 'link'     && <StorefrontLinkCard businessName={s.businessName} />}
           {section === 'policies' && <BusinessPoliciesCard current={s.businessPolicies} onDirty={setDirty} />}
         </div>
       )}

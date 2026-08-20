@@ -605,7 +605,8 @@ const fieldStyleInput = {
 const PROFILE_SECTIONS = [
   { key: 'personal', label: 'Personal' },
   { key: 'contact',  label: 'Contact & Payments' },
-  { key: 'access',   label: 'Staff Access' },
+  // 'access' (Staff Access) hidden for now — bringing it back later.
+  // StaffAccessCard and its render branch below are left in place.
   { key: 'security', label: 'Security' },
   { key: 'danger',   label: 'Danger Zone' },
 ]
