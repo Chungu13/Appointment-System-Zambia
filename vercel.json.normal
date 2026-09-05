@@ -5,6 +5,6 @@
   "framework": null,
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/maintenance.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
